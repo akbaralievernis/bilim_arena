@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ky">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <title>Фокус Дуэль — Билим Арена</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body data-theme="dark">
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">FD</div>
+        <div class="brandText">
+          <div class="title">Фокус Дуэль</div>
+          <div class="subtitle">Немис тилин тез үйрөнүү</div>
+        </div>
+      </div>
+
+      <div class="topActions">
+        <button class="iconBtn" id="btnTheme" title="Теманы алмаштыруу">🌓</button>
+        <button class="iconBtn" id="btnReset" title="Матчты башынан баштоо">↺</button>
+        <button class="iconBtn" id="btnTeacher" title="Мугалим режими">🧑‍🏫</button>
+        <button class="iconBtn" id="btnOpenSetup" title="Орнотуулар">⚙️</button>
+        <a class="btn small" href="../../index.html" title="Артка">← Артка</a>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="arena">
+        <div class="arenaTop">
+          <div class="pill" id="pillMode">ДУЭЛЬ</div>
+          <div class="pill" id="pillLevel">BASIC</div>
+          <div class="pill" id="pillSet">Базалык топтом</div>
+
+          <div class="turn" id="turnInfo">Кезек: —</div>
+
+          <div class="hudRight">
+            <div class="timeBox">
+              <div class="muted small">Убакыт</div>
+              <div class="timeLeft" id="timeLeft">0.0</div>
+            </div>
+
+            <div class="progress">
+              <div class="progressFill" id="progressFill"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qPrompt" id="qPrompt">Баштоо үчүн «Старт» баскычын басыңыз</div>
+          <div class="qHint" id="qHint"></div>
+        </div>
+
+        <!-- SOLO ANSWERS -->
+        <div class="answers" id="answers"></div>
+
+        <!-- DUEL ANSWERS -->
+        <div class="duelGrid" id="duelGrid">
+          <div class="side">
+            <div class="sideTop">
+              <div class="team">
+                <div class="teamName" id="teamA">Команда A</div>
+                <div class="meta" id="metaA">серия: <span id="streakA">0</span></div>
+              </div>
+              <div class="score" id="scoreA">0</div>
+            </div>
+            <div class="choices" id="choicesA"></div>
+            <div class="sideMsg" id="msgA"></div>
+          </div>
+
+          <div class="vs">VS</div>
+
+          <div class="side">
+            <div class="sideTop">
+              <div class="team">
+                <div class="teamName" id="teamB">Команда B</div>
+                <div class="meta" id="metaB">серия: <span id="streakB">0</span></div>
+              </div>
+              <div class="score" id="scoreB">0</div>
+            </div>
+            <div class="choices" id="choicesB"></div>
+            <div class="sideMsg" id="msgB"></div>
+          </div>
+        </div>
+
+        <div class="statusRow">
+          <div class="pill" id="badgeInfo">Даяр</div>
+          <div class="status" id="status"></div>
+          <div class="roundBox">
+            <span class="muted">Раунд:</span>
+            <span class="roundNum" id="roundNum">0</span>
+            <span class="muted">/</span>
+            <span id="roundsMax">10</span>
+          </div>
+        </div>
+
+        <div class="row right">
+            <button class="btn primary" id="btnStartNow">СТАРТ</button>
+            <button class="btn" id="btnOpenSetup2">Орнотуулар</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- SETUP MODAL -->
+    <div class="modal" id="setupModal">
+      <div class="backdrop" id="setupBackdrop"></div>
+      <div class="modalCard">
+        <div class="modalHead">
+          <div class="modalTitle">Орнотуулар</div>
+          <button class="iconBtn" id="btnCloseSetup">✕</button>
+        </div>
+        <div class="modalBody" id="setupBody">
+          <div class="grid2">
+            <div class="field">
+              <label>Оюн режими</label>
+              <select id="selMode">
+                <option value="duel">Дуэль</option>
+                <option value="solo">Соло</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Деңгээли</label>
+              <select id="selLevel">
+                <option value="basic">Basic (Базалык)</option>
+                <option value="hard">Hard (Кыйын)</option>
+                <option value="expert">Expert (Эксперт)</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Убакыт (сек)</label>
+              <input id="inpTime" type="number" min="3" max="30" value="8" />
+            </div>
+
+            <div class="field">
+              <label>Раунддардын саны</label>
+              <input id="inpRounds" type="number" min="1" max="100" value="10" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Тема</label>
+            <select id="selTopic">
+              <option value="all">Баары</option>
+            </select>
+          </div>
+
+          <div class="sep teacherOnly"></div>
+
+          <div class="field teacherOnly">
+            <label>Топтом (Set)</label>
+            <div class="row">
+              <select id="selSet" class="grow"></select>
+              <button class="btn small" id="btnNewSet">Жаңы</button>
+              <button class="btn small danger" id="btnDeleteSet">Өчүрүү</button>
+            </div>
+          </div>
+          
+          <div class="field teacherOnly">
+              <label>Жаңы суроо кошуу</label>
+              <div class="grid2">
+                  <input id="edMain" type="text" placeholder="Сөз/Фраза" />
+                  <input id="edCorrect" type="text" placeholder="Туура жооп" />
+              </div>
+              <input id="edOptions" type="text" placeholder="Варианттар (үтүр менен)" style="margin-top:0.5rem;" />
+              <button class="btn primary small" id="btnAdd" style="margin-top:0.5rem;">Кошуу</button>
+          </div>
+        </div>
+        <div class="modalFoot">
+          <button class="btn" id="btnOnlyConfirm">Сактоо</button>
+          <button class="btn primary" id="btnConfirmStart">Баштоо</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DRAWER EDITOR (Advanced) -->
+    <aside class="drawer" id="drawer">
+      <div class="drawerHead">
+        <div class="drawerTitle">Суроолор редактору</div>
+        <button class="iconBtn" id="btnCloseEditor">✕</button>
+      </div>
+      <div class="drawerBody">
+        <div id="edList" class="edList"></div>
+        <div class="sep"></div>
+        <div class="field">
+          <label>Импорт/Экспорт (JSON)</label>
+          <textarea id="ioBox" rows="6" placeholder='[...]'></textarea>
+        </div>
+        <div class="row">
+          <button class="btn small" id="btnExport">Экспорт</button>
+          <button class="btn small primary" id="btnImport">Импорт</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- WIN MODAL -->
+    <div class="modal" id="winModal">
+      <div class="backdrop" id="winBackdrop"></div>
+      <div class="modalCard win">
+        <div class="winBadge">🏆</div>
+        <div class="winTitle" id="winTitle">Азаматсыз!</div>
+        <div class="winSub" id="winSub">Оюн аяктады</div>
+        <div class="row right">
+          <button class="btn primary" id="btnPlayAgain">Кайра ойноо</button>
+          <button class="btn" id="btnCloseWin">Жабуу</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast hidden" id="toast"></div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="focus-duel.js"></script>
+</body>
+</html>

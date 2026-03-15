@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ky">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <title>Ашыкчаны Тап — Билим Арена</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body class="theme-dark">
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">BA</div>
+        <div class="brandText">
+          <div class="title">Ашыкчаны Тап</div>
+          <div class="subtitle" id="subtitle">Кунт коюу жана концентрация</div>
+        </div>
+      </div>
+
+      <div class="topActions">
+        <a class="btn" href="../../index.html" title="Артка">← Башкы бет</a>
+      </div>
+    </header>
+
+    <main class="main">
+      <!-- START SCREEN -->
+      <section class="panel" id="screenStart">
+        <div class="panelHeader">
+          <h1 class="h1">Режимди тандаңыз</h1>
+          <p class="p">
+            Ар бир раундда <b>бир "ашыкча"</b> бар. <b>Туура келбегенине</b> басыңыз.
+          </p>
+        </div>
+
+        <div class="grid2">
+          <!-- Single Mode -->
+          <div class="cardChoice">
+            <div class="cardChoiceTop">
+              <div class="badge">Жеке оюн</div>
+              <h2 class="h2">Бир оюнчу</h2>
+              <p class="p small">Карточкалар чоң жана ыңгайлуу. Сенсордук экрандар үчүн мыкты.</p>
+            </div>
+
+            <div class="choiceControls">
+              <label class="field">
+                <span>Мазмуну</span>
+                <select id="selTypeSingle">
+                  <option value="text">Сөздөр</option>
+                  <option value="image">Сүрөттөр</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span>Тест</span>
+                <select id="selTestSingle"></select>
+              </label>
+
+              <label class="field">
+                <span>Раунддар</span>
+                <input id="inpRoundsSingle" type="number" min="5" max="60" value="12" />
+              </label>
+            </div>
+
+            <button class="btn primary full" id="btnStartSingle" type="button">БАШТОО</button>
+          </div>
+
+          <!-- Teams Mode -->
+          <div class="cardChoice">
+            <div class="cardChoiceTop">
+              <div class="badge">Командалык оюн</div>
+              <h2 class="h2">Эки команда</h2>
+              <p class="p small">Экран экиге бөлүнөт. Эки команда тең жооп бергенден кийин раунд алмашат.</p>
+            </div>
+
+            <div class="choiceControls">
+              <label class="field">
+                <span>Мазмуну</span>
+                <select id="selTypeTeams">
+                  <option value="text">Сөздөр</option>
+                  <option value="image">Сүрөттөр</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span>Тест</span>
+                <select id="selTestTeams"></select>
+              </label>
+
+              <label class="field">
+                <span>Раунддар</span>
+                <input id="inpRoundsTeams" type="number" min="5" max="60" value="12" />
+              </label>
+
+              <label class="field">
+                <span>Таймер (сек)</span>
+                <input id="inpTimeTeams" type="number" min="5" max="30" value="10" />
+              </label>
+            </div>
+
+            <button class="btn primary full" id="btnStartTeams" type="button">БАШТОО</button>
+          </div>
+        </div>
+
+        <!-- Teacher Editor -->
+        <details class="panelDetails">
+          <summary>🧑‍🏫 Мугалим үчүн (тест редактору)</summary>
+          <div class="editor">
+            <div class="editorTop">
+              <label class="field">
+                <span>Тип</span>
+                <select id="editorType">
+                  <option value="text">Сөздөр</option>
+                  <option value="image">Сүрөттөр (URL)</option>
+                </select>
+              </label>
+              <label class="field grow">
+                <span>Тесттин аталышы</span>
+                <input id="editorTitle" type="text" placeholder="Мисалы: Жаныбарлар" />
+              </label>
+              <button class="btn primary" id="btnSaveTest" type="button">💾 Сактоо</button>
+            </div>
+
+            <div class="editorHint" id="editorHint">Формат: 4 элементти үтүр менен бөлүңүз. Бирөөнүн алдына жылдызча * коюңуз.</div>
+
+            <div class="editorGrid">
+              <textarea id="editorText" placeholder="Мисалы:
+алыш, күрөш, эр эңиш, *футбол
+ит, мышык, *тоок, карышкыр"></textarea>
+
+              <div class="previewBox" id="previewBox">
+                <div class="hint">Алдын ала көрүү бул жерде болот...</div>
+              </div>
+            </div>
+
+            <div class="savedBox">
+              <div class="savedHead">
+                <div class="savedTitle">Сакталган тесттер</div>
+                <button class="btn small danger" id="btnDeleteAll" type="button">🗑 Баарын өчүрүү</button>
+              </div>
+              <div class="savedList" id="savedList"></div>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <!-- GAME SCREEN -->
+      <section class="panel hidden" id="screenGame">
+        <div class="gameTop">
+          <div class="pill">Раунд: <span id="roundNow">1</span> / <span id="roundMax">12</span></div>
+          <div class="pill">Упай: <span id="scoreNow">0</span></div>
+          <div class="pill" id="pillTime" hidden>⏱ <span id="timeNow">10</span></div>
+          <div class="grow"></div>
+          <button class="btn" id="btnBackToMenu" type="button">⚙️ Меню</button>
+        </div>
+
+        <div class="singleWrap" id="singleWrap">
+          <div class="gridCards" id="gridSingle"></div>
+        </div>
+
+        <div class="teamsWrap hidden" id="teamsWrap">
+          <!-- Team A -->
+          <div class="teamCol">
+            <div class="teamHead a">
+              <span>Команда A</span>
+              <span class="mini">Упай: <span id="scoreA">0</span></span>
+            </div>
+            <div class="gridCards" id="gridA"></div>
+            <div class="rowBetween">
+              <button class="btn small" id="btnSkipA" type="button">Өткөрүү A</button>
+              <span class="mini" id="statusA">Күтүү</span>
+            </div>
+          </div>
+
+          <!-- Team B -->
+          <div class="teamCol">
+            <div class="teamHead b">
+              <span>Команда B</span>
+              <span class="mini">Упай: <span id="scoreB">0</span></span>
+            </div>
+            <div class="gridCards" id="gridB"></div>
+            <div class="rowBetween">
+              <button class="btn small" id="btnSkipB" type="button">Өткөрүү B</button>
+              <span class="mini" id="statusB">Күтүү</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- END SCREEN -->
+      <section class="panel hidden" id="screenEnd">
+        <div class="panelHeader" style="text-align: center;">
+          <h2 class="h1" id="endTitle">Оюн бүттү!</h2>
+          <p class="p" id="endSubtitle">Жыйынтыктар</p>
+        </div>
+        <div class="statsGrid" id="endStats" style="margin: 2rem 0;"></div>
+        <div class="rowBetween" style="justify-content: center; gap: 1rem;">
+          <button class="btn primary" id="btnPlayAgain" type="button">Кайра ойнотуу</button>
+          <button class="btn" id="btnToStart" type="button">Башкы бетке</button>
+        </div>
+      </section>
+    </main>
+
+    <div class="toast hidden" id="toast"></div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

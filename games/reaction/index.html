@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Игра на реакцию: Падающие стержни</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #050505;
+            font-family: 'Courier New', Courier, monospace; /* Аркадный стиль шрифта */
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #bg-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+            /* Легкое затемнение видео для контраста интерфейса */
+            filter: brightness(0.6);
+            transform: scaleX(-1); /* Зеркально для веб-камеры */
+        }
+
+        #game-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        #ui-overlay {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            color: #00ffcc;
+            text-align: center;
+            background: rgba(0, 20, 10, 0.8);
+            padding: 15px 30px;
+            border: 2px solid #00ffcc;
+            border-radius: 10px;
+            box-shadow: 0 0 15px #00ffcc;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+        
+        #game-over {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            background: rgba(0, 0, 0, 0.9);
+            border: 4px solid #ff0055;
+            padding: 40px;
+            text-align: center;
+            color: white;
+            border-radius: 20px;
+            box-shadow: 0 0 30px #ff0055;
+        }
+
+        button {
+            background: #ff0055;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            margin-top: 20px;
+            cursor: pointer;
+            border-radius: 10px;
+            font-family: inherit;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px #ff0055;
+            transition: 0.2s;
+            pointer-events: auto;
+        }
+
+        button:hover {
+            background: #ff3377;
+            transform: scale(1.05);
+        }
+    </style>
+    
+    <!-- MediaPipe -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <div id="game-container">
+        <video id="bg-video" autoplay playsinline muted></video>
+        <canvas id="game-canvas"></canvas>
+
+        <div id="ui-overlay">
+            Загрузка нейросети и камеры...<br>
+            <span style="font-size: 0.8rem; color: #888;">Разрешите доступ к веб-камере</span>
+        </div>
+
+        <div id="game-over">
+            <h1 style="color: #ff0055; margin-top: 0; font-size: 3rem;">ИГРА ОКОНЧЕНА</h1>
+            <h2>Твой счет: <span id="final-score">0</span></h2>
+            <button onclick="restartGame()">Играть снова</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const uiOverlay = document.getElementById('ui-overlay');
+        const gameOverScreen = document.getElementById('game-over');
+        const finalScoreSpan = document.getElementById('final-score');
+
+        // Настройки игры
+        const NUM_STICKS = 8;
+        const STICK_WIDTH = 24;
+        const STICK_HEIGHT = 160;
+        
+        let gameState = {
+            isRunning: false,
+            score: 0,
+            lives: 3,
+            effects: [],
+            lastDropTime: 0,
+            dropInterval: 2000, // Начальный интервал сброса (мс)
+            baseSpeed: 10 // Скорость падения
+        };
+
+        let sticks = [];
+
+        const hand = {
+            x: -100, y: -100,
+            radius: 30,
+            isVisible: false
+        };
+
+        // ==========================================
+        // ИНИЦИАЛИЗАЦИЯ И РЕСАЙЗ
+        // ==========================================
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initSticks(); // Пересчитываем позиции при изменении экрана
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // Расчет стартовой позиции стержней по дуге
+        function getRackY(x) {
+            // Формула параболы, чтобы создать эффект изогнутой конструкции (как на фото)
+            // Центр ниже, края выше
+            const normalizedX = (x / canvas.width) * 2 - 1; // от -1 до 1
+            const curveDepth = 60; // Насколько края выше центра
+            const baseHeight = 150; // Высота центральной точки от верха экрана
+            return baseHeight - (normalizedX * normalizedX * curveDepth);
+        }
+
+        function initSticks() {
+            sticks = [];
+            // Распределяем стержни равномерно с отступами по краям
+            const padding = canvas.width * 0.15; 
+            const usableWidth = canvas.width - (padding * 2);
+            const spacing = usableWidth / (NUM_STICKS - 1);
+
+            for (let i = 0; i < NUM_STICKS; i++) {
+                const x = padding + (i * spacing);
+                const startY = getRackY(x);
+                sticks.push({
+                    id: i,
+                    x: x,
+                    baseY: startY,
+                    currentY: startY,
+                    width: STICK_WIDTH,
+                    height: STICK_HEIGHT,
+                    isFalling: false,
+                    isCaught: false
+                });
+            }
+        }
+
+        function restartGame() {
+            gameState.score = 0;
+            gameState.lives = 3;
+            gameState.dropInterval = 2000;
+            gameState.baseSpeed = 10;
+            gameState.isRunning = true;
+            gameState.effects = [];
+            gameState.lastDropTime = performance.now();
+            initSticks();
+            
+            gameOverScreen.style.display = 'none';
+        }
+
+        // ==========================================
+        // ОТРИСОВКА (ГРАФИКА)
+        // ==========================================
+
+        function drawArcadeMachine() {
+            ctx.save();
+            
+            // Рисуем верхнюю направляющую балку
+            ctx.beginPath();
+            ctx.lineWidth = 40;
+            ctx.strokeStyle = '#1a1a1a'; // Темный металл
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            // Кривая линия, соединяющая верхние точки стержней
+            ctx.moveTo(sticks[0].x - 40, getRackY(sticks[0].x - 40));
+            // Аппроксимация дуги по точкам стержней
+            for (let i = 0; i < NUM_STICKS; i++) {
+                ctx.lineTo(sticks[i].x, sticks[i].baseY);
+            }
+            ctx.lineTo(sticks[NUM_STICKS-1].x + 40, getRackY(sticks[NUM_STICKS-1].x + 40));
+            ctx.stroke();
+
+            // Внутренняя светлая полоса балки
+            ctx.lineWidth = 15;
+            ctx.strokeStyle = '#2a2a2a';
+            ctx.stroke();
+
+            // Рисуем зеленые светодиоды (как на картинке Epark)
+            const numLeds = 30;
+            const startX = sticks[0].x - 20;
+            const endX = sticks[NUM_STICKS-1].x + 20;
+            
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#00ff00';
+            ctx.fillStyle = '#ccffcc';
+            
+            for(let i = 0; i <= numLeds; i++) {
+                const lx = startX + (endX - startX) * (i / numLeds);
+                const ly = getRackY(lx);
+                
+                ctx.beginPath();
+                ctx.arc(lx, ly, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        function drawSticks() {
+            for (let s of sticks) {
+                ctx.save();
+                
+                // Тень стержня
+                ctx.shadowBlur = 15;
+                
+                if (s.isFalling) {
+                    // Падающий стержень (опасный/активный - красный или неоновый)
+                    ctx.shadowColor = '#ff0055';
+                    ctx.fillStyle = '#ffcccc';
+                    // Сердцевина
+                    ctx.beginPath();
+                    ctx.roundRect(s.x - s.width / 2, s.currentY, s.width, s.height, s.width / 2);
+                    ctx.fill();
+                    // Свечение
+                    ctx.fillStyle = 'rgba(255, 0, 85, 0.8)';
+                    ctx.roundRect(s.x - s.width / 2, s.currentY, s.width, s.height, s.width / 2);
+                    ctx.fill();
+                } else if (!s.isCaught) {
+                    // Висящий в ожидании стержень (темный металл, как на фото)
+                    ctx.shadowColor = '#000000';
+                    ctx.shadowBlur = 5;
+                    ctx.fillStyle = '#444'; // Темно-серый
+                    
+                    // Градиент для имитации цилиндра
+                    let grad = ctx.createLinearGradient(s.x - s.width/2, 0, s.x + s.width/2, 0);
+                    grad.addColorStop(0, '#222');
+                    grad.addColorStop(0.5, '#666');
+                    grad.addColorStop(1, '#222');
+                    ctx.fillStyle = grad;
+
+                    ctx.beginPath();
+                    ctx.roundRect(s.x - s.width / 2, s.currentY, s.width, s.height, 5);
+                    ctx.fill();
+
+                    // Маленький красный огонек готовности на конце стержня
+                    ctx.shadowColor = '#ff0000';
+                    ctx.fillStyle = '#ff0000';
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.currentY + s.height - 10, 3, 0, Math.PI*2);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        function drawHand() {
+            if (!hand.isVisible) return;
+            
+            ctx.save();
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#00ffcc';
+            ctx.strokeStyle = '#00ffcc';
+            ctx.lineWidth = 4;
+
+            // Прицел
+            ctx.beginPath();
+            ctx.arc(hand.x, hand.y, hand.radius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Внутренняя точка
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(hand.x, hand.y, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawEffects() {
+            for (let i = gameState.effects.length - 1; i >= 0; i--) {
+                let effect = gameState.effects[i];
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = effect.color.replace('ALPHA', effect.alpha);
+                ctx.lineWidth = 6;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = effect.color.replace('ALPHA', 1);
+                ctx.stroke();
+                ctx.restore();
+
+                effect.radius += 8;
+                effect.alpha -= 0.04;
+                if (effect.alpha <= 0) gameState.effects.splice(i, 1);
+            }
+        }
+
+        function drawDigitalUI() {
+            ctx.save();
+            ctx.shadowBlur = 10;
+            
+            // Отрисовка Счета (Стиль цифрового табло в центре)
+            ctx.font = 'bold 40px "Courier New", monospace';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = '#00ff00';
+            ctx.fillStyle = '#ccffcc';
+            ctx.fillText(`СЧЕТ: ${gameState.score.toString().padStart(3, '0')}`, canvas.width / 2, 80);
+
+            // Отрисовка Жизней
+            ctx.textAlign = 'right';
+            ctx.shadowColor = '#ff0055';
+            ctx.fillStyle = '#ffcccc';
+            let livesText = "";
+            for(let i=0; i<gameState.lives; i++) livesText += "❤️ ";
+            ctx.fillText(livesText, canvas.width - 40, 80);
+
+            ctx.restore();
+        }
+
+        function spawnEffect(x, y, type) {
+            const color = type === 'catch' ? 'rgba(0, 255, 204, ALPHA)' : 'rgba(255, 0, 85, ALPHA)';
+            gameState.effects.push({ x, y, radius: 10, alpha: 1, color });
+        }
+
+
+        // ==========================================
+        // ИГРОВАЯ ЛОГИКА
+        // ==========================================
+        function updateLogic(timestamp) {
+            if (!gameState.isRunning) return;
+
+            // 1. Механизм случайного сброса стержней
+            if (timestamp - gameState.lastDropTime > gameState.dropInterval) {
+                // Найти все висящие стержни
+                const availableSticks = sticks.filter(s => !s.isFalling);
+                
+                if (availableSticks.length > 0) {
+                    // Выбираем случайный
+                    const randomStick = availableSticks[Math.floor(Math.random() * availableSticks.length)];
+                    randomStick.isFalling = true;
+                    
+                    // Обновляем таймер
+                    gameState.lastDropTime = timestamp;
+                    
+                    // Постепенно усложняем игру: стержни падают чаще
+                    if (gameState.dropInterval > 600) {
+                        gameState.dropInterval -= 50; 
+                    }
+                    // И быстрее
+                    if (gameState.baseSpeed < 25) {
+                        gameState.baseSpeed += 0.2;
+                    }
+                }
+            }
+
+            // 2. Обновление физики и проверка коллизий
+            for (let s of sticks) {
+                if (s.isFalling) {
+                    s.currentY += gameState.baseSpeed;
+
+                    // Проверка на поимку (коллизия Круг руки vs Прямоугольник стержня)
+                    if (hand.isVisible) {
+                        // Слегка расширяем хитбокс по ширине для комфортной игры
+                        const hitZoneW = s.width * 2.5; 
+                        
+                        // Проверяем пересечение
+                        if (hand.x + hand.radius > s.x - hitZoneW/2 && 
+                            hand.x - hand.radius < s.x + hitZoneW/2 &&
+                            hand.y + hand.radius > s.currentY && 
+                            hand.y - hand.radius < s.currentY + s.height) {
+                            
+                            // Поймал!
+                            s.isFalling = false;
+                            s.currentY = s.baseY; // Возвращаем на место
+                            gameState.score += 10;
+                            spawnEffect(hand.x, hand.y, 'catch');
+                        }
+                    }
+
+                    // Проверка промаха (стержень улетел за нижний край экрана)
+                    if (s.currentY > canvas.height) {
+                        s.isFalling = false;
+                        s.currentY = s.baseY; // Возвращаем на место
+                        gameState.lives -= 1;
+                        spawnEffect(s.x, canvas.height - 50, 'miss');
+
+                        // Конец игры?
+                        if (gameState.lives <= 0) {
+                            gameState.isRunning = false;
+                            finalScoreSpan.innerText = gameState.score;
+                            gameOverScreen.style.display = 'block';
+                        }
+                    }
+                }
+            }
+        }
+
+
+        // ==========================================
+        // ГЛАВНЫЙ ЦИКЛ
+        // ==========================================
+        function gameLoop(timestamp) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            updateLogic(timestamp);
+
+            drawArcadeMachine();
+            drawSticks();
+            drawEffects();
+            drawHand();
+            drawDigitalUI();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        resizeCanvas();
+        requestAnimationFrame(gameLoop);
+
+
+        // ==========================================
+        // ИНТЕГРАЦИЯ MEDIAPIPE (ВЕБ-КАМЕРА)
+        // ==========================================
+        const videoElement = document.getElementById('bg-video');
+
+        const hands = new Hands({locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }});
+
+        hands.setOptions({
+            maxNumHands: 1, 
+            modelComplexity: 1, 
+            minDetectionConfidence: 0.6,
+            minTrackingConfidence: 0.6
+        });
+
+        hands.onResults((results) => {
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                // Отслеживаем указательный палец (точка 8)
+                const indexFinger = results.multiHandLandmarks[0][8];
+                // Инвертируем X (т.к. видео отзеркалено)
+                hand.x = (1 - indexFinger.x) * canvas.width;
+                hand.y = indexFinger.y * canvas.height;
+                hand.isVisible = true;
+            } else {
+                hand.isVisible = false;
+            }
+        });
+
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({image: videoElement});
+            },
+            width: 1280,
+            height: 720
+        });
+
+        camera.start()
+            .then(() => {
+                uiOverlay.innerHTML = "ГОТОВ К ИГРЕ!<br><span style='font-size: 0.8rem; color:#fff'>Сбей стержень рукой, пока он не упал</span>";
+                setTimeout(() => {
+                    uiOverlay.style.display = 'none';
+                    // Запускаем игру после скрытия сообщения
+                    gameState.isRunning = true;
+                    gameState.lastDropTime = performance.now();
+                }, 3000);
+            })
+            .catch((err) => {
+                console.error(err);
+                uiOverlay.innerHTML = "ОШИБКА КАМЕРЫ<br><span style='font-size: 0.8rem;'>Проверьте HTTPS соединение и разрешения браузера</span>";
+                uiOverlay.style.borderColor = "red";
+                uiOverlay.style.color = "red";
+                uiOverlay.style.boxShadow = "0 0 15px red";
+            });
+
+    </script>
+</body>
+</html>

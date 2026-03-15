@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="ky">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#020617" />
+  <title>Билим Арена — School e-Sport Arena</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@700;800&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="theme-auto dark">
+  <div class="app" id="app">
+    <header class="topbar" role="banner">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="brandText">
+          <h1 id="brandTitle">БИЛИМ АРЕНА</h1>
+          <div class="subtitle" id="subtitle"></div>
+        </div>
+      </div>
+
+      <div class="timerBox" aria-live="polite">
+        <div class="timerLabel" id="timerLabel"></div>
+        <div class="timer" id="globalTimer">60</div>
+        <div class="timerUnit" id="timerUnit"></div>
+      </div>
+
+      <div class="topActions">
+        <button class="tbtn" id="pauseBtn" type="button"></button>
+        <button class="btn" id="openSetupBtn" type="button"></button>
+        <button class="btn primary" id="startBtn" type="button"></button>
+      </div>
+    </header>
+
+    <main class="arena" id="arena" role="main">
+      <section class="team teamA" id="teamA" aria-label="Team A">
+        <div class="teamHeader">
+          <div class="teamName">
+            <span class="badge" aria-hidden="true"></span>
+            <span id="teamATitle">Команда A</span>
+            <span class="activePulse" aria-hidden="true"></span>
+          </div>
+          <div class="teamMeta">
+            <div class="pillSmall">
+              <span class="pillLabel" data-i18n="round">🎯 Раунд:</span>
+              <span id="roundA">—</span>
+            </div>
+            <div class="pillSmall comboPill" id="comboPillA">
+              <span class="pillLabel" data-i18n="combo">🔥 Комбо:</span>
+              <span id="comboA">x1.0</span>
+            </div>
+            <div class="pillSmall">
+              <span class="pillLabel" data-i18n="score">🏆 Счёт:</span>
+              <span class="score" id="scoreA">0</span>
+            </div>
+          </div>
+        </div>
+        <div class="zone">
+          <div class="flashArea">
+            <div class="flashWord" id="flashA" aria-live="polite"></div>
+          </div>
+          <div class="infoRow">
+            <div class="note" id="noteA"></div>
+            <button class="btn small disabled" id="hintA" type="button">💡 Подсказка</button>
+          </div>
+          <div class="workArea">
+            <div class="slots" id="slotsA"></div>
+            <div class="tiles" id="tilesA"></div>
+            <div class="mathArea" id="mathAreaA">
+              <div class="mathOptions" id="mathOptionsA"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="vsHud" id="vsHud" aria-label="VS HUD">
+        <div class="vsTop">
+          <div class="vsMode" style="grid-column: 1 / -1; text-align: center;">
+            <div class="vsLabel">РЕЖИМ ИГРЫ</div>
+            <div class="vsValue" id="hudMode" style="font-size: 0.85rem; color: var(--cyan);">СОРЕВНОВАНИЕ</div>
+          </div>
+        </div>
+        <div class="vsBarWrap">
+          <div class="vsBar">
+            <div class="vsFill a" id="vsFillA" style="width: 50%;"></div>
+            <div class="vsFill b" id="vsFillB" style="width: 50%;"></div>
+            <div class="vsCenterTag" aria-hidden="true">VS</div>
+          </div>
+          <div class="vsBarMeta">
+            <div class="vsSide a"><span class="dot cyan"></span><span class="mono" id="vsScoreA">0</span></div>
+            <div class="vsMsg" id="hudMsg" aria-live="polite">ОЧКИ</div>
+            <div class="vsSide b"><span class="mono" id="vsScoreB">0</span><span class="dot magenta"></span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="team teamB" id="teamB" aria-label="Team B">
+        <div class="teamHeader">
+          <div class="teamName">
+            <span class="badge" aria-hidden="true"></span>
+            <span id="teamBTitle">Команда B</span>
+            <span class="activePulse" aria-hidden="true"></span>
+          </div>
+          <div class="teamMeta">
+            <div class="pillSmall">
+              <span class="pillLabel" data-i18n="round">🎯 Раунд:</span>
+              <span id="roundB">—</span>
+            </div>
+            <div class="pillSmall comboPill" id="comboPillB">
+              <span class="pillLabel" data-i18n="combo">🔥 Комбо:</span>
+              <span id="comboB">x1.0</span>
+            </div>
+            <div class="pillSmall">
+              <span class="pillLabel" data-i18n="score">🏆 Счёт:</span>
+              <span class="score" id="scoreB">0</span>
+            </div>
+          </div>
+        </div>
+        <div class="zone">
+          <div class="flashArea">
+            <div class="flashWord" id="flashB" aria-live="polite"></div>
+          </div>
+          <div class="infoRow">
+            <div class="note" id="noteB"></div>
+            <button class="btn small disabled" id="hintB" type="button">💡 Подсказка</button>
+          </div>
+          <div class="workArea">
+            <div class="slots" id="slotsB"></div>
+            <div class="tiles" id="tilesB"></div>
+            <div class="mathArea" id="mathAreaB">
+              <div class="mathOptions" id="mathOptionsB"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="overlay" id="setupOverlay" aria-hidden="true">
+      <div class="card" role="dialog" aria-modal="true">
+        <div class="cardHeader">
+          <div>
+            <h2 id="menuTitle">⚙️ Панель управления</h2>
+            <p class="muted" id="menuDesc">Настройте параметры игры перед стартом</p>
+          </div>
+          <button class="btn" id="closeSetupBtn" type="button">✖</button>
+        </div>
+
+        <div class="cardScroll">
+          <div class="cardBody">
+            <div class="field">
+              <label for="presetSelect" id="presetLabel">Тексты для раундов</label>
+              <select id="presetSelect" class="select">
+                <option value="custom" data-i18n="presetCustom">✏️ Свой текст (вставить ниже)</option>
+                <option value="text_easy">🟢 Базовый уровень</option>
+                <option value="text_medium">🟡 Продвинутый</option>
+                <option value="text_expert">🔴 Эксперт</option>
+              </select>
+
+              <label for="textInput" id="textLabel" style="margin-top: 15px;">Ваш текст</label>
+              <textarea id="textInput" placeholder="Вставьте текст сюда..."></textarea>
+
+              <div class="splitRow" style="margin-top: 20px;">
+                <button class="btn small" id="freezeBtn" type="button">❄️ Заморозить время</button>
+                <button class="btn small" id="skipA" type="button">⏭ Пропуск A</button>
+                <button class="btn small" id="skipB" type="button">⏭ Пропуск B</button>
+                <button class="btn small danger" id="resetBtn" type="button">🔄 Сброс раунда</button>
+                <button class="btn small danger" id="hardResetBtn" type="button" style="grid-column: 1/-1;">🗑 Полный
+                  сброс игры</button>
+              </div>
+            </div>
+
+            <div class="settings-container">
+              <div class="settings-group">
+                <div class="group-title">🌍 Локализация и Режим</div>
+                <div class="row">
+                  <div>
+                    <div class="labelBig" data-i18n="langLabel">Язык</div>
+                  </div>
+                  <select id="langSelect" class="select selectSmall">
+                    <option value="ky">Кыргызча</option>
+                    <option value="ru">Русский</option>
+                    <option value="en">English</option>
+                  </select>
+                </div>
+                <div class="row">
+                  <div>
+                    <div class="labelBig" data-i18n="themeLabel">Тема</div>
+                  </div>
+                  <button class="toggle" id="themeBtn" type="button"></button>
+                </div>
+                <div class="row">
+                  <div>
+                    <div class="labelBig" data-i18n="modeLabel">Режим игры</div>
+                  </div>
+                  <select id="modeSelect" class="select selectSmall">
+                    <option value="text">🔤 Текст</option>
+                    <option value="math">🔢 Математика</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="settings-group">
+                <div class="group-title">⏱ Тайминги</div>
+                
+                <div class="setting-item">
+                  <div class="setting-header">
+                    <div class="labelBig" data-i18n="timeLabel">Общий таймер (сек)</div>
+                    <div class="value" id="timeVal">60</div>
+                  </div>
+                  <input type="range" id="timeRange" min="20" max="240" step="5" value="60" />
+                </div>
+
+                <div class="setting-item">
+                  <div class="setting-header">
+                    <div class="labelBig" data-i18n="speedLabel">Скорость показа (мс)</div>
+                    <div class="value" id="speedVal">800</div>
+                  </div>
+                  <input type="range" id="speedRange" min="250" max="1600" step="50" value="800" />
+                </div>
+              </div>
+
+              <div class="settings-group">
+                <div class="group-title">⚖️ Правила</div>
+                
+                <div class="setting-item">
+                  <div class="setting-header">
+                    <div class="labelBig">Штраф за ошибки</div>
+                    <div class="value" id="penaltyVal">150</div>
+                  </div>
+                  <input type="range" id="penaltyRange" min="0" max="500" step="10" value="150" />
+                </div>
+
+                <div class="row">
+                  <div class="labelBig">Комбо-множитель</div>
+                  <button class="toggle on" id="comboBtn" type="button">✅ Вкл</button>
+                </div>
+                <div class="row">
+                  <div class="labelBig">Скрытый режим</div>
+                  <button class="toggle" id="hiddenBtn" type="button">❌ Выкл</button>
+                </div>
+                <div class="row">
+                  <div class="labelBig">Один игрок (Соло)</div>
+                  <button class="toggle" id="soloBtn" type="button">❌ Выкл</button>
+                </div>
+                <div class="row">
+                  <div class="labelBig">Звук</div>
+                  <button class="toggle on" id="soundBtn" type="button">✅ Вкл</button>
+                </div>
+              </div>
+              <button class="btn primary" id="applyBtn" type="button"
+                style="width: 100%; margin-top: 10px; height: 50px;">💾 Применить и закрыть</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="endOverlay" id="endOverlay" aria-hidden="true">
+      <div class="endCard" role="dialog" aria-modal="true">
+        <div class="endBody">
+          <div id="winnerLine" class="winnerLine"></div>
+          <div class="result">
+            <div class="endMeta" id="finalScoresLabel">ИТОГОВЫЙ СЧЁТ</div>
+            <div class="bigScore">
+              <span id="finalA">0</span> — <span id="finalB">0</span>
+            </div>
+          </div>
+          <div class="endMeta" id="winnerText"></div>
+        </div>
+        <div class="endFooter">
+          <div class="endBtns">
+            <button class="btn" id="closeEndBtn" type="button">✖ Закрыть</button>
+            <button class="btn primary" id="replayBtn" type="button">🔄 Сыграть ещё</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+
+</html>
