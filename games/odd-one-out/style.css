@@ -35,7 +35,7 @@ body.theme-midnight {
 
 body.theme-deep-space {
   --bg: #05070a;
-  --panel: rgba(18, 22, 0, 0.8);
+  --panel: rgba(18, 22, 28, 0.82);
   --primary: #9f7aea;
   --accent: #f687b3;
 }
@@ -113,15 +113,16 @@ body::before {
 }
 
 .logo {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, var(--cyan), var(--magenta));
-  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border-radius: 14px;
   display: grid;
   place-items: center;
   font-weight: 900;
-  color: #000;
-  font-size: 0.8rem;
+  color: #fff;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .brandText .title {
@@ -335,6 +336,28 @@ body::before {
   color: white;
   border: none;
   box-shadow: 0 8px 20px rgba(88, 101, 242, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn.primary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: 0.5s;
+}
+
+.btn.primary:hover::before {
+  left: 100%;
 }
 
 .btn.primary:hover {
