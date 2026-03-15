@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тир с управлением рукой - Динамическая скорость</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000000; color: white; font-family: 'Segoe UI', sans-serif; }
+        #video-container { position: relative; width: 100vw; height: 100vh; background: #000000; }
+        canvas { position: absolute; top: 0; left: 0; z-index: 10; transform: scaleX(-1); }
+        video { position: absolute; width: 1px; height: 1px; opacity: 0; }
+        #ui { position: absolute; top: 30px; left: 30px; z-index: 20; pointer-events: none; }
+        .crosshair { 
+            position: absolute; 
+            width: 80px; 
+            height: 80px; 
+            border: 2px solid #22c55e; 
+            border-radius: 50%; 
+            transform: translate(-50%, -50%); 
+            pointer-events: none; 
+            z-index: 30; 
+            transition: border-color 0.1s, transform 0.1s;
+        }
+        .crosshair.firing {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.3);
+            transform: translate(-50%, -80%) scale(1.3);
+        }
+        .crosshair::before, .crosshair::after { content: ''; position: absolute; background: currentColor; }
+        .crosshair::before { width: 100%; height: 1px; top: 50%; left: 0; }
+        .crosshair::after { width: 1px; height: 100%; left: 50%; top: 0; }
+        .center-dot { position: absolute; width: 6px; height: 6px; background: #22c55e; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        
+        .speed-badge {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-family: monospace;
+            transition: all 0.2s;
+        }
+        .score-penalty { color: #ef4444; animation: shake 0.5s; }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(5px); }
+            50% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="video-container">
+    <video id="input_video"></video>
+    <canvas id="output_canvas"></canvas>
+    <div id="ui" class="flex flex-col gap-2">
+        <div class="flex items-center gap-4">
+            <h1 class="text-5xl font-black text-green-500 tracking-tighter">СЧЕТ: <span id="score">0</span></h1>
+            <div id="speed-container" class="speed-badge text-xl font-bold text-green-400">СКОРОСТЬ: <span id="speed-multiplier">1.0</span>x</div>
+        </div>
+        <div id="status" class="mt-2 px-3 py-1 border border-gray-700 text-xs rounded uppercase tracking-widest inline-block w-max">Подключение системы...</div>
+    </div>
+    <div id="crosshair" class="crosshair" style="display: none;">
+        <div class="center-dot"></div>
+    </div>
+</div>
+
+<script>
+const videoElement = document.getElementById('input_video');
+const canvasElement = document.getElementById('output_canvas');
+const canvasCtx = canvasElement.getContext('2d');
+const scoreElement = document.getElementById('score');
+const speedElement = document.getElementById('speed-multiplier');
+const speedContainer = document.getElementById('speed-container');
+const statusElement = document.getElementById('status');
+const crosshair = document.getElementById('crosshair');
+
+let score = 0;
+let speedMultiplier = 1.0;
+const MAX_SPEED = 3.0;
+const MIN_SPEED = 1.0;
+let targets = [];
+let particles = [];
+let canShoot = true;
+let lastTargetSpawn = 0;
+let posBuffer = []; 
+
+function resize() {
+    canvasElement.width = window.innerWidth;
+    canvasElement.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+class Particle {
+    constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.size = Math.random() * 8 + 2;
+        this.speedX = (Math.random() - 0.5) * 25;
+        this.speedY = (Math.random() - 0.5) * 25;
+        this.life = 1.0;
+        this.decay = Math.random() * 0.05 + 0.02;
+    }
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.life -= this.decay;
+    }
+    draw() {
+        canvasCtx.globalAlpha = this.life;
+        canvasCtx.fillStyle = this.color;
+        canvasCtx.beginPath();
+        canvasCtx.rect(this.x, this.y, this.size, this.size);
+        canvasCtx.fill();
+        canvasCtx.globalAlpha = 1.0;
+    }
+}
+
+class Target {
+    constructor(multiplier) {
+        this.radius = 40 + Math.random() * 20;
+        this.x = Math.random() < 0.5 ? -this.radius : canvasElement.width + this.radius;
+        this.targetY = Math.random() * (canvasElement.height - 300) + 150;
+        this.y = this.targetY;
+        this.baseSpeed = (5 + Math.random() * 4);
+        this.speed = (this.baseSpeed * multiplier) * (this.x < 0 ? 1 : -1);
+        this.color = `hsl(${Math.random() * 360}, 90%, 60%)`;
+        this.active = true;
+        this.escaped = false;
+    }
+    draw() {
+        canvasCtx.shadowBlur = 30;
+        canvasCtx.shadowColor = this.color;
+        canvasCtx.beginPath();
+        canvasCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        canvasCtx.fillStyle = this.color;
+        canvasCtx.fill();
+        
+        canvasCtx.shadowBlur = 0;
+        canvasCtx.strokeStyle = "white";
+        canvasCtx.lineWidth = 5;
+        canvasCtx.stroke();
+        
+        canvasCtx.beginPath();
+        canvasCtx.moveTo(this.x - this.radius, this.y);
+        canvasCtx.lineTo(this.x + this.radius, this.y);
+        canvasCtx.moveTo(this.x, this.y - this.radius);
+        canvasCtx.lineTo(this.x, this.y + this.radius);
+        canvasCtx.stroke();
+    }
+    update() {
+        this.x += this.speed;
+        if ((this.speed > 0 && this.x > canvasElement.width + this.radius) || 
+            (this.speed < 0 && this.x < -this.radius)) {
+            this.active = false;
+            this.escaped = true;
+        }
+    }
+}
+
+function updateScore(amount) {
+    score += amount;
+    if (score < 0) score = 0;
+    scoreElement.innerText = score;
+    
+    if (amount < 0) {
+        scoreElement.parentElement.classList.add('score-penalty');
+        setTimeout(() => scoreElement.parentElement.classList.remove('score-penalty'), 500);
+    }
+}
+
+function updateSpeed(delta) {
+    speedMultiplier += delta;
+    speedMultiplier = Math.max(MIN_SPEED, Math.min(MAX_SPEED, parseFloat(speedMultiplier.toFixed(1))));
+    speedElement.innerText = speedMultiplier.toFixed(1);
+
+    speedContainer.classList.add('scale-110');
+    if (delta < 0) {
+        speedContainer.classList.add('border-red-500');
+        setTimeout(() => speedContainer.classList.remove('border-red-500'), 300);
+    }
+    setTimeout(() => speedContainer.classList.remove('scale-110'), 150);
+}
+
+function onResults(results) {
+    canvasCtx.fillStyle = "#000000";
+    canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
+
+    const now = Date.now();
+    const spawnInterval = Math.max(600, 2000 / speedMultiplier);
+    
+    if (now - lastTargetSpawn > spawnInterval) {
+        targets.push(new Target(speedMultiplier));
+        lastTargetSpawn = now;
+    }
+    
+    targets.forEach(t => {
+        t.update();
+        if (t.active) {
+            t.draw();
+        } else if (t.escaped) {
+            updateScore(-5);
+            updateSpeed(-0.1);
+            t.escaped = false;
+        }
+    });
+    
+    targets = targets.filter(t => t.active);
+
+    particles = particles.filter(p => p.life > 0);
+    particles.forEach(p => { p.update(); p.draw(); });
+
+    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+        statusElement.innerText = "СИСТЕМА ГОТОВА";
+        statusElement.style.color = "#22c55e";
+        
+        const hand = results.multiHandLandmarks[0];
+        const indexTip = hand[8]; 
+        
+        const screenX = (1 - indexTip.x) * canvasElement.width;
+        const screenY = indexTip.y * canvasElement.height;
+
+        crosshair.style.display = 'block';
+        crosshair.style.left = screenX + 'px';
+        crosshair.style.top = screenY + 'px';
+
+        posBuffer.push({x: screenX, y: screenY, rawY: indexTip.y});
+        if (posBuffer.length > 5) posBuffer.shift();
+
+        if (posBuffer.length >= 2) {
+            const prev = posBuffer[posBuffer.length - 2];
+            const velocityY = prev.rawY - indexTip.y; 
+
+            if (velocityY > 0.05 && canShoot) {
+                const shotPos = posBuffer[0];
+                shoot(shotPos.x, shotPos.y);
+                
+                canShoot = false;
+                crosshair.classList.add('firing');
+                setTimeout(() => crosshair.classList.remove('firing'), 200);
+                setTimeout(() => canShoot = true, 400);
+            }
+        }
+    } else {
+        statusElement.innerText = "ПОКАЖИТЕ РУКУ";
+        statusElement.style.color = "#ef4444";
+        crosshair.style.display = 'none';
+        posBuffer = [];
+    }
+}
+
+function shoot(vizX, vizY) {
+    canvasCtx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
+
+    const internalX = canvasElement.width - vizX;
+
+    targets.forEach(t => {
+        const dist = Math.hypot(t.x - internalX, t.y - vizY);
+        if (dist < t.radius + 65) { 
+            t.active = false;
+            updateScore(10);
+            updateSpeed(0.1); 
+            for (let i = 0; i < 40; i++) {
+                particles.push(new Particle(t.x, t.y, t.color));
+            }
+        }
+    });
+}
+
+const hands = new Hands({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+});
+
+hands.setOptions({
+    maxNumHands: 1,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.7,
+    minTrackingConfidence: 0.7
+});
+
+hands.onResults(onResults);
+
+const camera = new Camera(videoElement, {
+    onFrame: async () => {
+        await hands.send({image: videoElement});
+    },
+    width: 1280,
+    height: 720
+});
+
+camera.start();
+</script>
+</body>
+</html>
