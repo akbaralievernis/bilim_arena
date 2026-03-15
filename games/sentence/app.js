@@ -125,53 +125,7 @@
   }
 
   /* ========= UI Elements ========= */
-  const UI = {
-    globalTimer: $("#globalTimer"),
-    startBtn: $("#startBtn"),
-    resetBtn: $("#resetBtn"),
-    openSetupBtn: $("#openSetupBtn"),
-    pauseBtn: $("#pauseBtn"),
-    freezeBtn: $("#freezeBtn"),
-    skipA: $("#skipA"),
-    skipB: $("#skipB"),
-    setupOverlay: $("#setupOverlay"),
-    closeSetupBtn: $("#closeSetupBtn"),
-    applyBtn: $("#applyBtn"),
-    presetSelect: $("#presetSelect"),
-    textInput: $("#textInput"),
-    speedRange: $("#speedRange"),
-    speedVal: $("#speedVal"),
-    timeRange: $("#timeRange"),
-    timeVal: $("#timeVal"),
-    penaltyRange: $("#penaltyRange"),
-    penaltyVal: $("#penaltyVal"),
-    comboBtn: $("#comboBtn"),
-    hiddenBtn: $("#hiddenBtn"),
-    soundBtn: $("#soundBtn"),
-    soloBtn: $("#soloBtn"),
-    langSelect: $("#langSelect"),
-    themeBtn: $("#themeBtn"),
-    modeSelect: $("#modeSelect"),
-    subtitle: $("#subtitle"),
-    endOverlay: $("#endOverlay"),
-    closeEndBtn: $("#closeEndBtn"),
-    replayBtn: $("#replayBtn"),
-    hardResetBtn: $("#hardResetBtn"),
-    finalA: $("#finalA"),
-    finalB: $("#finalB"),
-    winnerText: $("#winnerText"),
-    endCard: $(".endCard"),
-    teamA: {
-      flash: $("#flashA"), slots: $("#slotsA"), tiles: $("#tilesA"),
-      score: $("#scoreA"), round: $("#roundA"), combo: $("#comboA"),
-      hintBtn: $("#hintA"), note: $("#noteA"), mathArea: $("#mathAreaA"), mathOptions: $("#mathOptionsA")
-    },
-    teamB: {
-      flash: $("#flashB"), slots: $("#slotsB"), tiles: $("#tilesB"),
-      score: $("#scoreB"), round: $("#roundB"), combo: $("#comboB"),
-      hintBtn: $("#hintB"), note: $("#noteB"), mathArea: $("#mathAreaB"), mathOptions: $("#mathOptionsB")
-    }
-  };
+  let UI = {};
 
   const showOverlay = (el) => {
     if (!el) return;
@@ -243,7 +197,15 @@
   }
   function randInt(rand, min, max) { return Math.floor(rand() * (max - min + 1)) + min; }
 
-  function zFor(k) { return (k === "A") ? UI.teamA : UI.teamB; }
+  function zFor(k) { 
+    const z = (k === "A") ? UI.teamA : UI.teamB;
+    if (!z) {
+      console.error(`UI Error: team${k} is undefined!`, UI);
+      // Fallback attempt to re-select if missing (unlikely but safe)
+      return (k === "A") ? { note: {}, score: {}, round: {}, combo: {}, hintBtn: {}, flash: {}, slots: {}, tiles: {}, mathArea: {}, mathOptions: {} } : { note: {}, score: {}, round: {}, combo: {}, hintBtn: {}, flash: {}, slots: {}, tiles: {}, mathArea: {}, mathOptions: {} };
+    }
+    return z;
+  }
 
   function updateVsBar() {
     const scoreA = Game.teams.A.score;
@@ -564,6 +526,26 @@
   }
 
   function initUI() {
+    UI = {
+      globalTimer: $("#globalTimer"), startBtn: $("#startBtn"), resetBtn: $("#resetBtn"), openSetupBtn: $("#openSetupBtn"),
+      pauseBtn: $("#pauseBtn"), freezeBtn: $("#freezeBtn"), skipA: $("#skipA"), skipB: $("#skipB"),
+      setupOverlay: $("#setupOverlay"), closeSetupBtn: $("#closeSetupBtn"), applyBtn: $("#applyBtn"),
+      presetSelect: $("#presetSelect"), textInput: $("#textInput"), speedRange: $("#speedRange"), speedVal: $("#speedVal"),
+      timeRange: $("#timeRange"), timeVal: $("#timeVal"), penaltyRange: $("#penaltyRange"), penaltyVal: $("#penaltyVal"),
+      comboBtn: $("#comboBtn"), hiddenBtn: $("#hiddenBtn"), soundBtn: $("#soundBtn"), soloBtn: $("#soloBtn"),
+      langSelect: $("#langSelect"), themeBtn: $("#themeBtn"), modeSelect: $("#modeSelect"), subtitle: $("#subtitle"),
+      endOverlay: $("#endOverlay"), closeEndBtn: $("#closeEndBtn"), replayBtn: $("#replayBtn"), hardResetBtn: $("#hardResetBtn"),
+      finalA: $("#finalA"), finalB: $("#finalB"), winnerText: $("#winnerText"), endCard: $(".endCard"),
+      teamA: {
+        flash: $("#flashA"), slots: $("#slotsA"), tiles: $("#tilesA"), score: $("#scoreA"), round: $("#roundA"), combo: $("#comboA"),
+        hintBtn: $("#hintA"), note: $("#noteA"), mathArea: $("#mathAreaA"), mathOptions: $("#mathOptionsA")
+      },
+      teamB: {
+        flash: $("#flashB"), slots: $("#slotsB"), tiles: $("#tilesB"), score: $("#scoreB"), round: $("#roundB"), combo: $("#comboB"),
+        hintBtn: $("#hintB"), note: $("#noteB"), mathArea: $("#mathAreaB"), mathOptions: $("#mathOptionsB")
+      }
+    };
+
     UI.openSetupBtn.innerHTML = "⚙️ Настройки"; UI.pauseBtn.innerHTML = "⏸ Пауза"; UI.startBtn.innerHTML = "🚀 Старт";
     showOverlay(UI.setupOverlay);
 
