@@ -102,13 +102,16 @@
   }
 
   function getTheme() {
-    const saved = localStorage.getItem("ld_theme");
-    return saved === "light" ? "light" : "dark"; // Default to dark for CyberTech vibe
+    const saved = localStorage.getItem("BA_PORTAL_THEME");
+    if (saved) return saved;
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return systemDark ? "dark" : "light";
   }
   function setTheme(theme) {
     const t = (theme === "light") ? "light" : "dark";
-    localStorage.setItem("ld_theme", t);
+    localStorage.setItem("BA_PORTAL_THEME", t);
     document.body.classList.toggle("dark", t === "dark");
+    document.body.classList.toggle("light", t === "light");
     applyI18n();
   }
 
@@ -158,16 +161,26 @@
     finalB: $("#finalB"),
     winnerText: $("#winnerText"),
     endCard: $(".endCard"),
-    teamA: {
-      flash: $("#flashA"), slots: $("#slotsA"), tiles: $("#tilesA"),
-      score: $("#scoreA"), round: $("#roundA"), combo: $("#comboA"),
-      hintBtn: $("#hintA"), note: $("#noteA"), mathArea: $("#mathAreaA"), mathOptions: $("#mathOptionsA")
-    },
     teamB: {
       flash: $("#flashB"), slots: $("#slotsB"), tiles: $("#tilesB"),
       score: $("#scoreB"), round: $("#roundB"), combo: $("#comboB"),
       hintBtn: $("#hintB"), note: $("#noteB"), mathArea: $("#mathAreaB"), mathOptions: $("#mathOptionsB")
     }
+  };
+
+  const showOverlay = (el) => {
+    if (!el) return;
+    el.classList.add("show");
+    el.setAttribute("aria-hidden", "false");
+    // Optionally focus the first focusable element
+    const firstBtn = el.querySelector("button, select, textarea");
+    if (firstBtn) firstBtn.focus();
+  };
+
+  const hideOverlay = (el) => {
+    if (!el) return;
+    el.classList.remove("show");
+    el.setAttribute("aria-hidden", "true");
   };
 
   const Sound = {
@@ -297,7 +310,8 @@
     if (Game.running) return;
     if (!totalRounds()) { UI.setupOverlay.classList.add("show"); return; }
     Sound.unlock(); Game.running = true; Game.paused = false;
-    UI.startBtn.classList.add("disabled"); UI.openSetupBtn.classList.add("disabled"); UI.endOverlay.classList.remove("show");
+    UI.startBtn.classList.add("disabled"); UI.openSetupBtn.classList.add("disabled"); 
+    hideOverlay(UI.endOverlay);
 
     for (const k of ["A", "B"]) {
       Game.teams[k] = mkTeamState(k); setScore(k); setRound(k); resetCombo(k); clearZone(k);
@@ -388,7 +402,7 @@
 
     // 6. Вызываем финальный экран
     Sound.gameEnd(); 
-    UI.endOverlay.classList.add("show");
+    showOverlay(UI.endOverlay);
 
     // 7. Запускаем красивую анимацию цифр
     setTimeout(() => {
@@ -539,14 +553,14 @@
       const text = UI.textInput.value.trim();
       Game.sentences = splitIntoSentences(text).filter(s => tokenize(s).length >= 2);
     }
-    UI.setupOverlay.classList.remove("show");
+    hideOverlay(UI.setupOverlay);
     const T = I18N[getLang()];
     setNote("A", T.noteReady(totalRounds())); setNote("B", T.noteReady(totalRounds()));
   }
 
   function initUI() {
     UI.openSetupBtn.innerHTML = "⚙️ Настройки"; UI.pauseBtn.innerHTML = "⏸ Пауза"; UI.startBtn.innerHTML = "🚀 Старт";
-    UI.setupOverlay.classList.add("show");
+    showOverlay(UI.setupOverlay);
 
     UI.speedRange.addEventListener("input", () => { Game.config.baseFlashMs = Number(UI.speedRange.value); UI.speedVal.textContent = UI.speedRange.value; });
     UI.timeRange.addEventListener("input", () => { Game.config.globalSeconds = Number(UI.timeRange.value); UI.timeVal.textContent = UI.timeRange.value; });
@@ -558,10 +572,15 @@
 
     UI.applyBtn.addEventListener("click", applySetup);
     UI.startBtn.addEventListener("click", startGame);
-    UI.openSetupBtn.addEventListener("click", () => { if (!Game.running) UI.setupOverlay.classList.add("show"); });
-    UI.closeSetupBtn.addEventListener("click", () => UI.setupOverlay.classList.remove("show"));
-    UI.closeEndBtn.addEventListener("click", () => UI.endOverlay.classList.remove("show"));
-    UI.replayBtn.addEventListener("click", () => { UI.endOverlay.classList.remove("show"); startGame(); });
+    UI.openSetupBtn.addEventListener("click", () => { if (!Game.running) showOverlay(UI.setupOverlay); });
+    UI.closeSetupBtn.addEventListener("click", () => hideOverlay(UI.setupOverlay));
+    UI.closeEndBtn.addEventListener("click", () => hideOverlay(UI.endOverlay));
+    UI.replayBtn.addEventListener("click", () => { hideOverlay(UI.endOverlay); startGame(); });
+
+    UI.themeBtn.addEventListener("click", () => {
+      const next = getTheme() === "dark" ? "light" : "dark";
+      setTheme(next);
+    });
 
     setTheme(getTheme()); applyI18n();
   }
