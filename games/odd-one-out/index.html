@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ky">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
@@ -32,10 +33,26 @@
       <!-- START SCREEN -->
       <section class="panel" id="screenStart">
         <div class="panelHeader">
-          <h1 class="h1">Режимди тандаңыз</h1>
-          <p class="p">
-            Ар бир раундда <b>бир "ашыкча"</b> бар. <b>Туура келбегенине</b> басыңыз.
-          </p>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <h1 class="h1">Режимди тандаңыз</h1>
+              <p class="p">
+                Ар бир раундда <b>бир "ашыкча"</b> бар. <b>Туура келбегенине</b> басыңыз.
+              </p>
+            </div>
+            <div class="themeSwitcher">
+              <div class="dot midnight active" onclick="setTheme('midnight')" title="Midnight Blue"></div>
+              <div class="dot deepspace" onclick="setTheme('deepspace')" title="Deep Space"></div>
+              <div class="dot auralight" onclick="setTheme('auralight')" title="Aura Light"></div>
+            </div>
+          </div>
+          
+          <div class="highScoreBox">
+            <div class="highScoreTitle">🏆 Рекорддор (Top 3)</div>
+            <div class="highScoreList" id="highScoreList">
+              <div class="highScoreItem"><span class="name">Күтүлүүдө...</span></div>
+            </div>
+          </div>
         </div>
 
         <div class="grid2">
@@ -62,12 +79,22 @@
               </label>
 
               <label class="field">
+                <span>Кыйынчылык</span>
+                <select id="selDifficulty">
+                  <option value="progressive">📈 Прогрессивдүү</option>
+                  <option value="easy">🐣 Жеңил (3 вариант)</option>
+                  <option value="medium">⚖️ Орто (4 вариант)</option>
+                  <option value="hard">🔥 Оор (6 вариант)</option>
+                </select>
+              </label>
+
+              <label class="field" style="display: none;">
                 <span>Раунддар</span>
-                <input id="inpRoundsSingle" type="number" min="5" max="60" value="12" />
+                <input id="inpRoundsSingle" type="number" min="5" max="60" value="10" />
               </label>
             </div>
 
-            <button class="btn primary full" id="btnStartSingle" type="button">БАШТОО</button>
+            <button class="btn primary full" id="btnStartSingle" type="button">👤 БАШТОО</button>
           </div>
 
           <!-- Teams Mode -->
@@ -103,7 +130,7 @@
               </label>
             </div>
 
-            <button class="btn primary full" id="btnStartTeams" type="button">БАШТОО</button>
+            <button class="btn primary full" id="btnStartTeams" type="button">⚔️ БАШТОО</button>
           </div>
         </div>
 
@@ -126,7 +153,8 @@
               <button class="btn primary" id="btnSaveTest" type="button">💾 Сактоо</button>
             </div>
 
-            <div class="editorHint" id="editorHint">Формат: 4 элементти үтүр менен бөлүңүз. Бирөөнүн алдына жылдызча * коюңуз.</div>
+            <div class="editorHint" id="editorHint">Формат: 4 элементти үтүр менен бөлүңүз. Бирөөнүн алдына жылдызча *
+              коюңуз.</div>
 
             <div class="editorGrid">
               <textarea id="editorText" placeholder="Мисалы:
@@ -154,13 +182,22 @@
         <div class="gameTop">
           <div class="pill">Раунд: <span id="roundNow">1</span> / <span id="roundMax">12</span></div>
           <div class="pill">Упай: <span id="scoreNow">0</span></div>
-          <div class="pill" id="pillTime" hidden>⏱ <span id="timeNow">10</span></div>
           <div class="grow"></div>
-          <button class="btn" id="btnBackToMenu" type="button">⚙️ Меню</button>
+          <button class="btn" id="btnBackToMenu" type="button">🏠 Меню</button>
+        </div>
+
+        <div class="timerBar" id="timerBar" hidden>
+          <div class="timerProgress" id="timerProgress"></div>
         </div>
 
         <div class="singleWrap" id="singleWrap">
           <div class="gridCards" id="gridSingle"></div>
+        </div>
+        
+        <!-- Explanation Plaque -->
+        <div class="plaque" id="logicPlaque">
+          <h3>Керемет!</h3>
+          <p id="logicText"></p>
         </div>
 
         <div class="teamsWrap hidden" id="teamsWrap">
@@ -200,8 +237,8 @@
         </div>
         <div class="statsGrid" id="endStats" style="margin: 2rem 0;"></div>
         <div class="rowBetween" style="justify-content: center; gap: 1rem;">
-          <button class="btn primary" id="btnPlayAgain" type="button">Кайра ойнотуу</button>
-          <button class="btn" id="btnToStart" type="button">Башкы бетке</button>
+          <button class="btn primary" id="btnPlayAgain" type="button">🔄 Кайра ойнотуу</button>
+          <button class="btn" id="btnToStart" type="button">🏠 Башкы бетке</button>
         </div>
       </section>
     </main>
@@ -211,4 +248,5 @@
 
   <script src="./app.js"></script>
 </body>
+
 </html>
