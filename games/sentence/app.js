@@ -161,6 +161,11 @@
     finalB: $("#finalB"),
     winnerText: $("#winnerText"),
     endCard: $(".endCard"),
+    teamA: {
+      flash: $("#flashA"), slots: $("#slotsA"), tiles: $("#tilesA"),
+      score: $("#scoreA"), round: $("#roundA"), combo: $("#comboA"),
+      hintBtn: $("#hintA"), note: $("#noteA"), mathArea: $("#mathAreaA"), mathOptions: $("#mathOptionsA")
+    },
     teamB: {
       flash: $("#flashB"), slots: $("#slotsB"), tiles: $("#tilesB"),
       score: $("#scoreB"), round: $("#roundB"), combo: $("#comboB"),
