@@ -1,6 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@700;800&display=swap');
+
 :root {
   /* Типографика адаптирована для кириллицы/кыргызского */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-title: 'Montserrat', sans-serif;
   --font-mono: 'JetBrains Mono', 'Roboto Mono', monospace;
 
   /* Премиальная палитра (CyberTech) */
@@ -25,13 +28,14 @@
   --trans-med: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-body {
+body,
+body.light {
   --bg-app: #f8fafc;
   --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   --panel-bg: rgba(255, 255, 255, 0.85);
   --panel-border: rgba(255, 255, 255, 0.9);
-  --text-main: #0f172a;
-  --text-muted: #64748b;
+  --text-main: #1a202c;
+  --text-muted: #4a5568;
   --ui-line: rgba(15, 23, 42, 0.1);
   --ui-btn-bg: rgba(15, 23, 42, 0.05);
   --ui-btn-hover: rgba(15, 23, 42, 0.09);
@@ -152,6 +156,7 @@ body {
 }
 
 .brandText h1 {
+  font-family: var(--font-title);
   margin: 0;
   font-size: 1.25rem;
   font-weight: 900;
@@ -681,6 +686,7 @@ body.dark .tile, body.dark .mathBtn {
 }
 
 .cardHeader h2 {
+  font-family: var(--font-title);
   margin: 0;
   font-size: 1.5rem;
   font-weight: 900;
