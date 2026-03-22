@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Core brand colors (HSL for better manipulation) */
+  --p-h: 355; --p-s: 100%; --p-l: 60%;
+  --primary: hsl(var(--p-h), var(--p-s), var(--p-l));
+  --primary-glow: hsla(var(--p-h), var(--p-s), var(--p-l), 0.35);
+  
+  --s-h: 190; --s-s: 100%; --s-l: 50%;
+  --secondary: hsl(var(--s-h), var(--s-s), var(--s-l));
+  --secondary-glow: hsla(var(--s-h), var(--s-s), var(--s-l), 0.3);
+
+  --a-h: 280; --a-s: 90%; --a-l: 65%;
+  --accent: hsl(var(--a-h), var(--a-s), var(--a-l));
+  
+  /* Semantic tokens */
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  
+  /* Shared system variables */
+  --radius: 20px;
+  --radius-sm: 12px;
+  --radius-lg: 32px;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition: 0.4s var(--ease);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --blur: blur(20px);
+}
+
+body {
+  --bg: hsl(225, 40%, 6%);
+  --surface: hsla(225, 40%, 10%, 0.6);
+  --text: #ffffff;
+  --text-soft: rgba(255, 255, 255, 0.65);
+  --card: hsla(0, 0%, 100%, 0.03);
+  --card-hover: hsla(0, 0%, 100%, 0.06);
+  --line: rgba(255, 255, 255, 0.06);
+
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+body.light {
+  --bg: #f8fafc;
+  --surface: rgba(255, 255, 255, 0.85);
+  --text: #0f172a;
+  --text-soft: #475569;
+  --card: rgba(255, 255, 255, 0.8);
+  --card-hover: #ffffff;
+  --line: rgba(15, 23, 42, 0.08);
+  --glass-border: rgba(15, 23, 42, 0.06);
+}
+
+/* Typography Enhancements */
+h1, h2, h3, .h1 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-soft);
+}
+
+/* Premium Layout Utilities */
+.glass {
+  background: var(--card);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+}
+
+.glow-btn {
+  position: relative;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 12px 28px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 8px 24px var(--primary-glow);
+}
+
+.glow-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px var(--primary-glow);
+  filter: brightness(1.1);
+}
+
+/* Topbar Shared Base */
+.baTop {
+  z-index: 1000;
+  padding: 1rem 0;
+  transition: background var(--transition), padding var(--transition);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Logo & Branding Base */
+.baBrand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.baLogo {
+  width: 42px;
+  height: 42px;
+  background: var(--primary);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 0 20px var(--primary-glow);
+}
+

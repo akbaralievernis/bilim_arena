@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кыргыз Pinch - Professional Showcase</title>
+    
+    <!-- Современный шрифт -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
+    
+    <!-- MediaPipe для отслеживания рук -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <style>
+        :root {
+            --primary: #c0392b;
+            --secondary: #2980b9;
+            --gold: #f1c40f;
+            --dark: #1a1a2e;
+            --glass-bg: rgba(20, 30, 48, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.15);
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; font-family: 'Montserrat', sans-serif;
+            overflow: hidden; color: white;
+        }
+
+        #webcam { display: none; }
+
+        /* Игровой контейнер (Адаптивный) */
+        #game-container {
+            position: relative;
+            width: 100%; max-width: 800px;
+            aspect-ratio: 4 / 3;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 20px rgba(241, 196, 15, 0.2);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 4px solid var(--gold);
+        }
+
+        #gameCanvas {
+            display: block; width: 100%; height: 100%;
+            background-color: #0b0c10;
+        }
+
+        /* --- UI СЛОЙ (Glassmorphism) --- */
+        .ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+            opacity: 1; transition: opacity 0.3s; z-index: 10;
+        }
+        .hidden { opacity: 0; pointer-events: none; z-index: -1; }
+
+        .panel {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px; padding: 40px; text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            min-width: 350px;
+        }
+
+        h1 { margin: 0 0 10px 0; font-size: 3rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
+        .text-gold { color: var(--gold); text-shadow: 0 0 15px rgba(241, 196, 15, 0.5); }
+        .text-red { color: #e74c3c; }
+        .text-blue { color: #3498db; }
+        
+        p.subtitle { margin-top: 0; margin-bottom: 30px; color: #bdc3c7; font-size: 1.1rem; }
+
+        /* Кнопки */
+        .btn {
+            display: block; width: 100%; padding: 15px; margin-bottom: 15px;
+            font-size: 1.2rem; font-weight: 800; font-family: inherit;
+            color: white; background: rgba(255,255,255,0.1);
+            border: 2px solid transparent; border-radius: 12px;
+            cursor: pointer; transition: all 0.2s;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
+        .btn-primary { background: var(--primary); }
+        .btn-primary:hover { background: #e74c3c; border-color: white; box-shadow: 0 0 20px rgba(231, 76, 60, 0.4); }
+        .btn-secondary { background: var(--secondary); }
+        .btn-secondary:hover { background: #3498db; border-color: white; box-shadow: 0 0 20px rgba(52, 152, 219, 0.4); }
+        .btn-gold { background: #d4ac0d; color: #111; }
+        .btn-gold:hover { background: var(--gold); border-color: white; box-shadow: 0 0 20px rgba(241, 196, 15, 0.4); }
+
+        /* HUD (Интерфейс во время игры) */
+        #hud {
+            position: absolute; top: 0; left: 0; width: 100%; padding: 20px;
+            box-sizing: border-box; display: flex; justify-content: space-between; align-items: flex-start;
+            pointer-events: none; z-index: 5;
+        }
+        .hud-score { font-size: 3rem; font-weight: 900; text-shadow: 2px 4px 10px rgba(0,0,0,0.8); margin: 0; }
+        .team-red-score { color: #e74c3c; }
+        .team-blue-score { color: #3498db; }
+        
+        #btn-pause {
+            pointer-events: auto; background: rgba(0,0,0,0.5); border: 2px solid white;
+            color: white; width: 50px; height: 50px; border-radius: 12px;
+            font-size: 1.5rem; font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        #btn-pause:hover { background: white; color: black; }
+
+        /* Таблица рекордов */
+        .records-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+        .records-table th, .records-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .records-table th { color: var(--gold); }
+
+        /* Статус камеры */
+        #cam-status {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 20px;
+            font-size: 0.9rem; z-index: 20; border: 1px solid var(--glass-border);
+            display: flex; align-items: center; gap: 10px; pointer-events: none;
+        }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #f1c40f; box-shadow: 0 0 8px #f1c40f; }
+        .cam-ok .dot { background: #2ecc71; box-shadow: 0 0 8px #2ecc71; }
+        .cam-err .dot { background: #e74c3c; box-shadow: 0 0 8px #e74c3c; }
+
+    </style>
+</head>
+<body>
+
+    <video id="webcam" autoplay playsinline></video>
+
+    <div id="game-container">
+        <!-- Холст игры -->
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <!-- HUD (Счет и Пауза) -->
+        <div id="hud" class="hidden">
+            <div style="display: flex; gap: 30px;">
+                <div>
+                    <div style="font-size: 0.8rem; color: #bdc3c7; text-transform: uppercase; margin-bottom: -5px;">Команда Күн</div>
+                    <div id="score-1p" class="hud-score team-red-score">0</div>
+                </div>
+                <div id="score-2p-container" class="hidden">
+                    <div style="font-size: 0.8rem; color: #bdc3c7; text-transform: uppercase; margin-bottom: -5px;">Команда Асман</div>
+                    <div id="score-2p" class="hud-score team-blue-score">0</div>
+                </div>
+            </div>
+            <button id="btn-pause">II</button>
+        </div>
+
+        <!-- ГЛАВНОЕ МЕНЮ -->
+        <div id="menu-main" class="ui-layer">
+            <div class="panel">
+                <h1 class="text-gold">КЫРГЫЗ<br><span style="color:white">PINCH</span></h1>
+                <p class="subtitle">Управляй птицами с помощью жестов!</p>
+                <button class="btn btn-primary" onclick="startGame(1)">1 Игрок (Одиночная)</button>
+                <button class="btn btn-secondary" onclick="startGame(2)">2 Игрока (Команды)</button>
+                <button class="btn btn-gold" onclick="showScreen('menu-records')">Таблица Рекордов</button>
+                <div style="margin-top: 15px; font-size: 0.8rem; color: #95a5a6;">
+                    Левая рука = Красные | Правая рука = Синие<br>Щипок 🤏 для прыжка
+                </div>
+            </div>
+        </div>
+
+        <!-- МЕНЮ ПАУЗЫ -->
+        <div id="menu-pause" class="ui-layer hidden">
+            <div class="panel">
+                <h1>ПАУЗА</h1>
+                <button class="btn btn-primary" onclick="resumeGame()">Продолжить</button>
+                <button class="btn btn-gold" onclick="quitToMenu()">Главное Меню</button>
+            </div>
+        </div>
+
+        <!-- МЕНЮ ИГРА ОКОНЧЕНА -->
+        <div id="menu-gameover" class="ui-layer hidden">
+            <div class="panel">
+                <h1 class="text-red">ОЙ-БОЙ!</h1>
+                <h2 id="go-winner" style="margin-top: -10px; margin-bottom: 20px;"></h2>
+                <div style="font-size: 1.5rem; margin-bottom: 30px;">
+                    Счет: <span id="go-score" class="text-gold">0</span>
+                </div>
+                <button class="btn btn-primary" onclick="restartGame()">Играть Снова</button>
+                <button class="btn btn-gold" onclick="quitToMenu()">Главное Меню</button>
+            </div>
+        </div>
+
+        <!-- МЕНЮ РЕКОРДОВ -->
+        <div id="menu-records" class="ui-layer hidden">
+            <div class="panel">
+                <h1 class="text-gold">РЕКОРДЫ</h1>
+                <table class="records-table">
+                    <thead><tr><th>Место</th><th>Счет</th><th>Дата</th></tr></thead>
+                    <tbody id="records-body"></tbody>
+                </table>
+                <button class="btn btn-primary" onclick="showScreen('menu-main')">Назад</button>
+            </div>
+        </div>
+
+        <!-- Индикатор Камеры -->
+        <div id="cam-status">
+            <div class="dot"></div>
+            <span id="cam-text">Инициализация ИИ (MediaPipe)...</span>
+        </div>
+    </div>
+
+    <script>
+        // --- ПРОСТРАНСТВО ИМЕН И ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const videoElement = document.getElementById('webcam');
+        
+        let gameMode = 1; // 1 = Одиночная, 2 = Команды
+        let isPaused = false;
+        let animationId;
+        let frameCount = 0;
+        let records = JSON.parse(localStorage.getItem('kgPinchRecords')) || [];
+
+        // --- ВСТРОЕННЫЙ СИНТЕЗАТОР ЗВУКОВ (Web Audio API) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, type, duration, vol=0.1) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type; 
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+        const sfx = {
+            jump: () => playTone(350, 'sine', 0.15, 0.1),
+            score: () => { playTone(800, 'square', 0.1, 0.05); setTimeout(()=>playTone(1200, 'square', 0.1, 0.05), 100); },
+            crash: () => playTone(150, 'sawtooth', 0.4, 0.2)
+        };
+
+        // --- ГЕНЕРАТОР ГРАФИКИ (Ассеты) ---
+        const assets = { bg: new Image(), birdRed: new Image(), birdBlue: new Image(), pipeNorth: new Image(), pipeSouth: new Image() };
+        let assetsLoaded = 0;
+        
+        function initAssets() {
+            const createImg = (w, h, renderFunc) => {
+                const tmp = document.createElement('canvas'); tmp.width = w; tmp.height = h;
+                renderFunc(tmp.getContext('2d'), w, h); return tmp.toDataURL();
+            };
+
+            // Фон 800x600 (Панорамный)
+            assets.bg.src = createImg(800, 600, (c, w, h) => {
+                const sky = c.createLinearGradient(0, 0, 0, 450);
+                sky.addColorStop(0, '#1e3c72'); sky.addColorStop(1, '#2a5298');
+                c.fillStyle = sky; c.fillRect(0, 0, w, h);
+                
+                // Луна/Солнце
+                c.fillStyle = 'rgba(255, 255, 255, 0.8)'; c.shadowBlur = 30; c.shadowColor = '#fff';
+                c.beginPath(); c.arc(400, 200, 50, 0, Math.PI*2); c.fill(); c.shadowBlur = 0;
+
+                const drawMountain = (color, pts) => {
+                    c.fillStyle = color; c.beginPath(); c.moveTo(pts[0].x, pts[0].y);
+                    for(let i=1; i<pts.length; i++) c.lineTo(pts[i].x, pts[i].y); c.fill();
+                };
+                drawMountain('#192a56', [{x:0, y:450}, {x:150, y:200}, {x:350, y:450}]);
+                drawMountain('#192a56', [{x:250, y:450}, {x:500, y:150}, {x:800, y:450}]);
+                drawMountain('#273c75', [{x:-50, y:450}, {x:100, y:300}, {x:250, y:450}]);
+                drawMountain('#273c75', [{x:400, y:450}, {x:600, y:250}, {x:850, y:450}]);
+
+                const ground = c.createLinearGradient(0, 450, 0, 600);
+                ground.addColorStop(0, '#2ecc71'); ground.addColorStop(1, '#27ae60');
+                c.fillStyle = ground; c.fillRect(0, 450, w, 150);
+                
+                // Две Юрты
+                const drawYurt = (x, y) => {
+                    c.fillStyle = '#ecf0f1'; c.beginPath(); c.arc(x, y, 35, Math.PI, 0); c.fill();
+                    c.fillRect(x-35, y, 70, 25);
+                    c.strokeStyle = '#c0392b'; c.lineWidth = 3; c.strokeRect(x-10, y+5, 20, 20);
+                };
+                drawYurt(150, 460); drawYurt(650, 470);
+            });
+
+            // Функция отрисовки птицы
+            const drawBird = (c, w, h, bodyColor, hatColor) => {
+                c.shadowColor = 'rgba(0,0,0,0.5)'; c.shadowBlur = 4; c.shadowOffsetY = 3;
+                c.fillStyle = bodyColor; c.beginPath(); c.ellipse(w/2 + 2, 28, 18, 12, 0, 0, Math.PI*2); c.fill(); // Тело
+                c.fillStyle = '#e67e22'; c.beginPath(); c.moveTo(10, 28); c.quadraticCurveTo(20, 20, 30, 28); c.quadraticCurveTo(20, 38, 10, 28); c.fill(); // Крыло
+                c.fillStyle = '#f39c12'; c.beginPath(); c.moveTo(40, 24); c.quadraticCurveTo(50, 24, 48, 32); c.quadraticCurveTo(42, 28, 40, 28); c.fill(); // Клюв
+                c.fillStyle = '#fff'; c.beginPath(); c.arc(36, 22, 4, 0, Math.PI*2); c.fill(); // Глаз
+                c.fillStyle = '#000'; c.beginPath(); c.arc(37, 22, 1.5, 0, Math.PI*2); c.fill();
+                c.shadowBlur = 0; c.shadowOffsetY = 0;
+                // Ак-Калпак
+                c.fillStyle = hatColor; c.beginPath(); c.moveTo(25, 16); c.quadraticCurveTo(30, 0, 35, 16); c.fill(); c.fillRect(23, 16, 14, 4);
+                c.fillStyle = '#111'; c.fillRect(29, 2, 2, 14); c.fillRect(23, 18, 14, 2);
+            };
+
+            assets.birdRed.src = createImg(50, 45, (c, w, h) => drawBird(c, w, h, '#c0392b', '#ffffff'));
+            assets.birdBlue.src = createImg(50, 45, (c, w, h) => drawBird(c, w, h, '#2980b9', '#ecf0f1'));
+
+            // Трубы (Массивные для разрешения 800x600)
+            const drawPipe = (c, w, h, isTop) => {
+                const grad = c.createLinearGradient(0, 0, w, 0);
+                grad.addColorStop(0, '#591616'); grad.addColorStop(0.5, '#c0392b'); grad.addColorStop(1, '#4a0b0b');
+                c.fillStyle = grad; c.fillRect(0, 0, w, h);
+                c.fillStyle = '#f1c40f'; // Орнамент
+                for(let y = 30; y < h - 30; y += 80) {
+                    c.beginPath(); c.moveTo(w/2, y); c.lineTo(w-15, y+30); c.lineTo(w/2, y+60); c.lineTo(15, y+30); c.fill();
+                }
+                const capH = 30; let capY = isTop ? h - capH : 0;
+                c.fillStyle = '#d35400'; c.fillRect(-5, capY, w+10, capH);
+                c.fillStyle = 'rgba(255,255,255,0.2)'; c.fillRect(-5, capY, w+10, 5);
+            };
+            assets.pipeSouth.src = createImg(80, 500, (c, w, h) => drawPipe(c, w, h, false));
+            assets.pipeNorth.src = createImg(80, 500, (c, w, h) => drawPipe(c, w, h, true));
+
+            Object.values(assets).forEach(img => img.onload = () => {
+                assetsLoaded++;
+                if(assetsLoaded === 5) renderFrame(); // Старт отрисовки фона меню
+            });
+        }
+        initAssets();
+
+        // --- ИГРОВЫЕ КЛАССЫ ---
+        class Background {
+            constructor() { this.x = 0; this.speed = 1.5; }
+            update() { this.x -= this.speed; if (this.x <= -800) this.x = 0; }
+            draw() {
+                if(assets.bg.complete) {
+                    ctx.drawImage(assets.bg, this.x, 0, 800, 600);
+                    ctx.drawImage(assets.bg, this.x + 800, 0, 800, 600);
+                }
+            }
+        }
+
+        class Bird {
+            constructor(type, xOffset) {
+                this.type = type; // 'red' или 'blue'
+                this.img = type === 'red' ? assets.birdRed : assets.birdBlue;
+                this.startX = 80 + xOffset;
+                this.width = 50; this.height = 45;
+                this.reset();
+            }
+            reset() {
+                this.x = this.startX; this.y = 300;
+                this.velocity = 0; this.gravity = 0.5; this.jumpStrength = -8;
+                this.rotation = 0; this.isAlive = true; this.score = 0;
+            }
+            jump() {
+                if(this.isAlive && !isPaused) {
+                    this.velocity = this.jumpStrength;
+                    sfx.jump();
+                }
+            }
+            update() {
+                if (!this.isAlive) return;
+                this.velocity += this.gravity; this.y += this.velocity;
+                this.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, (this.velocity * 0.1)));
+
+                if (this.y + this.height >= 600 || this.y <= 0) this.die();
+            }
+            draw() {
+                if (!this.isAlive) return;
+                ctx.save();
+                ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                ctx.rotate(this.rotation);
+                ctx.drawImage(this.img, -this.width / 2, -this.height / 2, this.width, this.height);
+                ctx.restore();
+            }
+            die() {
+                if(this.isAlive) { this.isAlive = false; sfx.crash(); checkGameOver(); }
+            }
+        }
+
+        class Pipe {
+            constructor() {
+                this.width = 80; this.gap = gameMode === 2 ? 220 : 180; // В 2Р окно шире
+                this.x = 800;
+                this.speed = 4; this.passedBy = { 'red': false, 'blue': false };
+                const minH = 80; const maxH = 600 - this.gap - 80;
+                this.topH = Math.floor(Math.random() * (maxH - minH + 1) + minH);
+            }
+            update() { this.x -= this.speed; }
+            draw() {
+                ctx.drawImage(assets.pipeNorth, 0, 500 - this.topH, this.width, this.topH, this.x, 0, this.width, this.topH);
+                const bottomY = this.topH + this.gap;
+                ctx.drawImage(assets.pipeSouth, 0, 0, this.width, 600 - bottomY, this.x, bottomY, this.width, 600 - bottomY);
+            }
+            collides(bird) {
+                if(!bird.isAlive) return false;
+                const bx = bird.x + 8, by = bird.y + 10, bw = bird.width - 16, bh = bird.height - 18;
+                if (bx < this.x + this.width && bx + bw > this.x) {
+                    if (by < this.topH || by + bh > this.topH + this.gap) return true;
+                }
+                return false;
+            }
+        }
+
+        // --- ЛОГИКА И СОСТОЯНИЯ ---
+        const bg = new Background();
+        let birds = [];
+        let pipes = [];
+        let activeMenu = 'menu-main';
+
+        function showScreen(id) {
+            document.querySelectorAll('.ui-layer').forEach(el => el.classList.add('hidden'));
+            if(id) document.getElementById(id).classList.remove('hidden');
+            activeMenu = id;
+            
+            if(id === 'menu-records') updateRecordsTable();
+            if(id === null) document.getElementById('hud').classList.remove('hidden');
+            else document.getElementById('hud').classList.add('hidden');
+        }
+
+        function startGame(mode) {
+            // Инициализация AudioContext с первым кликом пользователя (политика браузеров)
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+
+            gameMode = mode;
+            birds = [];
+            birds.push(new Bird('red', 0));
+            if(gameMode === 2) {
+                birds.push(new Bird('blue', -40)); // Вторая птица летит чуть позади
+                document.getElementById('score-2p-container').classList.remove('hidden');
+            } else {
+                document.getElementById('score-2p-container').classList.add('hidden');
+            }
+            
+            pipes = []; frameCount = 0; isPaused = false;
+            updateScoreUI(); showScreen(null);
+            if(!animationId) animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function pauseGame() {
+            if(activeMenu !== null) return;
+            isPaused = true; showScreen('menu-pause');
+        }
+
+        function resumeGame() {
+            isPaused = false; showScreen(null);
+        }
+
+        function restartGame() { startGame(gameMode); }
+        function quitToMenu() {
+            isPaused = true; showScreen('menu-main');
+            if(animationId) { cancelAnimationFrame(animationId); animationId = null; }
+            // Рисуем статический фон
+            ctx.clearRect(0, 0, 800, 600); bg.draw();
+        }
+
+        function checkGameOver() {
+            const anyAlive = birds.some(b => b.isAlive);
+            if (!anyAlive) {
+                isPaused = true;
+                let finalScoreText = '';
+                let winText = '';
+                let maxScore = 0;
+
+                if (gameMode === 1) {
+                    maxScore = birds[0].score;
+                    finalScoreText = maxScore;
+                    winText = 'Отличная попытка!';
+                } else {
+                    maxScore = Math.max(birds[0].score, birds[1].score);
+                    finalScoreText = `<span class="text-red">Күн: ${birds[0].score}</span> | <span class="text-blue">Асман: ${birds[1].score}</span>`;
+                    if(birds[0].score > birds[1].score) winText = 'Команда КҮН победила!';
+                    else if(birds[1].score > birds[0].score) winText = 'Команда АСМАН победила!';
+                    else winText = 'Ничья!';
+                }
+
+                saveRecord(maxScore);
+                
+                document.getElementById('go-winner').innerHTML = winText;
+                document.getElementById('go-score').innerHTML = finalScoreText;
+                setTimeout(() => showScreen('menu-gameover'), 500); // Небольшая задержка перед меню
+            }
+        }
+
+        function updateScoreUI() {
+            document.getElementById('score-1p').innerText = birds[0] ? birds[0].score : 0;
+            if(gameMode === 2) document.getElementById('score-2p').innerText = birds[1] ? birds[1].score : 0;
+        }
+
+        function saveRecord(score) {
+            if(score === 0) return;
+            const date = new Date().toLocaleDateString('ru-RU');
+            records.push({score, date, mode: gameMode === 1 ? '1P' : '2P'});
+            records.sort((a,b) => b.score - a.score);
+            records = records.slice(0, 5); // Топ 5
+            localStorage.setItem('kgPinchRecords', JSON.stringify(records));
+        }
+
+        function updateRecordsTable() {
+            const tbody = document.getElementById('records-body');
+            tbody.innerHTML = '';
+            records.forEach((r, i) => {
+                tbody.innerHTML += `<tr><td>#${i+1} ${r.mode}</td><td>${r.score}</td><td>${r.date}</td></tr>`;
+            });
+            if(records.length === 0) tbody.innerHTML = '<tr><td colspan="3" style="color:#bdc3c7">Пока нет рекордов</td></tr>';
+        }
+
+        // --- УПРАВЛЕНИЕ (КЛАВИАТУРА И HUD) ---
+        document.getElementById('btn-pause').addEventListener('click', pauseGame);
+
+        window.addEventListener('keydown', (e) => {
+            if (activeMenu !== null) return;
+            if (e.code === 'Escape' || e.code === 'KeyP') pauseGame();
+            if (e.code === 'Space' || e.code === 'KeyW') { e.preventDefault(); if(birds[0]) birds[0].jump(); }
+            if (e.code === 'ArrowUp') { e.preventDefault(); if(birds[1] && gameMode === 2) birds[1].jump(); }
+        });
+        
+        // Touch/Mouse для 1P (только для левой стороны экрана, или всего экрана если 1P)
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if(activeMenu !== null) return;
+            for(let i=0; i<e.touches.length; i++) {
+                let tx = e.touches[i].clientX;
+                if(gameMode === 1) { if(birds[0]) birds[0].jump(); }
+                else {
+                    if(tx < window.innerWidth/2) { if(birds[0]) birds[0].jump(); }
+                    else { if(birds[1]) birds[1].jump(); }
+                }
+            }
+        }, {passive: false});
+        canvas.addEventListener('mousedown', (e) => {
+            if(activeMenu !== null) return;
+            if(gameMode === 1 || e.clientX < window.innerWidth/2) { if(birds[0]) birds[0].jump(); }
+            else { if(birds[1]) birds[1].jump(); }
+        });
+
+        // --- ИГРОВОЙ ЦИКЛ ---
+        function updateLogic() {
+            if (isPaused || activeMenu !== null) return;
+            
+            bg.update();
+            birds.forEach(b => b.update());
+
+            frameCount++;
+            if (frameCount % 100 === 0) pipes.push(new Pipe());
+
+            let scoreChanged = false;
+            for (let i = pipes.length - 1; i >= 0; i--) {
+                pipes[i].update();
+                
+                birds.forEach(bird => {
+                    if (pipes[i].collides(bird)) bird.die();
+                    // Подсчет очков индивидуально
+                    if (bird.isAlive && pipes[i].x + pipes[i].width < bird.x && !pipes[i].passedBy[bird.type]) {
+                        bird.score++; pipes[i].passedBy[bird.type] = true; scoreChanged = true;
+                    }
+                });
+
+                if (pipes[i].x + pipes[i].width < 0) pipes.splice(i, 1);
+            }
+            if(scoreChanged) { sfx.score(); updateScoreUI(); }
+        }
+
+        function renderFrame() {
+            ctx.clearRect(0, 0, 800, 600);
+            bg.draw();
+            if(activeMenu === null || isPaused) {
+                pipes.forEach(p => p.draw());
+                birds.forEach(b => b.draw());
+            }
+
+            // Отрисовка курсоров рук (MediaPipe)
+            handCursors.forEach(cursor => {
+                ctx.beginPath(); ctx.arc(cursor.x, cursor.y, 12, 0, Math.PI * 2);
+                ctx.fillStyle = cursor.color; ctx.fill();
+                ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.stroke();
+                // Крестик внутри для прицела
+                ctx.fillStyle = 'white'; ctx.fillRect(cursor.x-2, cursor.y-6, 4, 12); ctx.fillRect(cursor.x-6, cursor.y-2, 12, 4);
+            });
+        }
+
+        function gameLoop() {
+            updateLogic();
+            renderFrame();
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- MEDIAPIPE (Нейросеть) ---
+        let handCursors = [];
+        let handStates = { 'Left': {canJump: true}, 'Right': {canJump: true} };
+        const statusEl = document.getElementById('cam-status');
+        const statusTextEl = document.getElementById('cam-text');
+
+        function onResults(results) {
+            statusEl.classList.add('cam-ok');
+            statusTextEl.innerText = "ИИ Активен (Готов к игре)";
+            setTimeout(()=> { statusEl.style.opacity = '0'; }, 3000);
+
+            handCursors = [];
+
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                for(let i=0; i<results.multiHandLandmarks.length; i++) {
+                    const landmarks = results.multiHandLandmarks[i];
+                    const handedness = results.multiHandedness[i].label; // 'Left' или 'Right'
+                    
+                    const thumb = landmarks[4]; const index = landmarks[8];
+                    
+                    // Координаты на холсте (зеркалируем X)
+                    const hx = (1 - index.x) * 800;
+                    const hy = index.y * 600;
+
+                    const color = handedness === 'Left' ? '#e74c3c' : '#3498db'; // Левая=Красный, Правая=Синий
+                    handCursors.push({x: hx, y: hy, color: color});
+
+                    const dist = Math.hypot(index.x - thumb.x, index.y - thumb.y);
+
+                    if (dist < 0.05) {
+                        if (handStates[handedness].canJump) {
+                            // Если в меню, можно симулировать клик, но лучше пусть кликают мышкой, 
+                            // а жесты использовать только для игры, чтобы не было случайных нажатий.
+                            if (activeMenu === null && !isPaused) {
+                                if(handedness === 'Left' && birds[0]) birds[0].jump();
+                                if(handedness === 'Right' && birds[1] && gameMode === 2) birds[1].jump();
+                            }
+                            handStates[handedness].canJump = false;
+                        }
+                    } else {
+                        handStates[handedness].canJump = true;
+                    }
+                }
+            }
+        }
+
+        const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+        hands.setOptions({
+            maxNumHands: 2, // Теперь отслеживаем ДВЕ руки!
+            modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5
+        });
+        hands.onResults(onResults);
+
+        const camera = new Camera(videoElement, { onFrame: async () => { await hands.send({image: videoElement}); }, width: 640, height: 480 });
+        camera.start().catch(err => {
+            console.error(err);
+            statusEl.classList.add('cam-err');
+            statusTextEl.innerText = "Камера недоступна (Используйте клавиатуру: W / Вверх)";
+        });
+
+        // Инициальный рендер фона
+        setTimeout(() => { if(!animationId) { ctx.clearRect(0,0,800,600); bg.draw(); } }, 1000);
+
+    </script>
+</body>
+</html>

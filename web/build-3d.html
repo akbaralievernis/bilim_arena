@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Мир: Строительство руками</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Courier New', Courier, monospace; }
+        #video-container { 
+            position: absolute; 
+            inset: 0; 
+            z-index: 1; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #video-element { 
+            min-width: 100%; 
+            min-height: 100%; 
+            width: auto; 
+            height: auto; 
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+        canvas#output-canvas { 
+            position: absolute; 
+            inset: 0; 
+            z-index: 5; 
+            pointer-events: none;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        #three-container { position: absolute; inset: 0; z-index: 10; }
+        #ui-layer { position: absolute; inset: 0; pointer-events: none; z-index: 20; }
+        .progress-ring { position: absolute; width: 80px; height: 80px; transform: translate(-50%, -50%); display: none; }
+        .progress-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .progress-ring circle { fill: none; stroke-width: 6; stroke-linecap: round; }
+        .ring-bg { stroke: rgba(255, 255, 255, 0.2); }
+        .ring-bar { stroke: #00f2ff; stroke-dasharray: 226; stroke-dashoffset: 226; transition: stroke-dashoffset 0.1s linear; }
+        .delete-mode .ring-bar { stroke: #ff0000; }
+        .move-mode .ring-bar { stroke: #ffd700; }
+        #loading-screen { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: #00f2ff; }
+    </style>
+</head>
+<body>
+
+<div id="loading-screen">
+    <div class="w-12 h-12 border-4 border-t-transparent border-cyan-400 rounded-full animate-spin"></div>
+    <p class="mt-4 tracking-widest text-cyan-400">ЗАГРУЗКА...</p>
+</div>
+
+<div id="video-container">
+    <video id="video-element" playsinline></video>
+</div>
+<canvas id="output-canvas"></canvas>
+<div id="three-container"></div>
+
+<div id="ui-layer">
+    <div id="cursor-ring" class="progress-ring">
+        <svg>
+            <circle class="ring-bg" cx="40" cy="40" r="36"></circle>
+            <circle id="progress-bar" class="ring-bar" cx="40" cy="40" r="36"></circle>
+        </svg>
+    </div>
+</div>
+
+<script>
+    const videoElement = document.getElementById('video-element');
+    const canvasElement = document.getElementById('output-canvas');
+    const canvasCtx = canvasElement.getContext('2d');
+    const progressBar = document.getElementById('progress-bar');
+    const cursorRing = document.getElementById('cursor-ring');
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.getElementById('three-container').appendChild(renderer.domElement);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    directionalLight.position.set(0, 10, 10);
+    scene.add(directionalLight);
+
+    camera.position.z = 5;
+
+    const GRID_SIZE = 0.5;
+    const cubes = [];
+    const worldGroup = new THREE.Group();
+    scene.add(worldGroup);
+
+    let ghostCube = null; 
+    let isDeletingMode = false;
+    let isMovingMode = false;
+    let creationTimer = 0;
+    let isDrawingReady = false;
+    let isMovingReady = false;
+    let lastMovePos = new THREE.Vector3();
+
+    function createGhostCube() {
+        const geo = new THREE.BoxGeometry(GRID_SIZE, GRID_SIZE, GRID_SIZE);
+        const mat = new THREE.MeshPhongMaterial({ color: 0x00f2ff, transparent: true, opacity: 0.2, wireframe: true });
+        ghostCube = new THREE.Mesh(geo, mat);
+        ghostCube.visible = false;
+        scene.add(ghostCube);
+    }
+    createGhostCube();
+
+    function snapToGrid(position) {
+        return new THREE.Vector3(
+            Math.round(position.x / GRID_SIZE) * GRID_SIZE,
+            Math.round(position.y / GRID_SIZE) * GRID_SIZE,
+            0
+        );
+    }
+
+    function isFist(landmarks) {
+        const fingerTips = [8, 12, 16, 20];
+        const wrist = landmarks[0];
+        return fingerTips.every(tipIdx => {
+            const tip = landmarks[tipIdx];
+            const dist = Math.sqrt(Math.pow(tip.x - wrist.x, 2) + Math.pow(tip.y - wrist.y, 2));
+            return dist < 0.15;
+        });
+    }
+
+    function onResults(results) {
+        document.getElementById('loading-screen').style.display = 'none';
+        
+        if (canvasElement.width !== window.innerWidth || canvasElement.height !== window.innerHeight) {
+            canvasElement.width = window.innerWidth;
+            canvasElement.height = window.innerHeight;
+        }
+        
+        canvasCtx.save();
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        
+        canvasCtx.translate(canvasElement.width, 0);
+        canvasCtx.scale(-1, 1);
+
+        if (results.multiHandLandmarks) {
+            let leftHand = null;
+            let rightHand = null;
+
+            results.multiHandedness.forEach((hand, index) => {
+                if (hand.label === 'Left') leftHand = results.multiHandLandmarks[index];
+                if (hand.label === 'Right') rightHand = results.multiHandLandmarks[index];
+                
+                drawConnectors(canvasCtx, results.multiHandLandmarks[index], HAND_CONNECTIONS, {color: '#ffffffaa', lineWidth: 3});
+                drawLandmarks(canvasCtx, results.multiHandLandmarks[index], {color: hand.label === 'Left' ? '#00f2ff' : '#ff0000', lineWidth: 1, radius: 4});
+            });
+
+            if (rightHand) {
+                isDeletingMode = rightHand[8].y < rightHand[0].y - 0.25;
+            }
+
+            if (leftHand) {
+                const thumb = leftHand[4];
+                const indexF = leftHand[8];
+                const dist = Math.sqrt(Math.pow(thumb.x - indexF.x, 2) + Math.pow(thumb.y - indexF.y, 2));
+                const fistDetected = isFist(leftHand);
+                
+                const x = (1 - thumb.x) * 2 - 1;
+                const y = -(thumb.y * 2 - 1);
+                const rawPos = new THREE.Vector3(x * 5, y * 3.5, 0);
+                const gridPos = snapToGrid(rawPos);
+                
+                const uiX = (1 - thumb.x) * window.innerWidth;
+                const uiY = thumb.y * window.innerHeight;
+                cursorRing.style.left = `${uiX}px`;
+                cursorRing.style.top = `${uiY}px`;
+
+                if (fistDetected) {
+                    isMovingMode = true;
+                    cursorRing.className = "progress-ring move-mode";
+                    ghostCube.visible = false;
+                } else {
+                    isMovingMode = false;
+                    isMovingReady = false;
+                    cursorRing.className = isDeletingMode ? "progress-ring delete-mode" : "progress-ring";
+                    ghostCube.visible = true;
+                    ghostCube.position.copy(gridPos);
+                    ghostCube.material.color.setHex(isDeletingMode ? 0xff0000 : 0x00f2ff);
+                }
+
+                if ((dist < 0.05 && !isMovingMode) || (isMovingMode)) {
+                    cursorRing.style.display = 'block';
+                    if (!isDrawingReady && !isMovingReady) {
+                        creationTimer += 3.5;
+                        const offset = 226 - (Math.min(creationTimer, 100) / 100) * 226;
+                        progressBar.style.strokeDashoffset = offset;
+                        if (creationTimer >= 100) {
+                            if (isMovingMode) {
+                                isMovingReady = true;
+                                lastMovePos.copy(rawPos);
+                            } else {
+                                isDrawingReady = true;
+                            }
+                            cursorRing.style.display = 'none';
+                        }
+                    }
+                    if (isDrawingReady && !isMovingMode) {
+                        if (isDeletingMode) {
+                            handleDeleteLogic(gridPos);
+                        } else {
+                            placePermanentCube(gridPos);
+                        }
+                    }
+                    if (isMovingReady && isMovingMode) {
+                        const delta = new THREE.Vector3().subVectors(rawPos, lastMovePos);
+                        worldGroup.position.add(delta);
+                        lastMovePos.copy(rawPos);
+                    }
+                } else {
+                    resetInteraction();
+                }
+            } else {
+                resetInteraction();
+            }
+        }
+        canvasCtx.restore();
+    }
+
+    function placePermanentCube(pos) {
+        const localPos = worldGroup.worldToLocal(pos.clone());
+        const gridLocal = snapToGrid(localPos);
+        const exists = cubes.some(c => c.position.distanceTo(gridLocal) < 0.1);
+        if (exists) return;
+        const geo = new THREE.BoxGeometry(GRID_SIZE, GRID_SIZE, GRID_SIZE);
+        const mat = new THREE.MeshPhongMaterial({ 
+            color: 0x00f2ff, 
+            transparent: true, 
+            opacity: 0.5, 
+            shininess: 90 
+        });
+        const cube = new THREE.Mesh(geo, mat);
+        cube.position.copy(gridLocal);
+        const edges = new THREE.EdgesGeometry(geo);
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x00f2ff, transparent: true, opacity: 0.8 }));
+        cube.add(line);
+        worldGroup.add(cube);
+        cubes.push(cube);
+    }
+
+    function handleDeleteLogic(pos) {
+        const localPos = worldGroup.worldToLocal(pos.clone());
+        const gridLocal = snapToGrid(localPos);
+        let target = null;
+        cubes.forEach(c => {
+            if (c.position.distanceTo(gridLocal) < 0.1) target = c;
+        });
+        if (target) {
+            worldGroup.remove(target);
+            const idx = cubes.indexOf(target);
+            if (idx > -1) cubes.splice(idx, 1);
+        }
+    }
+
+    function resetInteraction() {
+        cursorRing.style.display = 'none';
+        creationTimer = 0;
+        progressBar.style.strokeDashoffset = 226;
+        isDrawingReady = false;
+        isMovingReady = false;
+    }
+
+    const hands = new Hands({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+    });
+    hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.7, minTrackingConfidence: 0.7 });
+    hands.onResults(onResults);
+    
+    const cameraHelper = new Camera(videoElement, {
+        onFrame: async () => { await hands.send({image: videoElement}); },
+        width: 1280,
+        height: 720
+    });
+    cameraHelper.start();
+    
+    function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+    }
+    animate();
+    
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+</script>
+</body>
+</html>

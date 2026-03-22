@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ky">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1220" />
+  <title>Цитаделди ээлөө — Билим Арена</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body class="dark"> <div class="global-nav">
+    <a href="../../index.html" class="nav-btn">← Башкы бет</a>
+    <button id="themeBtn" class="nav-btn theme-toggle">🌙</button>
+  </div>
+
+  <div id="setup" class="screen">
+    <div class="panel">
+      <div class="titleRow">
+        <h1>🏰 Цитаделди ээлөө</h1>
+        <span class="chip" id="chipInfo">Тактика жана Билим</span>
+      </div>
+
+      <p class="sub">
+        Командалар бир убакта ойношот: А командасы сол жактагы, Б командасы оң жактагы плиткаларды тандайт. Ар бир туура жооп сизге аймак алып берет!
+      </p>
+
+      <div class="steps">
+        <section class="stepCard">
+          <div class="stepHead">
+            <div class="stepNum">1</div>
+            <div class="stepTitle">Командалардын аттары</div>
+          </div>
+          <div class="grid2">
+            <label class="kidLabel">
+              <span style="color: var(--accent-a)">🟥</span> А Командасы (сол жакта)
+              <input id="teamAName" type="text" placeholder="Мисалы: Арстандар" maxlength="18" />
+            </label>
+            <label class="kidLabel">
+              <span style="color: var(--accent-b)">🟦</span> Б Командасы (оң жакта)
+              <input id="teamBName" type="text" placeholder="Мисалы: Бүркүттөр" maxlength="18" />
+            </label>
+          </div>
+        </section>
+
+        <section class="stepCard">
+          <div class="stepHead">
+            <div class="stepNum">2</div>
+            <div class="stepTitle">Деңгээлди тандоо</div>
+          </div>
+          <div class="grid2">
+            <label class="kidLabel">
+              Кыйынчылык деңгээли
+              <select id="diffSelect" class="styled-select">
+                <option value="english_a1">🟢 English A1 (Beginner)</option>
+                <option value="english_a2">🔴 English A2 (Elementary)</option>
+              </select>
+            </label>
+            <div class="diff-desc" id="diffDesc">
+              Бул деңгээлде 35 даяр суроо бар. Бардык суроолор автоматтык түрдө оюн талаасына жайгаштырылат.
+            </div>
+          </div>
+        </section>
+
+        <section class="stepCard" style="background: transparent; border: none; padding: 0;">
+          <button id="btnStart" class="btn primary big w-100" type="button">▶ ОЮНДУ БАШТОО</button>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div id="game" class="screen hidden">
+    <main class="stage">
+      <header class="topbar">
+        <div class="topbarInner">
+          <div class="topTeam topA">
+            <div class="teamPill a" id="pillA">
+              <b id="topTeamA">Команда A</b>
+            </div>
+            <div class="miniScore">Упай: <b id="topScoreA">0</b></div>
+          </div>
+
+          <div class="topCenter">
+            <div class="brand2">
+              <span class="logo2">🏰</span>
+            </div>
+            <div class="hudTimer" id="hudTimerWrap">
+              <b id="matchTimer">03:00</b>
+            </div>
+          </div>
+
+          <div class="topTeam topB">
+            <div class="miniScore">Упай: <b id="topScoreB">0</b></div>
+            <div class="teamPill b" id="pillB">
+              <b id="topTeamB">Команда B</b>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="arena">
+        <aside class="side sideA" id="sideQA">
+          <div class="sideHead">
+            <b id="teamNameA">Команда A</b>
+            <span class="sideTimer" id="timerA">⏱ 15</span>
+          </div>
+          <div class="qPanel">
+            <div class="qTextSmall" id="qTextA">Өзүңүздүн тараптан плитканы басыңыз</div>
+            <div class="answersSmall" id="answersA"></div>
+          </div>
+        </aside>
+
+        <section class="board" id="centerBoard">
+          <div class="hudProgress">
+            <div class="bar">
+              <div class="fillA" id="fillA"></div>
+              <div class="fillB" id="fillB"></div>
+            </div>
+          </div>
+          <div id="boardN" class="grid"></div>
+        </section>
+
+        <aside class="side sideB" id="sideQB">
+          <div class="sideHead">
+            <b id="teamNameB">Команда B</b>
+            <span class="sideTimer" id="timerB">⏱ 15</span>
+          </div>
+          <div class="qPanel">
+            <div class="qTextSmall" id="qTextB">Өзүңүздүн тараптан плитканы басыңыз</div>
+            <div class="answersSmall" id="answersB"></div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <div id="winBackdrop" class="winBackdrop hidden">
+    <div class="winCard">
+      <div class="winTitle" id="winTitle">🏆 Жеңиш!</div>
+      <div class="winSub" id="winSub">—</div>
+      <div class="row center">
+        <button id="btnPlayAgain" class="btn primary" type="button">↻ Башкы меню</button>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="confetti-canvas"></canvas>
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

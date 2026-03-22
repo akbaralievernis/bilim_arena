@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="48" viewBox="0 0 240 48" role="img" aria-label="Билим Арена">
+  <title>Билим Арена</title>
+  <g fill="none" fill-rule="evenodd">
+    <g transform="translate(0,6)">
+      <rect x="0" y="0" width="36" height="8" rx="4" fill="#1fb6ff"/>
+      <rect x="0" y="12" width="24" height="8" rx="4" fill="#0ea5a3"/>
+      <rect x="0" y="24" width="12" height="8" rx="4" fill="#7c3aed"/>
+    </g>
+    <text x="60" y="32" font-family="Noto Sans, Inter, sans-serif" font-weight="700" font-size="18" fill="#ffffff">Билим Арена</text>
+  </g>
+</svg>
