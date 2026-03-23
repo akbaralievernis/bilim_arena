@@ -1,0 +1,43 @@
+[33mcommit 55bfa7863800c634b0885cc4b0b6c75e9b50f9d8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m
+Author: akbaralievernis <167276307+akbaralievernis@users.noreply.github.com>
+Date:   Sun Mar 22 23:42:43 2026 +0600
+
+    Обновил файлы
+
+ assets/1.jpg                                       |  Bin [31m0[m -> [32m33478[m bytes
+ assets/2.jpg                                       |  Bin [31m0[m -> [32m63542[m bytes
+ assets/3.jpg                                       |  Bin [31m0[m -> [32m46999[m bytes
+ ...\320\262\321\200. 2026 \320\263., 18_42_04.png" |  Bin [31m0[m -> [32m2317115[m bytes
+ assets/ashykcha.png                                |  Bin [31m0[m -> [32m2186740[m bytes
+ assets/berkut.png                                  |  Bin [31m0[m -> [32m711246[m bytes
+ assets/catch.png                                   |  Bin [31m0[m -> [32m722830[m bytes
+ assets/fokus.png                                   |  Bin [31m0[m -> [32m2197792[m bytes
+ assets/logo.svg                                    |   11 [32m+[m
+ assets/sitadeli.png                                |  Bin [31m0[m -> [32m2307954[m bytes
+ assets/suilom.png                                  |  Bin [31m0[m -> [32m2100841[m bytes
+ games/citadel/app.js                               |  378 [32m+++++++[m
+ games/citadel/index.html                           |  156 [32m+++[m
+ games/citadel/style.css                            |  226 [32m+++++[m
+ games/eagle/index.html                             |  644 [32m++++++++++++[m
+ games/focus-duel/data.js                           |   88 [32m++[m
+ games/focus-duel/focus-duel.js                     |  481 [32m+++++++++[m
+ games/focus-duel/index.html                        |  224 [32m+++++[m
+ games/focus-duel/style.css                         |  504 [32m++++++++++[m
+ games/mafia/index.html                             |   54 [32m+[m
+ games/odd-one-out/app.js                           |  381 [32m+++++++[m
+ games/odd-one-out/index.html                       |  252 [32m+++++[m
+ games/odd-one-out/questions.json                   |  282 [32m++++++[m
+ games/odd-one-out/style.css                        |  750 [32m++++++++++++++[m
+ games/reaction/index.html                          |  527 [32m++++++++++[m
+ games/sentence/app.js                              |  576 [32m+++++++++++[m
+ games/sentence/index.html                          |  290 [32m++++++[m
+ games/sentence/style.css                           | 1037 [32m++++++++++++++++++++[m
+ index.html                                         |   94 [32m++[m
+ portal.css                                         |  506 [32m++++++++++[m
+ portal.js                                          |  326 [32m++++++[m
+ shared/ui.css                                      |  136 [32m+++[m
+ web/.vscode/settings.json                          |    3 [32m+[m
+ web/build-3d.html                                  |  299 [32m++++++[m
+ web/hand-shooter.html                              |  302 [32m++++++[m
+ web/neon-draw.html                                 |  547 [32m+++++++++++[m
+ 36 files changed, 9074 insertions(+)

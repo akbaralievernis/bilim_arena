@@ -8,6 +8,16 @@
   // --- CONFIG & CONSTANTS ---
   const GAMES = [
     {
+      id: "mafia",
+      title: "Мафия",
+      tag: "Ролдук",
+      difficulty: "hard",
+      difficultyText: "Татаал",
+      href: "./games/mafia/index.html",
+      img: "./assets/mafia.png",
+      desc: "Шектенүү жана алдоо! Психологиялык мафия оюнун досторуңуз менен ойноңуз."
+    },
+    {
       id: "sentence",
       title: "Сүйлөмдү түз",
       tag: "Текст",
