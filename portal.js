@@ -14,7 +14,7 @@
       difficulty: "hard",
       difficultyText: "Татаал",
       href: "./games/mafia/index.html",
-      img: "./assets/2.jpg",
+      img: "./assets/mafia.png",
       desc: "Шектенүү жана алдоо! Психологиялык мафия оюнун досторуңуз менен ойноңуз."
     },
     {
