@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b1220" />
+    <title>Правовые основы ИС — Билим Арена</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body class="dark">
+    <div class="global-nav">
+        <a href="../../index.html" class="nav-btn">← На главную</a>
+        <button id="themeBtn" class="nav-btn theme-toggle">🌙</button>
+    </div>
+
+    <div id="setup" class="screen">
+        <div class="panel glass">
+            <div class="titleRow">
+                <h1>⚖️ Правовые основы ИС</h1>
+                <span class="chip">Авторское право</span>
+            </div>
+
+            <p class="sub">
+                Проверьте свои знания в области интеллектуальной собственности и авторского права. Успейте ответить на все вопросы вовремя!
+            </p>
+
+            <div class="steps">
+                <section class="stepCard">
+                    <div class="stepHead">
+                        <div class="stepNum">1</div>
+                        <div class="stepTitle">Ваше имя</div>
+                    </div>
+                    <input id="playerName" type="text" placeholder="Введите ваше имя" class="styled-input" maxlength="20" />
+                </section>
+
+                <button id="btnStart" class="btn primary big w-100" type="button">▶ НАЧАТЬ ТЕСТ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game" class="screen hidden">
+        <main class="stage">
+            <header class="hud glass">
+                <div class="hudLeft">
+                    <span id="qCounter" class="counter">Вопрос: <b>1 / 10</b></span>
+                </div>
+                <div class="hudCenter">
+                    <div class="timerRing">
+                        <svg class="progress-ring" width="60" height="60">
+                            <circle class="progress-ring__circle" stroke="var(--primary)" stroke-width="4" fill="transparent" r="26" cx="30" cy="30"/>
+                        </svg>
+                        <b id="timer" class="timerText">20</b>
+                    </div>
+                </div>
+                <div class="hudRight">
+                    <span id="scoreText" class="counter">Очки: <b>0</b></span>
+                </div>
+            </header>
+
+            <div class="quizContainer">
+                <div id="qText" class="questionText">Загрузка вопроса...</div>
+                <div id="options" class="optionsGrid"></div>
+            </div>
+
+            <div class="progressBar">
+                <div id="progressFill" class="progressFill"></div>
+            </div>
+        </main>
+    </div>
+
+    <div id="result" class="screen hidden">
+        <div class="panel glass resultCard">
+            <div class="winIcon">🏆</div>
+            <h2 id="resultTitle">Тест завершен!</h2>
+            <div id="resultScore" class="finalScore">У вас 850 очков</div>
+            <div id="resultDetail" class="sub">Правильных ответов: 8 из 10</div>
+            
+            <div class="actions">
+                <button id="btnRestart" class="btn secondary">Повторить</button>
+                <a href="../../index.html" class="btn primary">В меню</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

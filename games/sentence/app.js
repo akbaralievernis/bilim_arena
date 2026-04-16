@@ -448,9 +448,25 @@
         const slot = z.slots.querySelector(`.slot[data-slot-index="${nextIndex}"]`);
         if (slot) { slot.textContent = tile.dataset.word; slot.classList.add("filled", "correct"); }
         tile.remove(); Sound.correct(); addCombo(k);
+        t.wrongStreak = 0;
         checkComplete(k);
       } else {
         tile.classList.add("wrong"); Sound.wrong(); resetCombo(k);
+        t.wrongStreak++;
+        if (t.wrongStreak % 3 === 0 && Game.config.penaltyOn3Wrong > 0) {
+            t.score = Math.max(0, t.score - Game.config.penaltyOn3Wrong);
+            setScore(k);
+            Sound.penalty();
+            
+            // Visual cue for penalty
+            const scoreEl = z.score;
+            scoreEl.style.color = "var(--error)";
+            scoreEl.style.transform = "scale(1.3)";
+            setTimeout(() => {
+                scoreEl.style.color = "";
+                scoreEl.style.transform = "";
+            }, 300);
+        }
         setTimeout(() => tile.classList.remove("wrong"), 250);
       }
     });
@@ -464,14 +480,31 @@
       const btn = ev.target.closest(".mathBtn"); if (!btn) return;
       ev.preventDefault(); Sound.unlock();
 
+      const t = Game.teams[k];
+
       if(Number(btn.dataset.value) === Game.mathRounds[Game.teams[k].idx].answer){
         Sound.correct(); 
         addCombo(k); 
+        t.wrongStreak = 0;
         
         Game.teams[k].phase = "done"; // БЛОКИРУЕМ ДВОЙНОЙ КЛИК
         finishSentence(k);
       } else {
         Sound.wrong(); resetCombo(k);
+        t.wrongStreak++;
+        if (t.wrongStreak % 3 === 0 && Game.config.penaltyOn3Wrong > 0) {
+            t.score = Math.max(0, t.score - Game.config.penaltyOn3Wrong);
+            setScore(k);
+            Sound.penalty();
+            
+            const scoreEl = z.score;
+            scoreEl.style.color = "var(--error)";
+            scoreEl.style.transform = "scale(1.3)";
+            setTimeout(() => {
+                scoreEl.style.color = "";
+                scoreEl.style.transform = "";
+            }, 300);
+        }
         btn.style.background = "var(--error)"; setTimeout(() => btn.style.background = "", 200);
       }
     });
@@ -551,6 +584,7 @@
 
     UI.speedRange.addEventListener("input", () => { Game.config.baseFlashMs = Number(UI.speedRange.value); UI.speedVal.textContent = UI.speedRange.value; });
     UI.timeRange.addEventListener("input", () => { Game.config.globalSeconds = Number(UI.timeRange.value); UI.timeVal.textContent = UI.timeRange.value; });
+    UI.penaltyRange.addEventListener("input", () => { Game.config.penaltyOn3Wrong = Number(UI.penaltyRange.value); UI.penaltyVal.textContent = UI.penaltyRange.value; });
 
     UI.presetSelect.addEventListener("change", () => { if (UI.presetSelect.value !== "custom") UI.textInput.value = PRESETS[UI.presetSelect.value]; });
 
