@@ -221,13 +221,13 @@
 
     <div id="loading-screen">
         <div class="loader"></div>
-        <p style="margin-top: 20px; letter-spacing: 3px;">ЗАГРУЗКА...</p>
+        <p style="margin-top: 20px; letter-spacing: 3px;">ЖҮКТӨЛҮҮДӨ...</p>
     </div>
 
     <!-- Кнопки навигации -->
     <div class="nav-buttons">
         <a href="#" class="planet-btn">🪐 ПЛАНЕТА</a>
-        <a href="#" class="kainat-btn">🌌 КОСМОС</a>
+        <a href="#" class="kainat-btn">🌌 ААЛАМ</a>
     </div>
 
     <!-- Выбор цвета -->
@@ -238,20 +238,20 @@
         <div class="color-btn" onclick="changeColor('#39ff14', this)" style="background: var(--neon-green); color: var(--neon-green);"></div>
     </div>
 
-    <button class="clear-btn" onclick="clearCanvas()">🗑 ОЧИСТИТЬ</button>
+    <button class="clear-btn" onclick="clearCanvas()">🗑 ТАЗАЛОО</button>
 
     <div class="ui-overlay">
         <div class="status-panel">
-            <div style="font-size: 0.7rem; opacity: 0.7;">СИСТЕМА: ОПТИМИЗИРОВАНА</div>
-            <div class="mode-indicator" id="current-mode">НАБЛЮДЕНИЕ</div>
+            <div style="font-size: 0.7rem; opacity: 0.7;">ТУТУМ: ОПТИМИЗАЦИЯЛАНДЫ</div>
+            <div class="mode-indicator" id="current-mode">БАЙКОО</div>
         </div>
     </div>
 
     <div class="instructions">
-        [ЛОГИКА ЗАХВАТА]<br>
-        1. Приблизьтесь к линии объекта<br>
-        2. Сожмите большой и указательный пальцы (Pinch)<br>
-        3. <span style="color:var(--neon-green)">ЗАХВАТИТЕ ЛИНИЮ</span> и перемещайте
+        [КАРМОО ЛОГИКАСЫ]<br>
+        1. Объекттин сызыгына жакындаңыз<br>
+        2. Баш бармак менен сөөмөйдү бириктириңиз (Чымчуу)<br>
+        3. <span style="color:var(--neon-green)">СЫЗЫКТЫ КАРМАП</span> жана жылдырыңыз
     </div>
 
     <video id="input_video"></video>
@@ -268,7 +268,7 @@
         let currentPath = null;
         let selectedDrawing = null;
         let isDragging = false;
-        let currentMode = "НАБЛЮДЕНИЕ";
+        let currentMode = "БАЙКОО";
         let selectedColor = '#ff3131'; 
 
         let lastFingerPos = { x: 0, y: 0 };
@@ -355,7 +355,7 @@
 
                     hands.forEach(drawHandUI);
                 } else {
-                    setMode("НАБЛЮДЕНИЕ");
+                    setMode("БАЙКОО");
                     currentPath = null;
                     isDragging = false;
                     selectedDrawing = null;
@@ -377,7 +377,7 @@
             const isPinching = pinchDist < 40;
 
             if (isFist(hand)) {
-                setMode("ВРАЩЕНИЕ");
+                setMode("АЙЛАНДЫРУУ");
                 if (!selectedDrawing) selectedDrawing = findDrawingAt(pinchX, pinchY);
                 if (selectedDrawing) {
                     const angle = Math.atan2(indexTip.y - wrist.y, indexTip.x - wrist.x);
@@ -389,7 +389,7 @@
                     }
                 }
             } else if (isPinching) {
-                setMode("ПЕРЕМЕЩЕНИЕ");
+                setMode("КЫЙМЫЛДАТУУ");
                 if (!isDragging) {
                     selectedDrawing = findDrawingAt(pinchX, pinchY);
                     if (selectedDrawing) {
@@ -410,7 +410,7 @@
                 }
                 currentPath = null;
             } else if (indexTip.y < hand[6].y && middleTip.y > hand[10].y) {
-                setMode("РИСОВАНИЕ");
+                setMode("СҮРӨТ ТАРТУУ");
                 selectedDrawing = null;
                 isDragging = false;
                 initialAngle = null;
@@ -421,7 +421,7 @@
                 }
                 currentPath.points.push({ x: indexTip.x * canvasElement.width, y: indexTip.y * canvasElement.height });
             } else {
-                setMode("НАБЛЮДЕНИЕ");
+                setMode("БАЙКОО");
                 currentPath = null;
                 selectedDrawing = null;
                 isDragging = false;
@@ -430,7 +430,7 @@
         }
 
         function processScale(h1, h2) {
-            setMode("МАСШТАБИРОВАНИЕ");
+            setMode("МАСШТАБДОО");
             const d = getDist(h1[8], h2[8]);
             const midX = (h1[8].x + h2[8].x) / 2 * canvasElement.width;
             const midY = (h1[8].y + h2[8].y) / 2 * canvasElement.height;
@@ -452,11 +452,11 @@
                 currentMode = m;
                 modeText.innerText = m;
                 const colors = {
-                    "РИСОВАНИЕ": "var(--neon-blue)",
-                    "ПЕРЕМЕЩЕНИЕ": "var(--neon-green)",
-                    "ВРАЩЕНИЕ": "var(--neon-yellow)",
-                    "МАСШТАБИРОВАНИЕ": "var(--neon-purple)",
-                    "НАБЛЮДЕНИЕ": "var(--neon-blue)"
+                    "СҮРӨТ ТАРТУУ": "var(--neon-blue)",
+                    "КЫЙМЫЛДАТУУ": "var(--neon-green)",
+                    "АЙЛАНДЫРУУ": "var(--neon-yellow)",
+                    "МАСШТАБДОО": "var(--neon-purple)",
+                    "БАЙКОО": "var(--neon-blue)"
                 };
                 modeText.style.color = colors[m] || "white";
             }

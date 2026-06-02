@@ -60,10 +60,10 @@
     <canvas id="output_canvas"></canvas>
     <div id="ui" class="flex flex-col gap-2">
         <div class="flex items-center gap-4">
-            <h1 class="text-5xl font-black text-green-500 tracking-tighter">СЧЕТ: <span id="score">0</span></h1>
-            <div id="speed-container" class="speed-badge text-xl font-bold text-green-400">СКОРОСТЬ: <span id="speed-multiplier">1.0</span>x</div>
+            <h1 class="text-5xl font-black text-green-500 tracking-tighter">УПАЙ: <span id="score">0</span></h1>
+            <div id="speed-container" class="speed-badge text-xl font-bold text-green-400">ЫЛДАМДЫК: <span id="speed-multiplier">1.0</span>x</div>
         </div>
-        <div id="status" class="mt-2 px-3 py-1 border border-gray-700 text-xs rounded uppercase tracking-widest inline-block w-max">Подключение системы...</div>
+        <div id="status" class="mt-2 px-3 py-1 border border-gray-700 text-xs rounded uppercase tracking-widest inline-block w-max">Тутум туташууда...</div>
     </div>
     <div id="crosshair" class="crosshair" style="display: none;">
         <div class="center-dot"></div>
@@ -218,7 +218,7 @@ function onResults(results) {
     particles.forEach(p => { p.update(); p.draw(); });
 
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-        statusElement.innerText = "СИСТЕМА ГОТОВА";
+        statusElement.innerText = "ТУТУМ ДАЯР";
         statusElement.style.color = "#22c55e";
         
         const hand = results.multiHandLandmarks[0];
@@ -249,7 +249,7 @@ function onResults(results) {
             }
         }
     } else {
-        statusElement.innerText = "ПОКАЖИТЕ РУКУ";
+        statusElement.innerText = "КОЛУҢУЗДУ КӨРСӨТҮҢҮЗ";
         statusElement.style.color = "#ef4444";
         crosshair.style.display = 'none';
         posBuffer = [];

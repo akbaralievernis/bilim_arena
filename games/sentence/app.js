@@ -42,9 +42,9 @@
 
   /* ========= ИСПРАВЛЕННЫЕ ПРЕСЕТЫ ========= */
   const PRESETS = {
-    text_easy: "Кот спит. Мы идем домой. Собака громко лает. Небо очень синее. Мама мыла раму.",
-    text_medium: "Сегодня мы тренируем внимание и память. Скорость важна, но точность гораздо важнее. Сосредоточься и действуй уверенно.",
-    text_expert: "Интегральное исчисление является важной частью математического анализа. Разработка современных приложений требует тщательного планирования архитектуры."
+    text_easy: "Мышык уктап жатат. Биз үйгө бара жатабыз. Ит катуу үрүп жатат. Асман абдан ачык. Апам нан жапты.",
+    text_medium: "Бүгүн биз кунт коюп көңүл бурууну жана эс тутумду машыктырабыз. Ылдамдык маанилүү бирок тактык андан да маанилүүрөөк. Көңүл топтоп ишенимдүү аракет кыл.",
+    text_expert: "Интегралдык эсептөө математикалык анализдин маанилүү бөлүгү болуп саналат. Заманбап тиркемелерди иштеп чыгуу архитектураны кылдат пландаштырууну талап кылат."
   };
 
   /* ========= ИСПРАВЛЕННЫЙ I18N ========= */
@@ -60,7 +60,9 @@
       draw: "🤝 Ничья!",
       noteReady: (n) => `✅ Готово: ${n} раунд(ов). Жми «🚀 Старт».`,
       notePlayText: "👆 Нажимай слова по порядку: 1 → 2 → 3…",
-      noteRoundsOver: "🏁 Раунды завершены."
+      noteRoundsOver: "🏁 Раунды завершены.",
+      themeDark: "🌙 Темная",
+      themeLight: "☀️ Светлая"
     },
     en: {
       subtitle: "🧩 Build the sentence • 👆 Tap the words",
@@ -73,7 +75,9 @@
       draw: "🤝 Draw!",
       noteReady: (n) => `✅ Ready: ${n} rounds. Press «🚀 Start».`,
       notePlayText: "👆 Tap words in order: 1 → 2 → 3…",
-      noteRoundsOver: "🏁 Rounds finished."
+      noteRoundsOver: "🏁 Rounds finished.",
+      themeDark: "🌙 Dark",
+      themeLight: "☀️ Light"
     },
     ky: {
       subtitle: "🧩 Сүйлөмдү түз • 👆 Сөздөрдү бас",
@@ -86,16 +90,18 @@
       draw: "🤝 Тең чыгышты!",
       noteReady: (n) => `✅ Даяр: ${n} раунд. «🚀 Башта» бас.`,
       notePlayText: "👆 Сөздөрдү тартип менен бас...",
-      noteRoundsOver: "🏁 Раунддар бүттү."
+      noteRoundsOver: "🏁 Раунддар бүттү.",
+      themeDark: "🌙 Караңгы",
+      themeLight: "☀️ Жарык"
     }
   };
 
   function getLang() {
     const saved = localStorage.getItem("ld_lang");
-    return (saved && I18N[saved]) ? saved : "ru";
+    return (saved && I18N[saved]) ? saved : "ky";
   }
   function setLang(lang) {
-    const l = (I18N[lang]) ? lang : "ru";
+    const l = (I18N[lang]) ? lang : "ky";
     localStorage.setItem("ld_lang", l);
     document.documentElement.lang = l;
     applyI18n();
@@ -119,9 +125,10 @@
     const lang = getLang();
     const T = I18N[lang];
     if (UI.subtitle) UI.subtitle.textContent = T.subtitle;
-    UI.pauseBtn.textContent = Game.paused ? T.resume : T.pause;
-    UI.startBtn.textContent = T.startBtn;
-    if (UI.themeBtn) UI.themeBtn.textContent = getTheme() === "dark" ? "🌙 Тёмная" : "☀️ Светлая";
+    if (UI.pauseBtn) UI.pauseBtn.textContent = Game.paused ? T.resume : T.pause;
+    if (UI.startBtn) UI.startBtn.textContent = T.startBtn;
+    if (UI.themeBtn) UI.themeBtn.textContent = getTheme() === "dark" ? T.themeDark : T.themeLight;
+    if (UI.openSetupBtn) UI.openSetupBtn.textContent = `⚙️ ${lang === 'ky' ? 'Жөндөөлөр' : (lang === 'ru' ? 'Настройки' : 'Settings')}`;
   }
 
   /* ========= UI Elements ========= */
@@ -546,7 +553,7 @@
       }
     };
 
-    UI.openSetupBtn.innerHTML = "⚙️ Настройки"; UI.pauseBtn.innerHTML = "⏸ Пауза"; UI.startBtn.innerHTML = "🚀 Старт";
+    applyI18n();
     showOverlay(UI.setupOverlay);
 
     UI.speedRange.addEventListener("input", () => { Game.config.baseFlashMs = Number(UI.speedRange.value); UI.speedVal.textContent = UI.speedRange.value; });

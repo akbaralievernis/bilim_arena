@@ -110,14 +110,14 @@
         <canvas id="game-canvas"></canvas>
 
         <div id="ui-overlay">
-            Загрузка нейросети и камеры...<br>
-            <span style="font-size: 0.8rem; color: #888;">Разрешите доступ к веб-камере</span>
+            Нейротүйүн жана камера жүктөлүүдө...<br>
+            <span style="font-size: 0.8rem; color: #888;">Веб-камерага уруксат бериңиз</span>
         </div>
 
         <div id="game-over">
-            <h1 style="color: #ff0055; margin-top: 0; font-size: 3rem;">ИГРА ОКОНЧЕНА</h1>
-            <h2>Твой счет: <span id="final-score">0</span></h2>
-            <button onclick="restartGame()">Играть снова</button>
+            <h1 style="color: #ff0055; margin-top: 0; font-size: 3rem;">ОЮН БҮТТҮ</h1>
+            <h2>Сиздин упайыңыз: <span id="final-score">0</span></h2>
+            <button onclick="restartGame()">Кайра ойноо</button>
         </div>
     </div>
 
@@ -354,7 +354,7 @@
             ctx.textAlign = 'center';
             ctx.shadowColor = '#00ff00';
             ctx.fillStyle = '#ccffcc';
-            ctx.fillText(`СЧЕТ: ${gameState.score.toString().padStart(3, '0')}`, canvas.width / 2, 80);
+            ctx.fillText(`УПАЙ: ${gameState.score.toString().padStart(3, '0')}`, canvas.width / 2, 80);
 
             // Отрисовка Жизней
             ctx.textAlign = 'right';
@@ -506,7 +506,7 @@
 
         camera.start()
             .then(() => {
-                uiOverlay.innerHTML = "ГОТОВ К ИГРЕ!<br><span style='font-size: 0.8rem; color:#fff'>Сбей стержень рукой, пока он не упал</span>";
+                uiOverlay.innerHTML = "ОЮНГА ДАЯР!<br><span style='font-size: 0.8rem; color:#fff'>Стерженди жерге түшүрбөй кол менен кармап калыңыз</span>";
                 setTimeout(() => {
                     uiOverlay.style.display = 'none';
                     // Запускаем игру после скрытия сообщения
@@ -516,7 +516,7 @@
             })
             .catch((err) => {
                 console.error(err);
-                uiOverlay.innerHTML = "ОШИБКА КАМЕРЫ<br><span style='font-size: 0.8rem;'>Проверьте HTTPS соединение и разрешения браузера</span>";
+                uiOverlay.innerHTML = "КАМЕРА КАТАСЫ<br><span style='font-size: 0.8rem;'>HTTPS байланышын жана браузердин уруксаттарын текшериңиз</span>";
                 uiOverlay.style.borderColor = "red";
                 uiOverlay.style.color = "red";
                 uiOverlay.style.boxShadow = "0 0 15px red";

@@ -1,88 +1,173 @@
-// Focus Duel — default question sets
-// You can edit/extend these arrays. The editor in the game can also create custom sets saved in localStorage.
+// Focus Duel — default question sets in Kyrgyz
+// Basic, Hard, Expert levels
 
 window.FD_DEFAULT_SETS = {
   basic: [
-    { "id": "b001", "type": "article", "main": "Sonnenschirm", "correct": "der", "hint": "зонтик" },
-    { "id": "b002", "type": "article", "main": "Tasse", "correct": "die", "hint": "чашка" },
-    { "id": "b003", "type": "article", "main": "Stühle (Pl.)", "correct": "die", "hint": "стулья" },
-    { "id": "b004", "type": "article", "main": "Untertasse", "correct": "die", "hint": "блюдце" },
-    { "id": "b005", "type": "article", "main": "Blumen (Pl.)", "correct": "die", "hint": "цветы" },
-    { "id": "b006", "type": "article", "main": "Glas", "correct": "das", "hint": "стакан/стекло" },
-    { "id": "b007", "type": "article", "main": "Aschenbecher", "correct": "der", "hint": "пепельница" },
-    { "id": "b008", "type": "article", "main": "Tablett", "correct": "das", "hint": "поднос" },
-    { "id": "b009", "type": "article", "main": "Spielplatz", "correct": "der", "hint": "игровая площадка" },
-    { "id": "b010", "type": "article", "main": "Espressobar", "correct": "die", "hint": "эспрессо-бар" },
-    { "id": "b011", "type": "article", "main": "Fußboden", "correct": "der", "hint": "пол" },
-    { "id": "b012", "type": "article", "main": "Rasen", "correct": "der", "hint": "газон" },
-    { "id": "b013", "type": "article", "main": "Landkarte", "correct": "die", "hint": "карта" },
-    { "id": "b014", "type": "article", "main": "Hochstühle (Pl.)", "correct": "die", "hint": "детские стульчики" },
-    { "id": "b015", "type": "article", "main": "Straßenschilder (Pl.)", "correct": "die", "hint": "дорожные знаки" },
-    { "id": "b016", "type": "article", "main": "Gästecounter", "correct": "der", "hint": "гостевая стойка" },
-    { "id": "b017", "type": "article", "main": "Sonnensegel", "correct": "das", "hint": "тент" },
-    { "id": "b018", "type": "article", "main": "Grill", "correct": "der", "hint": "гриль" },
-    { "id": "b019", "type": "article", "main": "Eiswürfel (Pl.)", "correct": "die", "hint": "кубики льда" },
-    { "id": "b020", "type": "article", "main": "Kühlbox", "correct": "die", "hint": "холодильная сумка" },
-
-    { "id": "b021", "type": "article", "main": "Brot", "correct": "das", "hint": "хлеб" },
-    { "id": "b022", "type": "article", "main": "Butter", "correct": "die", "hint": "масло" },
-    { "id": "b023", "type": "article", "main": "Käse", "correct": "der", "hint": "сыр" },
-    { "id": "b024", "type": "article", "main": "Wasser", "correct": "das", "hint": "вода" },
-    { "id": "b025", "type": "article", "main": "Saft", "correct": "der", "hint": "сок" },
-
-    { "id": "b026", "type": "article", "main": "Fenster", "correct": "das", "hint": "окно" },
-    { "id": "b027", "type": "article", "main": "Tür", "correct": "die", "hint": "дверь" },
-    { "id": "b028", "type": "article", "main": "Tisch", "correct": "der", "hint": "стол" },
-    { "id": "b029", "type": "article", "main": "Stuhl", "correct": "der", "hint": "стул" },
-    { "id": "b030", "type": "article", "main": "Bett", "correct": "das", "hint": "кровать" },
-
-    /* ... (оставь остальную твою большую базу как была) ... */
-
-    { "id": "b157", "type": "article", "main": "Erholung", "correct": "die", "hint": "отдых" },
-    { "id": "b158", "type": "article", "main": "Tourist", "correct": "der", "hint": "турист" }
+    { "id": "b001", "type": "synonym", "main": "дос", "correct": "жолдош", "options": ["жолдош", "душман", "тууган", "чоочун"], "hint": "Синоним сөз" },
+    { "id": "b002", "type": "synonym", "main": "сулуу", "correct": "ажарлуу", "options": ["ажарлуу", "куник", "орой", "катаал"], "hint": "Синоним сөз" },
+    { "id": "b003", "type": "antonym", "main": "акылдуу", "correct": "акылсыз", "options": ["акылсыз", "эстүү", "билгич", "илимдүү"], "hint": "Антоним сөз" },
+    { "id": "b004", "type": "general", "main": "Кыргызстандын борбору кайсы?", "correct": "Бишкек", "options": ["Бишкек", "Ош", "Жалал-Абад", "Нарын"], "hint": "Борбор шаар" },
+    { "id": "b005", "type": "antonym", "main": "караңгы", "correct": "жарык", "options": ["жарык", "түн", "боз", "кара"], "hint": "Антоним сөз" },
+    { "id": "b006", "type": "spelling", "main": "___ тили - менин сыймыгым.", "correct": "Эне", "options": ["Эне", "Ана", "Ини", "Эни"], "hint": "Туура сөз" },
+    { "id": "b007", "type": "general", "main": "Кыргызстандын эң чоң көлү", "correct": "Ысык-Көл", "options": ["Ысык-Көл", "Соң-Көл", "Сары-Челек", "Чатыр-Көл"], "hint": "Табият" },
+    { "id": "b008", "type": "synonym", "main": "ыкчам", "correct": "тез", "options": ["тез", "жай", "акырын", "кылдат"], "hint": "Синоним сөз" },
+    { "id": "b009", "type": "general", "main": "Манастын жубайы ким?", "correct": "Каныкей", "options": ["Каныкей", "Айчүрөк", "Курманжан", "Аруке"], "hint": "Баатырдык эпос" },
+    { "id": "b010", "type": "general", "main": "Үч кылдуу улуттук аспап", "correct": "комуз", "options": ["комуз", "кыяк", "чоор", "добулбас"], "hint": "Аспап" },
+    { "id": "b011", "type": "antonym", "main": "ысык", "correct": "муздак", "options": ["муздак", "жылуу", "күйгөн", "кургак"], "hint": "Антоним сөз" },
+    { "id": "b012", "type": "synonym", "main": "баатыр", "correct": "эр жүрөк", "options": ["эр жүрөк", "коркок", "акылдуу", "кыйын"], "hint": "Синоним сөз" },
+    { "id": "b013", "type": "spelling", "main": "Туура жазылган сөздү тап", "correct": "Тынчтык", "options": ["Тынчтык", "Тынычтык", "Тынчтыкк", "Тынчытык"], "hint": "Орфография" },
+    { "id": "b014", "type": "general", "main": "Кыргыз желегиндеги нурлардын саны", "correct": "40", "options": ["40", "30", "50", "35"], "hint": "Мамлекеттик белги" },
+    { "id": "b015", "type": "general", "main": "Кыргызстандагы эң бийик чоку", "correct": "Жеңиш чокусу", "options": ["Жеңиш чокусу", "Ленин чокусу", "Хан-Теңири", "Ала-Арча"], "hint": "География" },
+    { "id": "b016", "type": "synonym", "main": "атагы чыккан", "correct": "белгилүү", "options": ["белгилүү", "жашыруун", "жаңы", "чоочун"], "hint": "Синоним сөз" },
+    { "id": "b017", "type": "general", "main": "Кыргыз желегинде эмне тартылган?", "correct": "Түндүк жана күн", "options": ["Түндүк жана күн", "Жылдыз жана ай", "Бүркүт", "Тоолор"], "hint": "Желек" },
+    { "id": "b018", "type": "spelling", "main": "Менин мекеним — ___", "correct": "Кыргызстан", "options": ["Кыргызстан", "Кыргыз-стан", "Кыргызстанн", "Кыгызстан"], "hint": "Өлкө аты" },
+    { "id": "b019", "type": "general", "main": "Манастын атасы ким?", "correct": "Жакып", "options": ["Жакып", "Бакай", "Кошой", "Алооке"], "hint": "Эпос каарманы" },
+    { "id": "b020", "type": "antonym", "main": "бийик", "correct": "төмөн", "options": ["төмөн", "узун", "жапыз", "кыска"], "hint": "Антоним сөз" }
   ],
 
   hard: [
     {
-      id:"h1", type:"case",
-      main:"Ich gebe ___ Mann das Buch.",
-      correct:"dem",
-      options:["dem","den","der"],
-      hint:"Dativ • der Mann → dem Mann"
+      id: "h001", type: "grammar",
+      main: "Зат атоочтун канча жөндөмөсү бар?",
+      correct: "6",
+      options: ["6", "5", "7", "4"],
+      hint: "Жөндөмөлөр"
     },
     {
-      id:"h2", type:"case",
-      main:"Sie hilft ___ Frau.",
-      correct:"der",
-      options:["die","der","den"],
-      hint:"Dativ • die Frau → der Frau"
+      id: "h002", type: "grammar",
+      main: "Биз шаар___ барабыз.",
+      correct: "га",
+      options: ["га", "ка", "та", "до"],
+      hint: "Барыш жөндөмө мүчөсү"
+    },
+    {
+      id: "h003", type: "grammar",
+      main: "Кыргыз тили кайсы тилдер тобуна кирет?",
+      correct: "Түрк тилдери",
+      options: ["Түрк тилдери", "Славян тилдери", "Иран тилдери", "Роман тилдери"],
+      hint: "Тил илими"
+    },
+    {
+      id: "h004", type: "grammar",
+      main: "Сан атооч кандай суроолорго жооп берет?",
+      correct: "Канча? Нечен?",
+      options: ["Канча? Нечен?", "Ким? Эмне?", "Кандай? Кайсы?", "Эмне кылды?"],
+      hint: "Сөз түркүмү"
+    },
+    {
+      id: "h005", type: "grammar",
+      main: "Алма дарак___ түштү.",
+      correct: "тан",
+      options: ["тан", "дан", "тын", "дин"],
+      hint: "Чыгыш жөндөмө мүчөсү"
+    },
+    {
+      id: "h006", type: "literature",
+      main: "'Ак кеме' повестинин автору ким?",
+      correct: "Ч. Айтматов",
+      options: ["Ч. Айтматов", "А. Осмонов", "Т. Касымбеков", "Ж. Бөкөнбаев"],
+      hint: "Кыргыз жазуучусу"
+    },
+    {
+      id: "h007", type: "grammar",
+      main: "Комузчунун көптүк түрдөгү жазылышы",
+      correct: "комузчулар",
+      options: ["комузчулар", "комузчудор", "комузчулор", "комузчутар"],
+      hint: "Көптүк мүчө"
+    },
+    {
+      id: "h008", type: "general",
+      main: "Кыргыз Республикасынын Конституциясы качан кабыл алынган?",
+      correct: "1993-жыл 5-май",
+      options: ["1993-жыл 5-май", "1991-жыл 31-август", "2010-жыл 27-июнь", "1990-жыл 15-декабрь"],
+      hint: "Мыйзам"
+    },
+    {
+      id: "h009", type: "literature",
+      main: "Манастын эң жакын кеңешчиси ким болгон?",
+      correct: "Бакай",
+      options: ["Бакай", "Кошой", "Алмамбет", "Чубак"],
+      hint: "Эпос каарманы"
+    },
+    {
+      id: "h010", type: "general",
+      main: "Кыргыз улуттук акчасы (сом) качан жүгүртүүгө кирген?",
+      correct: "1993-жыл 10-май",
+      options: ["1993-жыл 10-май", "1991-жыл 31-август", "1995-жыл 5-февраль", "1994-жыл 1-январь"],
+      hint: "Тарых"
     }
   ],
 
   expert: [
-    // VERB (пример): всегда варианты, без ввода
     {
-      id:"v1", type:"verb",
-      main:"er ___ nach Hause (gehen)",
-      correct:"geht",
-      options:["geht","gehst","gehen"],
-      hint:"Präsens • er → geht"
+      id: "e001", type: "proverb",
+      main: "Өнөр алды — кызыл ___",
+      correct: "тил",
+      options: ["тил", "алтын", "сөз", "илим"],
+      hint: "Макалды толуктаңыз"
     },
     {
-      id:"v2", type:"verb",
-      main:"wir ___ heute (lernen)",
-      correct:"lernen",
-      options:["lernt","lerne","lernen"],
-      hint:"wir → lernen"
+      id: "e002", type: "literature",
+      main: "Т. Касымбековдун тарыхый романы кайсы?",
+      correct: "Сынган кылыч",
+      options: ["Сынган кылыч", "Келкел", "Адам болгум келет", "Ашуу"],
+      hint: "Кыргыз адабияты"
     },
-
-    // EXPERT case/article mix examples
     {
-      id:"e1", type:"case",
-      main:"Ich sehe ___ Hund.",
-      correct:"den",
-      options:["den","dem","der"],
-      hint:"Akkusativ • der Hund → den Hund"
+      id: "e003", type: "riddle",
+      main: "Буту жок басат, оозу жок сүйлөйт. Ал эмне?",
+      correct: "Кат",
+      options: ["Кат", "Шамал", "Дарыя", "Китеп"],
+      hint: "Табышмак"
+    },
+    {
+      id: "e004", type: "proverb",
+      main: "Илимдүүгө дүйнө жарык, илимсиз___",
+      correct: "караңгы",
+      options: ["караңгы", "тарых", "жарык", "кыйын"],
+      hint: "Макалды толуктаңыз"
+    },
+    {
+      id: "e005", type: "literature",
+      main: "Курманжан Датканын тарыхый наамы",
+      correct: "Алай ханышасы",
+      options: ["Алай ханышасы", "Ош даткасы", "Кыргыз энеси", "Каныкей датка"],
+      hint: "Тарыхый инсан"
+    },
+    {
+      id: "e006", type: "general",
+      main: "Кыргыздын алгачкы агартуучусу жана алиппенин автору",
+      correct: "И. Арабаев",
+      options: ["И. Арабаев", "К. Тыныстанов", "Ж. Баласагын", "Т. Сатылганов"],
+      hint: "Инсан"
+    },
+    {
+      id: "e007", type: "riddle",
+      main: "Учуп жүрөт канаты жок, чагып алат куралы жок. Ал эмне?",
+      correct: "Электр тогу",
+      options: ["Электр тогу", "Аары", "Суук", "Чиркей"],
+      hint: "Табышмак"
+    },
+    {
+      id: "e008", type: "proverb",
+      main: "Окуу — ийне менен ___ казгандай.",
+      correct: "кудук",
+      options: ["кудук", "тоо", "жер", "ордо"],
+      hint: "Макал"
+    },
+    {
+      id: "e009", type: "literature",
+      main: "'Манас' эпосунун негизги каарманы болгон Манастын тулпары кандай аталган?",
+      correct: "Аккула",
+      options: ["Аккула", "Тайтору", "Карткүрөң", "Сарала"],
+      hint: "Баатырдын аты"
+    },
+    {
+      id: "e010", type: "general",
+      main: "ЮНЕСКОнун мурастарына кирген кыргыздын тоо кыркасы",
+      correct: "Батыш Тянь-Шань",
+      options: ["Батыш Тянь-Шань", "Памир-Алай", "Ала-Тоо", "Алай кыркасы"],
+      hint: "Табигый мурас"
     }
   ]
 };

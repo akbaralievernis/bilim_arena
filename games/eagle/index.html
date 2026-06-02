@@ -152,12 +152,12 @@
         <div id="menu-main" class="ui-layer">
             <div class="panel">
                 <h1 class="text-gold">КЫРГЫЗ<br><span style="color:white">PINCH</span></h1>
-                <p class="subtitle">Управляй птицами с помощью жестов!</p>
-                <button class="btn btn-primary" onclick="startGame(1)">1 Игрок (Одиночная)</button>
-                <button class="btn btn-secondary" onclick="startGame(2)">2 Игрока (Команды)</button>
-                <button class="btn btn-gold" onclick="showScreen('menu-records')">Таблица Рекордов</button>
+                <p class="subtitle">Кушту колдун кыймылдары менен башкарыңыз!</p>
+                <button class="btn btn-primary" onclick="startGame(1)">1 Оюнчу (Жалгыз)</button>
+                <button class="btn btn-secondary" onclick="startGame(2)">2 Оюнчу (Команда)</button>
+                <button class="btn btn-gold" onclick="showScreen('menu-records')">Рекорддор тизмеси</button>
                 <div style="margin-top: 15px; font-size: 0.8rem; color: #95a5a6;">
-                    Левая рука = Красные | Правая рука = Синие<br>Щипок 🤏 для прыжка
+                    Сол кол = Кызылдар | Оң кол = Көктөр<br>Чымчуу 🤏 секирүү үчүн
                 </div>
             </div>
         </div>
@@ -165,9 +165,9 @@
         <!-- МЕНЮ ПАУЗЫ -->
         <div id="menu-pause" class="ui-layer hidden">
             <div class="panel">
-                <h1>ПАУЗА</h1>
-                <button class="btn btn-primary" onclick="resumeGame()">Продолжить</button>
-                <button class="btn btn-gold" onclick="quitToMenu()">Главное Меню</button>
+                <h1>ТЫНЫМ</h1>
+                <button class="btn btn-primary" onclick="resumeGame()">Улантуу</button>
+                <button class="btn btn-gold" onclick="quitToMenu()">Башкы меню</button>
             </div>
         </div>
 
@@ -177,29 +177,29 @@
                 <h1 class="text-red">ОЙ-БОЙ!</h1>
                 <h2 id="go-winner" style="margin-top: -10px; margin-bottom: 20px;"></h2>
                 <div style="font-size: 1.5rem; margin-bottom: 30px;">
-                    Счет: <span id="go-score" class="text-gold">0</span>
+                    Упай: <span id="go-score" class="text-gold">0</span>
                 </div>
-                <button class="btn btn-primary" onclick="restartGame()">Играть Снова</button>
-                <button class="btn btn-gold" onclick="quitToMenu()">Главное Меню</button>
+                <button class="btn btn-primary" onclick="restartGame()">Кайра ойноо</button>
+                <button class="btn btn-gold" onclick="quitToMenu()">Башкы меню</button>
             </div>
         </div>
 
         <!-- МЕНЮ РЕКОРДОВ -->
         <div id="menu-records" class="ui-layer hidden">
             <div class="panel">
-                <h1 class="text-gold">РЕКОРДЫ</h1>
+                <h1 class="text-gold">РЕКОРДДОР</h1>
                 <table class="records-table">
-                    <thead><tr><th>Место</th><th>Счет</th><th>Дата</th></tr></thead>
+                    <thead><tr><th>Орун</th><th>Упай</th><th>Дата</th></tr></thead>
                     <tbody id="records-body"></tbody>
                 </table>
-                <button class="btn btn-primary" onclick="showScreen('menu-main')">Назад</button>
+                <button class="btn btn-primary" onclick="showScreen('menu-main')">Артка</button>
             </div>
         </div>
 
         <!-- Индикатор Камеры -->
         <div id="cam-status">
             <div class="dot"></div>
-            <span id="cam-text">Инициализация ИИ (MediaPipe)...</span>
+            <span id="cam-text">ЖИ демилгелөө (MediaPipe)...</span>
         </div>
     </div>
 
@@ -456,13 +456,13 @@
                 if (gameMode === 1) {
                     maxScore = birds[0].score;
                     finalScoreText = maxScore;
-                    winText = 'Отличная попытка!';
+                    winText = 'Абдан жакшы аракет!';
                 } else {
                     maxScore = Math.max(birds[0].score, birds[1].score);
                     finalScoreText = `<span class="text-red">Күн: ${birds[0].score}</span> | <span class="text-blue">Асман: ${birds[1].score}</span>`;
-                    if(birds[0].score > birds[1].score) winText = 'Команда КҮН победила!';
-                    else if(birds[1].score > birds[0].score) winText = 'Команда АСМАН победила!';
-                    else winText = 'Ничья!';
+                    if(birds[0].score > birds[1].score) winText = 'Күн командасы жеңди!';
+                    else if(birds[1].score > birds[0].score) winText = 'Асман командасы жеңди!';
+                    else winText = 'Тең чыгуу!';
                 }
 
                 saveRecord(maxScore);
@@ -480,7 +480,7 @@
 
         function saveRecord(score) {
             if(score === 0) return;
-            const date = new Date().toLocaleDateString('ru-RU');
+            const date = new Date().toLocaleDateString('ky-KG');
             records.push({score, date, mode: gameMode === 1 ? '1P' : '2P'});
             records.sort((a,b) => b.score - a.score);
             records = records.slice(0, 5); // Топ 5
@@ -493,7 +493,7 @@
             records.forEach((r, i) => {
                 tbody.innerHTML += `<tr><td>#${i+1} ${r.mode}</td><td>${r.score}</td><td>${r.date}</td></tr>`;
             });
-            if(records.length === 0) tbody.innerHTML = '<tr><td colspan="3" style="color:#bdc3c7">Пока нет рекордов</td></tr>';
+            if(records.length === 0) tbody.innerHTML = '<tr><td colspan="3" style="color:#bdc3c7">Азырынча рекорддор жок</td></tr>';
         }
 
         // --- УПРАВЛЕНИЕ (КЛАВИАТУРА И HUD) ---
@@ -584,7 +584,7 @@
 
         function onResults(results) {
             statusEl.classList.add('cam-ok');
-            statusTextEl.innerText = "ИИ Активен (Готов к игре)";
+            statusTextEl.innerText = "ЖИ жигердүү (Оюнга даяр)";
             setTimeout(()=> { statusEl.style.opacity = '0'; }, 3000);
 
             handCursors = [];
@@ -633,7 +633,7 @@
         camera.start().catch(err => {
             console.error(err);
             statusEl.classList.add('cam-err');
-            statusTextEl.innerText = "Камера недоступна (Используйте клавиатуру: W / Вверх)";
+            statusTextEl.innerText = "Камера жеткиликсиз (Баскычтарды колдонуңуз: W / Жогору)";
         });
 
         // Инициальный рендер фона
