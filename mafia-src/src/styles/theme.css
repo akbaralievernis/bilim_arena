@@ -1,0 +1,356 @@
+:root {
+  /* Базовый фон: глубокий темный цвет или градиент */
+  --bg-gradient: linear-gradient(135deg, #0f0c20, #1f1533, #0a0812);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  
+  /* Accent colors (Красный и Фиолетовый) */
+  --accent-red: #ff2a5f;
+  --accent-purple: #b24bf3;
+  --accent-blue: #3b82f6;
+  --accent-glow: 0 0 15px rgba(255, 42, 95, 0.4);
+
+  /* Glassmorphism Surface (Optimized for Mobile) */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 10px 25px 0 rgba(0, 0, 0, 0.5);
+  --glass-blur: blur(4px); /* Уменьшено размытие для производительности */
+
+  --radius-lg: 32px;
+  --radius-md: 20px;
+  --radius-sm: 14px;
+  --font-family: "Inter", "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+[data-theme='light'] {
+  /* Светлая премиум тема (Frosted glass) */
+  --bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+  --text-primary: #1d1d1f;
+  --text-secondary: rgba(0, 0, 0, 0.5);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.05);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  transition: background 1.5s ease-in-out, filter 0.8s ease;
+}
+
+/* Ночной режим: затемняем фоном-оверлеем.
+   Раньше здесь был filter на body — из-за него position: fixed
+   переставал работать и кнопка подтверждения уезжала за экран. */
+body.night-mode::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 5, 20, 0.45);
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 0.8s ease;
+}
+
+/* Стеклянный контейнер/карточка */
+.glass-panel {
+  background: var(--glass-bg);
+  /* Используем backdrop-filter только если он не перегружает систему */
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  padding: 2rem;
+  transform: translateZ(0); /* Аппаратное ускорение */
+}
+
+/* Элементы управления */
+.input-glass {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.2rem;
+  font-size: 1rem;
+  color: var(--text-primary);
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+[data-theme='light'] .input-glass {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.input-glass:focus {
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 0 2px rgba(142, 45, 226, 0.2);
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, var(--accent-red), var(--accent-purple));
+  border: none;
+  border-radius: var(--radius-sm);
+  color: white;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--accent-glow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-primary:active {
+  transform: scale(0.96);
+}
+
+/* Layout Utilities (для мобильных) */
+.container-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.grid-players {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.8rem;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .grid-players {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.5rem;
+  }
+}
+
+/* Карточка игрока (мобильный UI) */
+.player-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  transform: translateZ(0); /* Стабильное ускорение без memory leak */
+}
+
+.player-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.player-card.selected {
+  border-color: var(--accent-red);
+  box-shadow: 0 0 20px rgba(255, 51, 102, 0.4), inset 0 0 15px rgba(255, 51, 102, 0.2);
+  transform: scale(1.05);
+}
+
+.player-card.dead {
+  opacity: 0.3;
+  filter: grayscale(100%);
+  pointer-events: none;
+}
+
+.player-number {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+  background: rgba(0,0,0,0.4);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+/* Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Дополнения: экраны игры, панель ведущего, индикаторы связи
+   ═══════════════════════════════════════════════════════════════ */
+
+.theme-toggle {
+  position: fixed; top: 14px; right: 14px; z-index: 1200;
+  width: 40px; height: 40px; border-radius: 12px;
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  color: var(--text-primary); font-size: 1.2rem; cursor: pointer;
+}
+
+.back-link {
+  margin-top: 1.2rem; color: var(--text-secondary);
+  text-decoration: none; font-size: 0.85rem;
+}
+.back-link:hover { color: var(--accent-purple); }
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 0.7rem 1.2rem;
+  font-size: 0.9rem; font-weight: 600; cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+}
+.btn-ghost:hover { border-color: var(--accent-purple); }
+.btn-ghost:active { transform: scale(0.97); }
+.btn-ghost.danger { padding: 0.4rem 0.7rem; color: var(--accent-red); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.toast-error {
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+  background: var(--accent-red); color: #fff; padding: 0.8rem 1.6rem;
+  border-radius: 12px; z-index: 9999; font-weight: 600; max-width: 92vw;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); text-align: center;
+}
+.conn-banner {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #b45309; color: #fff; padding: 0.6rem 1rem;
+  text-align: center; font-size: 0.85rem; font-weight: 600; z-index: 9998;
+}
+
+/* ── Экран игрока ───────────────────────────────────────────── */
+.game-container {
+  position: relative; z-index: 2;
+  max-width: 1000px; margin: 0 auto;
+  padding: 1rem 1rem 6rem;
+  display: flex; flex-direction: column; gap: 0.9rem;
+}
+.game-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem 1.2rem; gap: 1rem;
+}
+.role-hint {
+  background: rgba(255, 255, 255, 0.04);
+  border-left: 4px solid var(--accent-purple);
+  padding: 0.8rem; border-radius: 0 10px 10px 0;
+  font-size: 0.85rem; color: var(--text-secondary); line-height: 1.45;
+}
+.events-box {
+  background: rgba(255, 255, 255, 0.04); border: 1px solid var(--glass-border);
+  border-radius: 14px; padding: 0.8rem 1rem;
+}
+.events-box__title {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-secondary); margin-bottom: 0.4rem; font-weight: 700;
+}
+.events-box__row { font-size: 0.9rem; line-height: 1.5; }
+.private-msg {
+  padding: 0.8rem; border-radius: 12px;
+  background: rgba(255, 200, 0, 0.12); border: 1px solid gold; font-size: 0.9rem;
+}
+.action-banner {
+  padding: 0.8rem; border: 1px solid var(--accent-red);
+  display: flex; gap: 1rem; align-items: center;
+}
+.waiting-box {
+  text-align: center; padding: 0.8rem; border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03); font-size: 0.9rem;
+  font-weight: 600; color: var(--text-secondary);
+}
+.chat-box { padding: 0.8rem; }
+.chat-box__list {
+  max-height: 130px; overflow-y: auto; margin-bottom: 0.6rem;
+  display: flex; flex-direction: column; gap: 0.3rem;
+}
+.confirm-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 100;
+  display: flex; justify-content: center;
+  padding: 0.8rem 1rem calc(0.8rem + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+}
+.confirm-bar .btn-primary { border-radius: 30px; padding: 0.9rem 2.2rem; }
+
+/* ── Показ роли ─────────────────────────────────────────────── */
+.role-reveal-overlay {
+  position: fixed; inset: 0; background: #000; z-index: 10000;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  padding: 1rem;
+}
+.role-card {
+  width: min(300px, 86vw); background: var(--glass-bg);
+  border: 2px solid var(--accent-purple); border-radius: 20px;
+  padding: 2rem 1.5rem; text-align: center;
+}
+
+/* ── Финальный экран ────────────────────────────────────────── */
+.end-screen {
+  position: fixed; inset: 0; z-index: 1000; overflow-y: auto;
+  display: flex; justify-content: center; align-items: flex-start; padding: 20px;
+}
+.end-card {
+  width: 100%; max-width: 560px; padding: 2rem 1.5rem;
+  text-align: center; margin: auto;
+}
+.roles-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.5rem; }
+.roles-summary__row {
+  padding: 0.7rem; background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;
+}
+
+/* ── Панель ведущего ────────────────────────────────────────── */
+.host-dashboard {
+  position: relative; z-index: 2;
+  display: grid; grid-template-columns: 340px 1fr;
+  gap: 1rem; padding: 20px; min-height: 100vh; align-items: start;
+}
+.host-panel { display: flex; flex-direction: column; gap: 1.2rem; padding: 1.3rem; }
+.script-box {
+  background: rgba(255, 255, 255, 0.05); padding: 1.2rem;
+  border-radius: 12px; border-left: 4px solid var(--accent-purple);
+}
+.host-advance {
+  padding: 1.1rem; border-radius: 12px; font-size: 1.05rem;
+  display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
+}
+.host-view-area { padding: 6px; }
+.host-view-head {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 0.8rem; margin-bottom: 1.2rem; flex-wrap: wrap;
+}
+.host-pill {
+  padding: 5px 14px; background: var(--glass-bg);
+  border-radius: 20px; font-size: 0.8rem; white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .host-dashboard { grid-template-columns: 1fr; padding: 12px; gap: 0.8rem; }
+  .host-panel { padding: 1rem; gap: 1rem; }
+  .game-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .glass-panel { padding: 1.2rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

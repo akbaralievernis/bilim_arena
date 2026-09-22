@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ky">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <title>Жупташтыр — Билим Арена</title>
+  <link rel="stylesheet" href="../../shared/game.css" />
+  <style>
+    .board { display: grid; gap: 10px; grid-template-columns: repeat(var(--cols, 4), 1fr); perspective: 1000px; }
+    .mcard { position: relative; aspect-ratio: 3 / 4; border: 0; padding: 0; background: none; }
+    .mcard .inner { position: absolute; inset: 0; transition: transform .45s cubic-bezier(.16,1,.3,1); transform-style: preserve-3d; }
+    .mcard.open .inner, .mcard.done .inner { transform: rotateY(180deg); }
+    .face { position: absolute; inset: 0; border-radius: 16px; display: grid; place-items: center; backface-visibility: hidden; -webkit-backface-visibility: hidden; padding: 6px; text-align: center; }
+    .front { background: linear-gradient(135deg, var(--primary), var(--pink)); font-size: 2rem; color: #fff; box-shadow: var(--shadow); }
+    .back { transform: rotateY(180deg); background: var(--card-strong); border: 2px solid var(--line); font-weight: 800; font-size: clamp(.8rem, 2.6vw, 1.15rem); word-break: break-word; }
+    .back .emo { font-size: clamp(1.8rem, 7vw, 3rem); }
+    .back .lang { position: absolute; top: 6px; left: 8px; font-size: .75rem; opacity: .7; }
+    .mcard.done .back { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 18%, var(--card-strong)); }
+    .mcard.wrong .back { border-color: var(--bad); }
+    .mcard.done { animation: pop .4s; }
+    .learned { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 12px 0; }
+    .learned span { background: var(--card-strong); border: 1px solid var(--line); border-radius: 10px; padding: 4px 10px; font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <header class="gTop">
+    <a class="iconBtn" href="../../index.html" aria-label="Башкы бетке">←</a>
+    <div class="title">🃏 Жупташтыр <small>Сөз менен анын котормосун тап</small></div>
+    <button class="iconBtn" id="soundBtn" type="button" aria-label="Үн">🔊</button>
+    <button class="iconBtn" id="themeBtn" type="button" aria-label="Тема">🌙</button>
+  </header>
+
+  <main class="gWrap">
+    <section id="setup" class="panel center">
+      <div class="bigEmoji">🃏</div>
+      <h2 class="gH">Жупташтыр</h2>
+      <p class="muted">Карточкаларды ачып, сөз менен анын котормосун жупташтыр. Аз аракет — көп жылдыз!</p>
+      <div class="setupGrid">
+        <div><div class="fieldLabel">Тил</div><div class="chips" id="pairChips"></div></div>
+        <div><div class="fieldLabel">Тема</div><div class="chips" id="catChips"></div></div>
+        <div><div class="fieldLabel">Деңгээл</div><div class="chips" id="sizeChips"></div></div>
+      </div>
+      <button class="btn primary big" id="startBtn" type="button">▶ Баштоо</button>
+    </section>
+
+    <section id="game" class="hidden">
+      <div class="hud">
+        <div class="stat"><b id="pairsLeft">0</b><span>Калды</span></div>
+        <div class="stat"><b id="moves">0</b><span>Аракет</span></div>
+        <div class="stat"><b id="time">0:00</b><span>Убакыт</span></div>
+      </div>
+      <div class="board" id="board"></div>
+    </section>
+  </main>
+
+  <div class="modal hidden" id="endModal">
+    <div class="panel">
+      <div class="bigEmoji" id="endStars">⭐⭐⭐</div>
+      <h2 class="gH">Азаматсың!</h2>
+      <p class="muted" id="endText"></p>
+      <div class="learned" id="learnedList"></div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn" id="menuBtn" type="button">⚙️ Жөндөө</button>
+        <button class="btn primary" id="againBtn" type="button">🔄 Дагы ойноо</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../shared/vocab.js"></script>
+  <script src="../../shared/progress.js"></script>
+  <script src="../../shared/game-shell.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    const $ = (id) => document.getElementById(id);
+    const V = window.BA_VOCAB;
+    const S = window.BAShell;
+    const SIZES = [
+      { value: '6', label: '🟢 6 жуп' },
+      { value: '8', label: '🟡 8 жуп' },
+      { value: '10', label: '🔴 10 жуп' }
+    ];
+    const cfg = { pair: S.recall('wm_pair', 'ky-ru'), cat: S.recall('wm_cat', 'all'), size: S.recall('wm_size', '6') };
+    let st = null, timerId = 0;
+
+    S.chipGroup($('pairChips'), S.PAIRS, cfg.pair, (v) => { cfg.pair = v; S.remember('wm_pair', v); });
+    S.chipGroup($('catChips'), S.categoryItems(), cfg.cat, (v) => { cfg.cat = v; S.remember('wm_cat', v); });
+    S.chipGroup($('sizeChips'), SIZES, cfg.size, (v) => { cfg.size = v; S.remember('wm_size', v); });
+
+    const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    const flag = (l) => (l === 'emoji' ? '' : V.LANGS[l].flag);
+
+    function faceHTML(word, lang) {
+      if (lang === 'emoji') return `<span class="emo">${word.emoji}</span>`;
+      return `<span class="lang">${flag(lang)}</span>${word[lang]}`;
+    }
+
+    function start() {
+      const n = +cfg.size;
+      const [from, to] = cfg.pair.split('-');
+      let pool = V.words(cfg.cat);
+      if (pool.length < n) pool = V.words('all');
+      // Бир эле котормосу бар сөздөрдү кайталабайбыз
+      // (бир карточка эки жупка туура келбеши үчүн)
+      const seenFrom = new Set(), seenTo = new Set();
+      const words = V.shuffle(pool).filter((w) => {
+        if (seenFrom.has(w[from]) || seenTo.has(w[to])) return false;
+        seenFrom.add(w[from]); seenTo.add(w[to]); return true;
+      }).slice(0, n);
+
+      const cards = V.shuffle(words.flatMap((w) => [
+        { id: w.id, html: faceHTML(w, from), word: w },
+        { id: w.id, html: faceHTML(w, to), word: w }
+      ]));
+
+      st = { cards, open: [], done: 0, total: words.length, moves: 0, secs: 0, lock: false, words, misses: {} };
+      const board = $('board');
+      board.style.setProperty('--cols', window.innerWidth < 560 ? 4 : (n >= 10 ? 5 : 4));
+      board.innerHTML = '';
+      cards.forEach((c, i) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'mcard';
+        b.setAttribute('aria-label', 'Карточка ' + (i + 1));
+        b.innerHTML = `<div class="inner"><div class="face front">?</div><div class="face back">${c.html}</div></div>`;
+        b.addEventListener('click', () => flip(i, b));
+        c.el = b;
+        board.appendChild(b);
+      });
+
+      $('setup').classList.add('hidden');
+      $('endModal').classList.add('hidden');
+      $('game').classList.remove('hidden');
+      updateHud();
+      clearInterval(timerId);
+      timerId = setInterval(() => { st.secs++; $('time').textContent = fmt(st.secs); }, 1000);
+    }
+
+    function updateHud() {
+      $('pairsLeft').textContent = st.total - st.done;
+      $('moves').textContent = st.moves;
+      $('time').textContent = fmt(st.secs);
+    }
+
+    function flip(i, el) {
+      if (st.lock || el.classList.contains('open') || el.classList.contains('done')) return;
+      window.BA.sfx.tap();
+      el.classList.add('open');
+      st.open.push(i);
+      if (st.open.length < 2) return;
+
+      st.moves++;
+      const [a, b] = st.open.map((k) => st.cards[k]);
+      if (a.id === b.id) {
+        a.el.classList.add('done'); b.el.classList.add('done');
+        st.done++;
+        st.open = [];
+        window.BA.sfx.ok();
+        window.BA.markWord(a.id, !st.misses[a.id]);
+        // Котормону үн менен айтып берет (браузерде үн болсо)
+        const [from, to] = cfg.pair.split('-');
+        const sayLang = to !== 'emoji' && to !== 'ky' ? to : (from !== 'emoji' && from !== 'ky' ? from : 'ky');
+        window.BA.speak(a.word[sayLang], sayLang);
+        if (st.done === st.total) finish();
+      } else {
+        st.lock = true;
+        st.misses[a.id] = (st.misses[a.id] || 0) + 1;
+        st.misses[b.id] = (st.misses[b.id] || 0) + 1;
+        a.el.classList.add('wrong'); b.el.classList.add('wrong');
+        window.BA.sfx.bad();
+        setTimeout(() => {
+          [a, b].forEach((c) => c.el.classList.remove('open', 'wrong'));
+          st.open = []; st.lock = false;
+        }, 850);
+      }
+      updateHud();
+    }
+
+    function finish() {
+      clearInterval(timerId);
+      const ratio = st.total / st.moves; // 1 = мыкты
+      const stars = ratio >= 0.75 ? 3 : ratio >= 0.5 ? 2 : 1;
+      const score = Math.max(10, Math.round(st.total * 100 * ratio - st.secs));
+      const xp = st.total * 4 + stars * 5;
+      const record = window.BA.saveBest('word-match', score);
+      window.BA.addXP('word-match', xp);
+      window.BA.sfx.win();
+      window.BA.confetti();
+      $('endStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+      $('endText').innerHTML = `${st.moves} аракет · ${fmt(st.secs)} · <b>${score}</b> упай${record ? ' 🏆 Жаңы рекорд!' : ''}`;
+      const [from, to] = cfg.pair.split('-');
+      $('learnedList').innerHTML = st.words.map((w) =>
+        `<span>${w.emoji} ${from === 'emoji' ? '' : w[from] + ' — '}${w[to]}</span>`).join('');
+      setTimeout(() => $('endModal').classList.remove('hidden'), 600);
+    }
+
+    $('startBtn').addEventListener('click', start);
+    $('againBtn').addEventListener('click', start);
+    $('menuBtn').addEventListener('click', () => {
+      $('endModal').classList.add('hidden');
+      $('game').classList.add('hidden');
+      $('setup').classList.remove('hidden');
+    });
+  })();
+  </script>
+</body>
+</html>

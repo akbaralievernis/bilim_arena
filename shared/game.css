@@ -1,0 +1,142 @@
+/* Bilim Arena — тил оюндары үчүн жалпы стилдер */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg: #0b1020;
+  --bg2: #121a33;
+  --card: rgba(255, 255, 255, 0.05);
+  --card-strong: rgba(255, 255, 255, 0.09);
+  --line: rgba(255, 255, 255, 0.1);
+  --text: #f1f5f9;
+  --soft: #94a3b8;
+  --primary: #6366f1;
+  --primary-2: #8b5cf6;
+  --pink: #ec4899;
+  --ok: #22c55e;
+  --bad: #ef4444;
+  --warn: #f59e0b;
+  --radius: 18px;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-title: 'Montserrat', system-ui, sans-serif;
+}
+
+body.light {
+  --bg: #f1f5f9;
+  --bg2: #e0e7ff;
+  --card: rgba(255, 255, 255, 0.85);
+  --card-strong: #ffffff;
+  --line: rgba(15, 23, 42, 0.1);
+  --text: #0f172a;
+  --soft: #475569;
+  --shadow: 0 12px 30px rgba(15, 23, 42, 0.1);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  font-family: var(--font);
+  color: var(--text);
+  background:
+    radial-gradient(900px 500px at 10% -10%, rgba(99, 102, 241, 0.25), transparent 60%),
+    radial-gradient(800px 500px at 110% 10%, rgba(236, 72, 153, 0.18), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ---------- Жогорку тилке ---------- */
+.gTop {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  background: color-mix(in srgb, var(--bg) 75%, transparent);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--line);
+}
+.gTop .title {
+  flex: 1; min-width: 0;
+  font-family: var(--font-title); font-weight: 900; font-size: 1.15rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.gTop .title small { display: block; font-family: var(--font); font-weight: 600; font-size: 0.75rem; color: var(--soft); }
+.iconBtn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-width: 42px; height: 42px; padding: 0 12px;
+  border-radius: 12px; border: 1px solid var(--line);
+  background: var(--card); color: var(--text); text-decoration: none; font-weight: 700;
+  transition: transform .15s, background .2s;
+}
+.iconBtn:hover { background: var(--card-strong); }
+.iconBtn:active { transform: scale(.95); }
+
+/* ---------- Макет ---------- */
+.gWrap { max-width: 960px; margin: 0 auto; padding: 20px 16px 60px; }
+.panel {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.center { text-align: center; }
+.hidden { display: none !important; }
+h2.gH { font-family: var(--font-title); font-size: clamp(1.5rem, 4vw, 2.2rem); margin: 0 0 8px; }
+.muted { color: var(--soft); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 22px; border-radius: 14px; border: 1px solid var(--line);
+  background: var(--card-strong); font-weight: 800; text-decoration: none; color: var(--text);
+  transition: transform .15s, filter .2s, box-shadow .2s;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: scale(.97); }
+.btn.primary {
+  border: 0; color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  box-shadow: 0 10px 24px rgba(99, 102, 241, .35);
+}
+.btn.big { padding: 16px 30px; font-size: 1.1rem; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ---------- Жөндөөлөр (тил жана категория) ---------- */
+.setupGrid { display: grid; gap: 16px; margin: 20px 0; text-align: left; }
+.fieldLabel { font-weight: 800; font-size: .85rem; text-transform: uppercase; letter-spacing: .05em; color: var(--soft); margin-bottom: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chipBtn {
+  padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--card); font-weight: 700; font-size: .92rem;
+}
+.chipBtn.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+/* ---------- Статистика ---------- */
+.hud { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 16px; }
+.stat {
+  min-width: 90px; padding: 8px 14px; border-radius: 14px;
+  background: var(--card); border: 1px solid var(--line); text-align: center;
+}
+.stat b { display: block; font-family: var(--font-title); font-size: 1.35rem; }
+.stat span { font-size: .72rem; font-weight: 700; color: var(--soft); text-transform: uppercase; letter-spacing: .04em; }
+
+/* ---------- Жыйынтык терезеси ---------- */
+.modal {
+  position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 16px;
+  background: rgba(2, 6, 23, .6); backdrop-filter: blur(6px);
+}
+.modal .panel { max-width: 440px; width: 100%; text-align: center; animation: pop .35s cubic-bezier(.16, 1, .3, 1); }
+.bigEmoji { font-size: 4rem; line-height: 1; margin-bottom: 8px; }
+@keyframes pop { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-7px); } 40%, 80% { transform: translateX(7px); } }
+.shake { animation: shake .4s; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

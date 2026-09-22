@@ -1035,3 +1035,10 @@ body.mode-math .slots {
     grid-template-columns: 1fr;
   }
 }
+/* Мобилдик оңдоо: жогорку тилке телефондо эки катарга бөлүнөт */
+@media (max-width: 640px) {
+  .topbar { grid-template-columns: 1fr auto; gap: .75rem; padding: .75rem 1rem; }
+  .topActions { grid-column: 1 / -1; flex-wrap: wrap; justify-content: center; }
+  .topActions .btn, .topActions .tbtn { flex: 1 1 auto; }
+  .teamMeta { flex-wrap: wrap; }
+}

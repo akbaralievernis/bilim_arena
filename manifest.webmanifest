@@ -1,0 +1,14 @@
+{
+  "name": "Билим Арена",
+  "short_name": "Билим Арена",
+  "description": "Тил үйрөнүүчү жана логикалык оюндар — 100% кыргызча",
+  "lang": "ky",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "icons": [
+    { "src": "./assets/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

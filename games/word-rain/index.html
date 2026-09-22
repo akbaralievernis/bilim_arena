@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ky">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <title>Сөз жамгыры — Билим Арена</title>
+  <link rel="stylesheet" href="../../shared/game.css" />
+  <style>
+    .gWrap { max-width: 720px; padding-bottom: 20px; }
+    .sky {
+      position: relative; height: min(52vh, 440px); border-radius: var(--radius); overflow: hidden;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(99,102,241,.25), rgba(236,72,153,.08) 70%, rgba(34,197,94,.25));
+    }
+    .ground { position: absolute; left: 0; right: 0; bottom: 0; height: 10px; background: linear-gradient(90deg, var(--ok), #16a34a); }
+    .drop {
+      position: absolute; top: 0; transform: translateX(-50%);
+      padding: 10px 16px; border-radius: 16px 16px 16px 4px;
+      background: var(--card-strong); border: 2px solid var(--primary);
+      font-weight: 900; font-size: clamp(1rem, 3.5vw, 1.35rem); white-space: nowrap; box-shadow: var(--shadow);
+    }
+    .drop .e { font-size: 1.4em; margin-right: 6px; vertical-align: middle; }
+    .drop.hit { border-color: var(--ok); background: var(--ok); color: #fff; transition: transform .3s, opacity .3s; transform: translateX(-50%) scale(1.4); opacity: 0; }
+    .drop.miss { border-color: var(--bad); background: var(--bad); color: #fff; }
+    .answers { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
+    .ans {
+      min-height: 60px; padding: 10px; border-radius: 14px; border: 2px solid var(--line);
+      background: var(--card-strong); font-weight: 800; font-size: 1.05rem; box-shadow: 0 3px 0 rgba(0,0,0,.2);
+    }
+    .ans:active { transform: translateY(2px); box-shadow: none; }
+    .ans.ok { background: var(--ok); color: #fff; border-color: var(--ok); }
+    .ans.no { background: var(--bad); color: #fff; border-color: var(--bad); }
+    .ans kbd { opacity: .5; font-size: .75rem; margin-right: 6px; }
+    .lives { letter-spacing: 2px; }
+    .pauseCover { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(2,6,23,.55); font-size: 1.4rem; font-weight: 900; color: #fff; }
+  </style>
+</head>
+<body>
+  <header class="gTop">
+    <a class="iconBtn" href="../../index.html" aria-label="Башкы бетке">←</a>
+    <div class="title">🌧️ Сөз жамгыры <small>Сөз жерге түшкөнчө котормосун тап</small></div>
+    <button class="iconBtn hidden" id="pauseBtn" type="button" aria-label="Тыным">⏸</button>
+    <button class="iconBtn" id="soundBtn" type="button" aria-label="Үн">🔊</button>
+    <button class="iconBtn" id="themeBtn" type="button" aria-label="Тема">🌙</button>
+  </header>
+
+  <main class="gWrap">
+    <section id="setup" class="panel center">
+      <div class="bigEmoji">🌧️</div>
+      <h2 class="gH">Сөз жамгыры</h2>
+      <p class="muted">Асмандан сөздөр түшөт! Жерге жеткиче туура котормону бас. Ар бир 5 туура жооп — ылдамдык жогорулайт. 3 жан бар.</p>
+      <div class="setupGrid">
+        <div><div class="fieldLabel">Тил</div><div class="chips" id="pairChips"></div></div>
+        <div><div class="fieldLabel">Тема</div><div class="chips" id="catChips"></div></div>
+      </div>
+      <p class="muted" id="bestLine"></p>
+      <button class="btn primary big" id="startBtn" type="button">▶ Баштоо</button>
+      <p class="muted" style="font-size:.85rem">⌨️ Клавиатура: 1, 2, 3, 4 баскычтары</p>
+    </section>
+
+    <section id="game" class="hidden">
+      <div class="hud">
+        <div class="stat"><b id="score">0</b><span>Упай</span></div>
+        <div class="stat"><b id="combo">x1</b><span>Комбо</span></div>
+        <div class="stat"><b id="level">1</b><span>Деңгээл</span></div>
+        <div class="stat"><b class="lives" id="lives">❤️❤️❤️</b><span>Жан</span></div>
+      </div>
+      <div class="sky" id="sky"><div class="ground"></div></div>
+      <div class="answers" id="answers"></div>
+    </section>
+  </main>
+
+  <div class="modal hidden" id="endModal">
+    <div class="panel">
+      <div class="bigEmoji">🏁</div>
+      <h2 class="gH">Оюн бүттү!</h2>
+      <p style="font-size:2rem;font-weight:900;margin:0" id="endScore">0</p>
+      <p class="muted" id="endText"></p>
+      <div id="mistakes" style="text-align:left;margin:10px 0"></div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn" id="menuBtn" type="button">⚙️ Жөндөө</button>
+        <button class="btn primary" id="againBtn" type="button">🔄 Дагы ойноо</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../shared/vocab.js"></script>
+  <script src="../../shared/progress.js"></script>
+  <script src="../../shared/game-shell.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    const $ = (id) => document.getElementById(id);
+    const V = window.BA_VOCAB, S = window.BAShell, BA = window.BA;
+    const cfg = { pair: S.recall('wr_pair', 'ky-en'), cat: S.recall('wr_cat', 'all') };
+    S.chipGroup($('pairChips'), S.PAIRS, cfg.pair, (v) => { cfg.pair = v; S.remember('wr_pair', v); });
+    S.chipGroup($('catChips'), S.categoryItems(), cfg.cat, (v) => { cfg.cat = v; S.remember('wr_cat', v); });
+    const showBest = () => { const b = BA.best('word-rain'); $('bestLine').textContent = b ? `🏆 Рекорд: ${b}` : ''; };
+    showBest();
+
+    let st = null, raf = 0;
+
+    function label(w, lang) {
+      return lang === 'emoji' ? `<span class="e">${w.emoji}</span>` : w[lang];
+    }
+
+    function start() {
+      const [from, to] = cfg.pair.split('-');
+      let pool = V.words(cfg.cat);
+      if (pool.length < 6) pool = V.words('all');
+      st = { from, to, pool, queue: V.shuffle(pool), score: 0, combo: 0, lives: 3, right: 0, level: 1,
+             drop: null, paused: false, last: 0, mistakes: [], total: 0 };
+      $('sky').querySelectorAll('.drop, .pauseCover').forEach((x) => x.remove());
+      $('pauseBtn').textContent = '⏸';
+      $('setup').classList.add('hidden');
+      $('endModal').classList.add('hidden');
+      $('game').classList.remove('hidden');
+      $('pauseBtn').classList.remove('hidden');
+      hud();
+      nextDrop();
+      cancelAnimationFrame(raf);
+      st.last = performance.now();
+      raf = requestAnimationFrame(loop);
+    }
+
+    function speed() { return 38 + st.level * 12; } // px/сек
+
+    function nextDrop() {
+      if (!st.queue.length) st.queue = V.shuffle(st.pool);
+      const w = st.queue.pop();
+      const el = document.createElement('div');
+      el.className = 'drop';
+      el.innerHTML = label(w, st.from);
+      el.style.left = (20 + Math.random() * 60) + '%';
+      $('sky').appendChild(el);
+      st.drop = { w, el, y: -10, done: false };
+
+      // Жооптор: 1 туура + 3 туура эмес (котормосу башка)
+      const wrong = V.distractors(w, 3, st.to === 'emoji' ? 'emoji' : st.to);
+      const opts = V.shuffle([w].concat(wrong));
+      const box = $('answers'); box.innerHTML = '';
+      opts.forEach((o, i) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'ans'; b.dataset.id = o.id;
+        b.innerHTML = `<kbd>${i + 1}</kbd>${st.to === 'emoji' ? `<span style="font-size:1.8rem">${o.emoji}</span>` : o[st.to]}`;
+        b.addEventListener('click', () => answer(o, b));
+        box.appendChild(b);
+      });
+    }
+
+    function answer(o, btn) {
+      const d = st.drop;
+      if (!d || d.done || st.paused) return;
+      const ok = o.id === d.w.id || o[st.to] === d.w[st.to];
+      st.total++;
+      if (ok) {
+        d.done = true;
+        btn.classList.add('ok');
+        d.el.classList.add('hit');
+        st.combo++; st.right++;
+        const mult = Math.min(5, 1 + Math.floor(st.combo / 3));
+        // бийиктикке жараша бонус: канчалык тез болсо, ошончолук көп
+        const h = $('sky').clientHeight;
+        const bonus = Math.round(10 * (1 - d.y / h));
+        st.score += (10 + bonus) * mult;
+        if (st.right % 5 === 0) st.level++;
+        BA.sfx.ok();
+        BA.markWord(d.w.id, true);
+        if (st.to !== 'emoji' && st.to !== 'ky') BA.speak(d.w[st.to], st.to);
+        setTimeout(() => { d.el.remove(); if (st && st.lives > 0) nextDrop(); }, 280);
+      } else {
+        // Ката: туура жоопту көрсөтүп, кийинки сөзгө өтөбүз (бир жан кетет)
+        btn.classList.add('no');
+        st.score = Math.max(0, st.score - 5);
+        loseLife(true);
+      }
+      hud();
+    }
+
+    function loseLife(landed) {
+      const d = st.drop;
+      st.lives--;
+      BA.markWord(d.w.id, false);
+      if (!st.mistakes.find((m) => m.id === d.w.id)) st.mistakes.push(d.w);
+      if (landed) {
+        d.done = true;
+        // Туура жоопту көрсөтөбүз — окуучу ошол замат үйрөнсүн
+        [...$('answers').children].forEach((b) => {
+          b.disabled = true;
+          if (b.dataset.id === d.w.id) b.classList.add('ok');
+        });
+        d.el.classList.add('miss');
+        d.el.innerHTML = `${label(d.w, st.from)} = ${label(d.w, st.to)}`;
+        st.combo = 0;
+        BA.sfx.bad();
+        setTimeout(() => { d.el.remove(); if (st.lives > 0) nextDrop(); }, 1200);
+      }
+      hud();
+      if (st.lives <= 0) setTimeout(end, landed ? 1200 : 300);
+    }
+
+    function hud() {
+      $('score').textContent = st.score;
+      $('combo').textContent = 'x' + Math.min(5, 1 + Math.floor(st.combo / 3));
+      $('level').textContent = st.level;
+      $('lives').textContent = '❤️'.repeat(Math.max(0, st.lives)) + '🤍'.repeat(3 - Math.max(0, st.lives));
+    }
+
+    function loop(t) {
+      if (!st) return;
+      const dt = Math.min(0.05, (t - st.last) / 1000);
+      st.last = t;
+      const d = st.drop;
+      if (!st.paused && d && !d.done && st.lives > 0) {
+        d.y += speed() * dt;
+        d.el.style.top = d.y + 'px';
+        const floor = $('sky').clientHeight - d.el.offsetHeight - 10;
+        if (d.y >= floor) { d.y = floor; loseLife(true); }
+      }
+      raf = requestAnimationFrame(loop);
+    }
+
+    function end() {
+      if (!st || st.ended) return;
+      st.ended = true;
+      cancelAnimationFrame(raf);
+      $('pauseBtn').classList.add('hidden');
+      const record = BA.saveBest('word-rain', st.score);
+      BA.addXP('word-rain', Math.round(st.right * 3 + st.score / 20));
+      if (record && st.score > 0) { BA.sfx.win(); BA.confetti(); } else BA.sfx.lose();
+      $('endScore').textContent = st.score + ' упай';
+      $('endText').textContent = `${st.right} туура жооп · деңгээл ${st.level}${record && st.score > 0 ? ' · 🏆 Жаңы рекорд!' : ''}`;
+      $('mistakes').innerHTML = st.mistakes.length
+        ? '<div class="fieldLabel">📌 Кайталап ал:</div>' + st.mistakes.map((w) =>
+            `<div>${w.emoji} <b>${w.ky}</b> — ${w.ru} — ${w.en}</div>`).join('')
+        : '';
+      $('endModal').classList.remove('hidden');
+      showBest();
+    }
+
+    function togglePause() {
+      if (!st || st.ended) return;
+      st.paused = !st.paused;
+      $('pauseBtn').textContent = st.paused ? '▶' : '⏸';
+      const sky = $('sky');
+      const c = sky.querySelector('.pauseCover');
+      if (st.paused && !c) { const p = document.createElement('div'); p.className = 'pauseCover'; p.textContent = '⏸ Тыным'; sky.appendChild(p); }
+      if (!st.paused && c) c.remove();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (!st || st.ended) return;
+      if (e.key === ' ' || e.key === 'Escape' || e.key === 'p') { e.preventDefault(); togglePause(); return; }
+      const n = parseInt(e.key, 10);
+      if (n >= 1 && n <= 4) { const b = $('answers').children[n - 1]; if (b) b.click(); }
+    });
+    document.addEventListener('visibilitychange', () => { if (document.hidden && st && !st.paused && !st.ended) togglePause(); });
+
+    $('pauseBtn').addEventListener('click', togglePause);
+    $('startBtn').addEventListener('click', start);
+    $('againBtn').addEventListener('click', start);
+    $('menuBtn').addEventListener('click', () => {
+      $('endModal').classList.add('hidden'); $('game').classList.add('hidden'); $('setup').classList.remove('hidden');
+      $('sky').querySelectorAll('.drop').forEach((x) => x.remove());
+    });
+  })();
+  </script>
+</body>
+</html>

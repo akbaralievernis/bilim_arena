@@ -1,0 +1,9 @@
+# Зависимости (в репозиторий не коммитим!)
+node_modules/
+mafia-src/node_modules/
+
+# Служебное
+.DS_Store
+*.log
+.vscode/
+.idea/

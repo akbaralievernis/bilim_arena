@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ky">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <title>Сөз карточкалары — Билим Арена</title>
+  <link rel="stylesheet" href="../../shared/game.css" />
+  <style>
+    .gWrap { max-width: 620px; }
+    .catGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 16px 0; }
+    .catCard { text-align: left; padding: 14px; border-radius: 16px; border: 2px solid var(--line); background: var(--card); }
+    .catCard.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 15%, var(--card)); }
+    .catCard .ic { font-size: 1.8rem; }
+    .catCard .nm { font-weight: 800; margin: 4px 0; }
+    .bar { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+    .bar i { display: block; height: 100%; background: var(--ok); border-radius: 99px; }
+    .catCard small { color: var(--soft); font-weight: 600; }
+
+    .deckTop { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .deckTop .bar { flex: 1; height: 10px; }
+    .deckTop .bar i { background: linear-gradient(90deg, var(--primary), var(--pink)); transition: width .3s; }
+    .fc { perspective: 1200px; height: min(56vh, 380px); cursor: pointer; }
+    .fcInner { position: relative; width: 100%; height: 100%; transition: transform .6s cubic-bezier(.16,1,.3,1); transform-style: preserve-3d; }
+    .fc.flipped .fcInner { transform: rotateY(180deg); }
+    .side {
+      position: absolute; inset: 0; border-radius: 24px; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 20px; text-align: center;
+      background: var(--card-strong); border: 1px solid var(--line); box-shadow: var(--shadow);
+    }
+    .side.back { transform: rotateY(180deg); background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 25%, var(--card-strong)), var(--card-strong)); }
+    .fcEmoji { font-size: clamp(3.5rem, 14vw, 5.5rem); line-height: 1; }
+    .fcWord { font-family: var(--font-title); font-weight: 900; font-size: clamp(1.8rem, 7vw, 2.6rem); }
+    .tr { display: grid; gap: 8px; width: 100%; max-width: 360px; }
+    .tr div { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); font-weight: 800; font-size: 1.15rem; }
+    .say { border: 0; background: var(--primary); color: #fff; border-radius: 10px; width: 36px; height: 36px; flex: none; }
+    .tapHint { color: var(--soft); font-size: .85rem; font-weight: 600; }
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+    .actions .btn { min-height: 56px; }
+    .btn.again { border-color: var(--warn); }
+    .btn.know { background: var(--ok); color: #fff; border: 0; }
+    .boxes { display: flex; gap: 4px; justify-content: center; }
+    .boxes i { width: 14px; height: 6px; border-radius: 3px; background: var(--line); }
+    .boxes i.on { background: var(--ok); }
+  </style>
+</head>
+<body>
+  <header class="gTop">
+    <a class="iconBtn" href="../../index.html" aria-label="Башкы бетке">←</a>
+    <div class="title">📇 Сөз карточкалары <small>Көр, ук, эсте — акылдуу кайталоо системасы</small></div>
+    <button class="iconBtn" id="soundBtn" type="button" aria-label="Үн">🔊</button>
+    <button class="iconBtn" id="themeBtn" type="button" aria-label="Тема">🌙</button>
+  </header>
+
+  <main class="gWrap">
+    <section id="setup" class="panel">
+      <div class="center">
+        <div class="bigEmoji">📇</div>
+        <h2 class="gH">Сөз карточкалары</h2>
+        <p class="muted">Картаны бурап, котормосун көр жана ук. «Билем» деген сөздөр кийин сейрек, «Кайталайм» деген сөздөр тез-тез чыгат.</p>
+      </div>
+      <div class="catGrid" id="catGrid"></div>
+      <div class="center"><button class="btn primary big" id="startBtn" type="button">▶ 12 сөздү үйрөнүү</button></div>
+    </section>
+
+    <section id="deck" class="hidden">
+      <div class="deckTop">
+        <span id="counter" style="font-weight:800">1/12</span>
+        <div class="bar"><i id="deckBar" style="width:0%"></i></div>
+        <button class="iconBtn" id="quitBtn" type="button" aria-label="Жабуу">✕</button>
+      </div>
+      <div class="fc" id="card" tabindex="0" role="button" aria-label="Картаны буроо">
+        <div class="fcInner">
+          <div class="side front">
+            <div class="fcEmoji" id="fEmoji"></div>
+            <div class="fcWord" id="fWord"></div>
+            <div class="boxes" id="fBoxes"></div>
+            <div class="tapHint">👆 Басып бурагыла (же Пробел)</div>
+          </div>
+          <div class="side back">
+            <div class="fcEmoji" id="bEmoji" style="font-size:3rem"></div>
+            <div class="tr" id="bTr"></div>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn again" id="againBtn" type="button">🔁 Кайталайм <kbd style="opacity:.5">1</kbd></button>
+        <button class="btn know" id="knowBtn" type="button">✅ Билем <kbd style="opacity:.6">2</kbd></button>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal hidden" id="endModal">
+    <div class="panel">
+      <div class="bigEmoji">🎓</div>
+      <h2 class="gH">Сабак бүттү!</h2>
+      <p id="endText"></p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn" id="menuBtn" type="button">📚 Темалар</button>
+        <button class="btn primary" id="moreBtn" type="button">➡️ Дагы 12 сөз</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../shared/vocab.js"></script>
+  <script src="../../shared/progress.js"></script>
+  <script src="../../shared/game-shell.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    const $ = (id) => document.getElementById(id);
+    const V = window.BA_VOCAB, S = window.BAShell, BA = window.BA;
+    let cat = S.recall('fc_cat', 'animals');
+    let st = null;
+
+    function renderCats() {
+      const stats = BA.allWordStats();
+      const grid = $('catGrid'); grid.innerHTML = '';
+      const items = [{ key: 'all', title: 'Баары', icon: '🌈' }].concat(Object.values(V.CATEGORIES));
+      items.forEach((c) => {
+        const ws = V.words(c.key);
+        const learned = ws.filter((w) => stats[w.id] && stats[w.id].box >= 3).length;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'catCard' + (c.key === cat ? ' on' : '');
+        b.innerHTML = `<div class="ic">${c.icon}</div><div class="nm">${c.title}</div>
+          <div class="bar"><i style="width:${Math.round(learned / ws.length * 100)}%"></i></div>
+          <small>${learned}/${ws.length} үйрөнүлдү</small>`;
+        b.addEventListener('click', () => { cat = c.key; S.remember('fc_cat', cat); renderCats(); });
+        grid.appendChild(b);
+      });
+    }
+
+    // Кайталоо мөөнөтү келген жана жаңы сөздөр биринчи чыгат
+    function buildDeck() {
+      const stats = BA.allWordStats();
+      const now = Date.now();
+      const ws = V.shuffle(V.words(cat));
+      const due = ws.filter((w) => stats[w.id] && stats[w.id].due <= now && stats[w.id].box < 5);
+      const fresh = ws.filter((w) => !stats[w.id]);
+      const rest = ws.filter((w) => !due.includes(w) && !fresh.includes(w))
+                     .sort((a, b) => (stats[a.id].due) - (stats[b.id].due));
+      return due.concat(fresh, rest).slice(0, 12);
+    }
+
+    function start() {
+      st = { deck: buildDeck(), i: 0, knew: 0, again: 0, seen: new Set() };
+      $('setup').classList.add('hidden');
+      $('endModal').classList.add('hidden');
+      $('deck').classList.remove('hidden');
+      show();
+    }
+
+    function sayBtn(text, lang) {
+      if (!BA.canSpeak(lang)) return '';
+      return `<button class="say" type="button" data-t="${text}" data-l="${lang}" aria-label="Угуу">🔊</button>`;
+    }
+
+    function show() {
+      const w = st.deck[st.i];
+      const card = $('card');
+      card.classList.remove('flipped');
+      const stat = BA.wordStats(w.id);
+      $('fEmoji').textContent = w.emoji;
+      $('fWord').textContent = w.ky;
+      $('fBoxes').innerHTML = [1, 2, 3, 4, 5].map((n) => `<i class="${stat.box >= n ? 'on' : ''}"></i>`).join('');
+      $('bEmoji').textContent = w.emoji;
+      $('bTr').innerHTML =
+        `<div><span>🇰🇬 ${w.ky}</span>${sayBtn(w.ky, 'ky')}</div>` +
+        `<div><span>🇷🇺 ${w.ru}</span>${sayBtn(w.ru, 'ru')}</div>` +
+        `<div><span>🇬🇧 ${w.en}</span>${sayBtn(w.en, 'en')}</div>`;
+      $('counter').textContent = `${Math.min(st.i + 1, st.deck.length)}/${st.deck.length}`;
+      $('deckBar').style.width = (st.i / st.deck.length * 100) + '%';
+    }
+
+    function flip() {
+      const card = $('card');
+      card.classList.toggle('flipped');
+      if (card.classList.contains('flipped')) {
+        const w = st.deck[st.i];
+        BA.speak(w.en, 'en');
+      }
+    }
+
+    function rate(knew) {
+      if (!st) return;
+      const w = st.deck[st.i];
+      BA.markWord(w.id, knew);
+      if (knew) { st.knew++; BA.sfx.ok(); }
+      else {
+        st.again++; BA.sfx.tap();
+        // Билбеген сөз ушул сабакта дагы бир жолу чыгат
+        if (!st.seen.has(w.id)) st.deck.push(w);
+      }
+      st.seen.add(w.id);
+      st.i++;
+      if (st.i >= st.deck.length) finish(); else show();
+    }
+
+    function finish() {
+      $('deckBar').style.width = '100%';
+      const xp = 10 + st.knew * 2;
+      BA.addXP('flashcards', xp);
+      BA.saveBest('flashcards', st.knew);
+      BA.sfx.win();
+      $('endText').innerHTML = `✅ Билди: <b>${st.knew}</b> · 🔁 Кайталоо керек: <b>${st.again}</b><br><span class="muted">Эртең кайра кир — мөөнөтү келген сөздөр биринчи чыгат.</span>`;
+      $('endModal').classList.remove('hidden');
+    }
+
+    $('card').addEventListener('click', (e) => {
+      const s = e.target.closest('.say');
+      if (s) { e.stopPropagation(); BA.speak(s.dataset.t, s.dataset.l); return; }
+      flip();
+    });
+    $('knowBtn').addEventListener('click', () => rate(true));
+    $('againBtn').addEventListener('click', () => rate(false));
+    document.addEventListener('keydown', (e) => {
+      if ($('deck').classList.contains('hidden') || !$('endModal').classList.contains('hidden')) return;
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); }
+      else if (e.key === '1' || e.key === 'ArrowLeft') rate(false);
+      else if (e.key === '2' || e.key === 'ArrowRight') rate(true);
+    });
+    const toMenu = () => {
+      $('endModal').classList.add('hidden'); $('deck').classList.add('hidden'); $('setup').classList.remove('hidden');
+      renderCats();
+    };
+    $('quitBtn').addEventListener('click', toMenu);
+    $('menuBtn').addEventListener('click', toMenu);
+    $('moreBtn').addEventListener('click', start);
+    $('startBtn').addEventListener('click', start);
+
+    renderCats();
+  })();
+  </script>
+</body>
+</html>
