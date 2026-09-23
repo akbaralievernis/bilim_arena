@@ -1,5 +1,5 @@
 /* Билим Арена — офлайн кэш. Файлдар өзгөргөндө VERSION'ду көбөйтүңүз. */
-const VERSION = 'ba-v4';
+const VERSION = 'ba-v5';
 const CORE = [
   './', './index.html', './portal.css', './portal.js', './manifest.webmanifest',
   './shared/ui.css', './shared/game.css', './shared/vocab.js', './shared/progress.js', './shared/game-shell.js',
@@ -10,7 +10,12 @@ const CORE = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
+  // cache: 'reload' — берём файлы с сервера, а не из старого кэша браузера
+  e.waitUntil(
+    caches.open(VERSION)
+      .then((c) => c.addAll(CORE.map((u) => new Request(u, { cache: 'reload' }))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (e) => {
