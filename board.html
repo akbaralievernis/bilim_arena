@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ky" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="description" content="Билим Арена — интерактивдүү доска режими: сабак, оюн жана окуучулардын телефондору." />
+  <title>Доска режими — Билим Арена</title>
+  <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./core/ui.css?v=3" />
+  <link rel="stylesheet" href="./core/board.css?v=3" />
+</head>
+
+<body class="board-mode">
+  <a class="skip-link" href="#main">Негизги мазмунга өтүү</a>
+
+  <!-- Верхняя строка урока: этапы + таймер + управление -->
+  <header class="board-top" id="boardTop">
+    <a class="brand" href="./index.html" title="Башкы бет">
+      <span class="logo" aria-hidden="true">🚀</span>
+    </a>
+    <div class="lesson-meta">
+      <div class="lesson-title" id="lessonTitle">—</div>
+      <div class="lesson-sub muted" id="lessonSub"></div>
+    </div>
+    <ol class="stages" id="stages" aria-label="Сабактын этаптары"></ol>
+    <div class="spacer"></div>
+    <div class="timer hidden" id="timer" aria-live="off"><span id="timerValue">0</span></div>
+    <button class="btn ghost" id="pauseBtn" type="button" aria-label="Тыным" hidden>⏸</button>
+    <button class="btn ghost" id="exitBtn" type="button" aria-label="Сабакты аяктоо">✕</button>
+  </header>
+
+  <main id="main">
+    <!-- 1. Настройка урока -->
+    <section class="screen" id="setupScreen">
+      <div class="wrap stack">
+        <h1 class="center" data-i18n="lesson_setup">Сабактын жөндөөлөрү</h1>
+
+        <div class="card">
+          <div class="label" data-i18n="lesson_subject">Предмет</div>
+          <div class="chips" id="subjectChips"></div>
+        </div>
+
+        <div class="card">
+          <div class="label" data-i18n="lesson_topic">Тема</div>
+          <div class="chips" id="topicChips"></div>
+        </div>
+
+        <div class="card">
+          <div class="label" data-i18n="lesson_duration">Узактыгы</div>
+          <div class="chips" id="durationChips"></div>
+        </div>
+
+        <div class="card" id="planPreview"></div>
+
+        <button class="btn primary big block" id="startLessonBtn" type="button" data-i18n="lesson_start">
+          Сабакты баштоо
+        </button>
+      </div>
+    </section>
+
+    <!-- 2. Подключение учеников -->
+    <section class="screen hidden" id="lobbyScreen">
+      <div class="lobby-grid">
+        <div class="card pad-lg center join-card">
+          <div class="label" data-i18n="board_room_code">Бөлмөнүн коду</div>
+          <div class="room-code" id="roomCode">····</div>
+          <div class="qr-box" id="qrBox" aria-hidden="true"></div>
+          <p class="muted" id="joinHint" data-i18n="board_scan_qr">QR-кодду телефон менен тартыңыз</p>
+          <p class="small muted" id="joinUrlText"></p>
+        </div>
+
+        <div class="card pad-lg stack players-card">
+          <div class="row between">
+            <h2 id="playersTitle" data-i18n="players">Окуучулар</h2>
+            <span class="big-number" id="playerCount">0</span>
+          </div>
+          <div class="players" id="playersList"></div>
+          <p class="muted" id="lobbyHint" data-i18n="board_start_when_ready"></p>
+          <div class="spacer"></div>
+          <button class="btn primary big block" id="startGameBtn" type="button" data-i18n="game_start">
+            Оюнду баштоо
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Экран игры -->
+    <section class="screen hidden" id="gameScreen">
+      <div class="game-head">
+        <span class="chip on" id="gameName"></span>
+        <span class="chip" id="questionCounter"></span>
+        <span class="spacer"></span>
+        <span class="chip" id="answeredCount"></span>
+      </div>
+
+      <div class="question-area">
+        <div class="question-prompt" id="prompt"></div>
+        <div class="options" id="options"></div>
+        <div class="explain hidden" id="explain"></div>
+      </div>
+
+      <aside class="game-side" id="gameExtra"></aside>
+
+      <div class="game-foot">
+        <button class="btn" id="skipBtn" type="button">⏭ <span data-i18n="board_next_question"></span></button>
+        <button class="btn ghost" id="finishBtn" type="button">🏁 <span data-i18n="board_finish_game"></span></button>
+      </div>
+    </section>
+
+    <!-- 4. Результаты -->
+    <section class="screen hidden" id="resultScreen">
+      <div class="wrap stack">
+        <h1 class="center" id="resultTitle" data-i18n="results_title">Жыйынтык</h1>
+        <div class="stats" id="resultStats"></div>
+
+        <div class="grid two">
+          <div class="card stack">
+            <h2 data-i18n="results_mistakes">Каталар боюнча</h2>
+            <div id="skillBreakdown"></div>
+          </div>
+          <div class="card stack">
+            <h2 data-i18n="results_leaderboard">Мыктылар</h2>
+            <div id="leaderboard"></div>
+          </div>
+        </div>
+
+        <div class="row center result-actions">
+          <button class="btn danger big" id="repeatBtn" type="button" data-i18n="results_repeat_topic">
+            Теманы кайталоо
+          </button>
+          <button class="btn primary big" id="nextStageBtn" type="button" data-i18n="lesson_next_stage">
+            Кийинки этап
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Итог урока -->
+    <section class="screen hidden" id="summaryScreen">
+      <div class="wrap stack center">
+        <div class="big-emoji">🎓</div>
+        <h1 data-i18n="lesson_stage_summary">Жыйынтык</h1>
+        <div class="stats" id="summaryStats"></div>
+        <div class="card stack" id="summaryReview"></div>
+        <div class="row center">
+          <a class="btn big" href="./index.html" data-i18n="nav_home">Башкы бет</a>
+          <button class="btn primary big" id="newLessonBtn" type="button" data-i18n="lesson_start">Сабакты баштоо</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toasts"></div>
+  <script type="module" src="./board.js?v=3"></script>
+</body>
+</html>

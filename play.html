@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ky" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="description" content="Билим Арена — оюнга кирүү. Мугалим берген код менен кошулуңуз." />
+  <title>Оюнга кирүү — Билим Арена</title>
+  <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./core/ui.css?v=3" />
+  <link rel="stylesheet" href="./core/board.css?v=3" />
+</head>
+
+<body class="controller">
+  <header class="ctrl-top">
+    <a class="brand" href="./index.html" aria-label="Билим Арена">
+      <span class="logo" aria-hidden="true">🚀</span>
+    </a>
+    <div class="stack" style="gap:2px">
+      <b id="playerName">—</b>
+      <span class="small muted" id="teamLabel"></span>
+    </div>
+    <span class="spacer"></span>
+    <span class="small muted" id="scoreLabel"></span>
+    <span class="conn-dot off" id="connDot" role="img" aria-label="Байланыш"></span>
+  </header>
+
+  <!-- Вход в игру -->
+  <main class="ctrl-main" id="joinScreen">
+    <div class="center stack">
+      <div class="big-emoji">🎮</div>
+      <h1 data-i18n="join_title">Оюнга кирүү</h1>
+    </div>
+
+    <div>
+      <label class="label" for="codeInput" data-i18n="join_code">Бөлмөнүн коду</label>
+      <input class="input" id="codeInput" inputmode="latin" autocapitalize="characters"
+             maxlength="4" placeholder="ABCD" style="text-align:center;letter-spacing:.3em;font-size:1.6rem;font-weight:800" />
+    </div>
+
+    <div>
+      <label class="label" for="nameInput" data-i18n="join_name">Атыңыз</label>
+      <input class="input" id="nameInput" maxlength="16" autocomplete="nickname" />
+    </div>
+
+    <p class="small center" id="joinError" style="color:var(--bad);min-height:1.2em"></p>
+    <button class="btn primary big block" id="joinBtn" type="button" data-i18n="join_button">Кирүү</button>
+  </main>
+
+  <!-- Игровой экран -->
+  <main class="ctrl-main hidden" id="gameScreen">
+    <div class="ctrl-status" id="statusBox"></div>
+    <div class="ctrl-options" id="optionsBox"></div>
+    <div id="inputBox" class="hidden">
+      <input class="input" id="answerInput" inputmode="text" style="text-align:center;font-size:1.4rem" />
+      <button class="btn primary big block" id="sendAnswerBtn" type="button" style="margin-top:10px">✓</button>
+    </div>
+  </main>
+
+  <footer class="ctrl-foot">
+    <span class="small muted" id="footHint" data-i18n="join_look_at_board">Доскага караңыз</span>
+  </footer>
+
+  <div id="toasts"></div>
+  <script type="module" src="./play.js?v=3"></script>
+</body>
+</html>

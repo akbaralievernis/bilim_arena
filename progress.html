@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ky" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="description" content="Билим Арена — менин прогрессим: билим картасы, каталар жана жетишкендиктер." />
+  <title>Прогресс — Билим Арена</title>
+  <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./core/ui.css?v=3" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Мазмунга өтүү</a>
+  <div id="header"></div>
+
+  <main id="main" class="wrap stack" style="padding-top:20px;padding-bottom:40px">
+
+    <!-- Профиль -->
+    <section class="card pad-lg stack" id="profileCard">
+      <div class="row">
+        <div class="avatar-big" id="avatar" role="img" aria-label="Аватар">🦊</div>
+        <div class="stack" style="gap:4px;flex:1;min-width:180px">
+          <input class="input" id="nameInput" maxlength="16" data-i18n-attr="placeholder:profile_name" />
+          <div class="muted small" id="levelLine"></div>
+        </div>
+        <button class="btn" id="saveProfileBtn" type="button" data-i18n="save">Сактоо</button>
+      </div>
+      <div class="bar thick"><i id="xpBar" style="width:0%"></i></div>
+      <div class="small muted" id="xpNote"></div>
+      <div class="chips" id="avatarPicker" aria-label="Аватар"></div>
+      <div class="stats" id="mainStats"></div>
+    </section>
+
+    <!-- Карта знаний -->
+    <section class="card stack">
+      <h2 style="margin:0" data-i18n="knowledge_map">Билим картасы</h2>
+      <div id="knowledgeMap"></div>
+    </section>
+
+    <!-- Что повторить -->
+    <section class="card stack">
+      <h2 style="margin:0" data-i18n="results_review">Кайталоо керек</h2>
+      <div id="reviewList"></div>
+    </section>
+
+    <!-- Достижения -->
+    <section class="card stack">
+      <h2 style="margin:0" data-i18n="achievements">Жетишкендиктер</h2>
+      <div class="grid auto" id="badgeGrid"></div>
+    </section>
+
+    <!-- История -->
+    <section class="card stack">
+      <h2 style="margin:0" data-i18n="nav_games">Оюндар</h2>
+      <div id="historyList"></div>
+    </section>
+
+  </main>
+
+  <div id="toasts"></div>
+  <script type="module" src="./progress.js?v=3"></script>
+</body>
+</html>

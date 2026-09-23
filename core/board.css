@@ -1,0 +1,186 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Режим интерактивной доски: крупные элементы, минимум мелких деталей.
+   Рассчитано на просмотр с задней парты и на нажатия пальцем по панели.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+body.board-mode {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* ─── Верхняя строка урока ────────────────────────────────────────────────── */
+.board-top {
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px clamp(12px, 2vw, 24px);
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  flex: none;
+}
+.lesson-title { font-family: var(--font-title); font-weight: 900; font-size: 1.1rem; line-height: 1.15; }
+.lesson-sub { font-size: 0.75rem; }
+
+.stages { display: flex; gap: 8px; list-style: none; margin: 0; padding: 0; flex-wrap: wrap; }
+.stages li {
+  padding: 0.3em 0.9em; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--text-soft);
+  font-size: 0.8rem; font-weight: 700;
+}
+.stages li.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+.stages li.done { border-color: var(--ok); color: var(--ok); }
+.stages li.done::before { content: '✓ '; }
+
+/* ─── Экраны ──────────────────────────────────────────────────────────────── */
+main { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.screen { flex: 1; display: flex; flex-direction: column; padding: clamp(12px, 2vh, 28px) 0; }
+.screen.hidden { display: none; }
+.screen > .wrap { margin: auto; width: 100%; }
+
+.plan-list { margin: 0; padding-left: 1.2em; }
+.plan-list li { margin-bottom: 0.3em; }
+.big-emoji { font-size: 4rem; line-height: 1; }
+
+/* ─── Подключение учеников ────────────────────────────────────────────────── */
+.lobby-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) 1.1fr;
+  gap: var(--gap);
+  padding: 0 clamp(12px, 2vw, 28px);
+  align-items: stretch;
+}
+.join-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+.room-code {
+  font-family: var(--font-title); font-weight: 900;
+  font-size: clamp(3rem, 9vw, 6rem); letter-spacing: 0.12em; line-height: 1;
+  color: var(--primary);
+}
+.qr-box { background: #fff; padding: 12px; border-radius: 16px; line-height: 0; }
+.qr-box svg { display: block; }
+.players-card { display: flex; flex-direction: column; }
+.players-card .players { align-content: flex-start; flex: 1; overflow: auto; }
+
+@media (max-width: 900px) {
+  .lobby-grid { grid-template-columns: 1fr; }
+}
+
+/* ─── Экран игры ──────────────────────────────────────────────────────────── */
+#gameScreen {
+  display: grid;
+  grid-template-columns: 1.35fr 0.65fr;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    'head head'
+    'question side'
+    'foot foot';
+  gap: var(--gap);
+  padding: var(--gap) clamp(12px, 2vw, 28px);
+  min-height: 0;
+}
+#gameScreen.hidden { display: none; }
+.game-head { grid-area: head; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.question-area { grid-area: question; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
+.game-side { grid-area: side; overflow: auto; }
+.game-foot { grid-area: foot; display: flex; gap: 10px; justify-content: center; }
+
+.explain {
+  margin-top: var(--gap);
+  padding: 0.9em 1.2em;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--warn) 14%, var(--surface));
+  border-left: 5px solid var(--warn);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 1000px) {
+  #gameScreen {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'head' 'question' 'side' 'foot';
+  }
+}
+
+/* ─── Карта территорий ────────────────────────────────────────────────────── */
+.territory-map {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 4), 1fr);
+  gap: 6px;
+  margin-top: var(--gap);
+}
+.territory-map .cell {
+  aspect-ratio: 1;
+  display: grid; place-items: center;
+  border-radius: 12px;
+  border: 2px solid var(--line);
+  background: var(--surface);
+  font-weight: 800; font-size: 1.1rem; color: var(--text-soft);
+  transition: transform 0.3s var(--ease), background 0.3s;
+}
+.territory-map .cell.owned { color: #fff; border-color: transparent; }
+.territory-map .cell.team-a { background: color-mix(in srgb, var(--team-a) 75%, transparent); }
+.territory-map .cell.team-b { background: color-mix(in srgb, var(--team-b) 75%, transparent); }
+.territory-map .cell.just { transform: scale(1.12); box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.25); }
+.team-scores { margin-bottom: 8px; }
+
+/* ─── Распределение ответов (опрос) ───────────────────────────────────────── */
+.vote-row { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; align-items: center; margin-bottom: 10px; }
+.vote-label { display: flex; align-items: center; gap: 0.5em; font-weight: 700; }
+.vote-label .key {
+  width: 1.8em; height: 1.8em; border-radius: 8px; display: grid; place-items: center;
+  background: var(--surface-2); font-family: var(--font-title); font-weight: 900; flex: none;
+}
+.vote-ok { color: var(--ok); font-weight: 900; }
+.vote-row .bar { grid-column: 1 / -1; }
+.vote-count { font-weight: 800; color: var(--text-soft); min-width: 2em; text-align: right; }
+
+/* ─── Результаты ──────────────────────────────────────────────────────────── */
+.skill-row { margin-bottom: 14px; }
+.skill-row .bar { margin-top: 6px; }
+.lead-row { padding: 0.4em 0; border-bottom: 1px solid var(--line); }
+.lead-row:last-child { border-bottom: 0; }
+.result-actions { justify-content: center; }
+
+/* ─── Телефон-контроллер ──────────────────────────────────────────────────── */
+body.controller {
+  display: flex; flex-direction: column;
+  min-height: 100vh; min-height: 100dvh;
+}
+.ctrl-top {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; border-bottom: 1px solid var(--line);
+  flex: none;
+}
+.ctrl-main { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 16px; gap: 14px; }
+.ctrl-status { text-align: center; }
+.ctrl-status .big-emoji { font-size: 3.5rem; }
+.ctrl-options { display: grid; gap: 12px; }
+.ctrl-options .option { min-height: 64px; font-size: 1.1rem; }
+.ctrl-foot { padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); text-align: center; }
+.conn-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ok); flex: none; }
+.conn-dot.off { background: var(--bad); }
+.answer-big {
+  font-family: var(--font-title); font-weight: 900;
+  font-size: clamp(2.4rem, 12vw, 4rem); text-align: center;
+}
+
+/* Вопрос с вводом ответа: на доске отвечать нечего — отвечают телефоны */
+.input-note {
+  grid-column: 1 / -1;
+  padding: 1.2em;
+  border-radius: var(--radius);
+  border: 2px dashed var(--line);
+  background: var(--surface);
+}
+
+/* Доска на маленьком экране: учитель может проверить урок с телефона */
+@media (max-width: 720px) {
+  body.board-mode { --scale: 1; --tap: 48px; --gap: 14px; }
+  .board-top { flex-wrap: wrap; gap: 8px; }
+  .board-top .lesson-meta { flex: 1; min-width: 0; }
+  .stages { order: 5; width: 100%; }
+  .room-code { font-size: clamp(2.6rem, 16vw, 4rem); }
+  .qr-box svg { width: min(220px, 60vw) !important; height: auto !important; }
+  .game-foot { flex-wrap: wrap; }
+  .game-foot .btn { flex: 1 1 140px; }
+}

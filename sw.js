@@ -1,12 +1,29 @@
 /* Билим Арена — офлайн кэш. Файлдар өзгөргөндө VERSION'ду көбөйтүңүз. */
-const VERSION = 'ba-v5';
+const VERSION = 'ba-v6';
 const CORE = [
-  './', './index.html', './portal.css', './portal.js', './manifest.webmanifest',
-  './shared/ui.css', './shared/game.css', './shared/vocab.js', './shared/progress.js', './shared/game-shell.js',
-  './assets/logo.svg',
-  './games/flashcards/index.html', './games/word-match/index.html', './games/wordle/index.html',
-  './games/word-rain/index.html', './games/balloons/index.html',
-  './games/mafia/index.html'
+  './', './index.html', './home.css', './home.js',
+  './board.html', './board.js', './play.html', './play.js',
+  './teacher.html', './teacher.js', './progress.html', './progress.js',
+  './practice.html', './practice.js',
+  './manifest.webmanifest', './assets/logo.svg',
+  // Ядро платформы
+  './core/ui.css', './core/board.css', './core/ui.js', './core/i18n.js',
+  './core/store.js', './core/profile.js', './core/curriculum.js',
+  './core/progress.js', './core/engine.js', './core/realtime.js',
+  './locales/ky.js', './locales/ru.js', './locales/en.js',
+  './games/quickvote/game.js', './games/territory/game.js',
+  // Банки вопросов
+  './data/questions/math-6-fractions.js',
+  './data/questions/kyrgyz-6-parts-of-speech.js',
+  './data/questions/english-5-basics.js',
+  './data/questions/kg-history-8-independence.js',
+  './data/questions/informatics-7-algorithms.js',
+  // Прежние игры — продолжают работать офлайн
+  './shared/ui.css', './shared/game.css', './shared/vocab.js',
+  './shared/progress.js', './shared/game-shell.js',
+  './games/flashcards/index.html', './games/word-match/index.html',
+  './games/wordle/index.html', './games/word-rain/index.html',
+  './games/balloons/index.html', './games/mafia/index.html'
 ];
 
 self.addEventListener('install', (e) => {

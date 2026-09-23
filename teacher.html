@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ky" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="description" content="Билим Арена — мугалимдин панели: сабак өткөрүү, класстар, жыйынтыктар жана каталардын анализи." />
+  <title>Мугалимдин панели — Билим Арена</title>
+  <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./core/ui.css?v=3" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Мазмунга өтүү</a>
+  <div id="header"></div>
+
+  <main id="main" class="wrap stack" style="padding-top:20px;padding-bottom:40px">
+
+    <!-- Быстрый старт урока -->
+    <section class="card pad-lg stack" id="lessonCard">
+      <div class="row between">
+        <h1 style="margin:0" data-i18n="lesson_start">Сабакты баштоо</h1>
+        <span class="chip on">🖥️ <span data-i18n="board_mode">Доска режими</span></span>
+      </div>
+      <p class="muted" id="lessonIntro"></p>
+
+      <div>
+        <div class="label" data-i18n="lesson_subject">Предмет</div>
+        <div class="chips" id="subjectChips"></div>
+      </div>
+      <div>
+        <div class="label" data-i18n="lesson_topic">Тема</div>
+        <div class="chips" id="topicChips"></div>
+      </div>
+      <div>
+        <div class="label" data-i18n="lesson_duration">Узактыгы</div>
+        <div class="chips" id="durationChips"></div>
+      </div>
+
+      <div class="card plain" id="planBox"></div>
+
+      <button class="btn primary big block" id="startBtn" type="button">
+        ▶️ <span data-i18n="lesson_start">Сабакты баштоо</span>
+      </button>
+      <p class="small muted center" id="startHint"></p>
+    </section>
+
+    <!-- Классы -->
+    <section class="card stack" id="classes">
+      <div class="row between">
+        <h2 style="margin:0" data-i18n="nav_classes">Класстарым</h2>
+        <button class="btn" id="addClassBtn" type="button">➕</button>
+      </div>
+      <div class="grid auto" id="classList"></div>
+    </section>
+
+    <!-- Результаты и аналитика -->
+    <section class="card stack" id="results">
+      <h2 style="margin:0" data-i18n="nav_results">Жыйынтыктар</h2>
+      <div class="stats" id="resultStats"></div>
+      <h3 data-i18n="analytics_common_mistakes">Көп кездешкен каталар</h3>
+      <div id="mistakeList"></div>
+      <div class="row">
+        <button class="btn danger" id="reviewGameBtn" type="button">
+          🔁 <span data-i18n="results_new_game">Каталар боюнча оюн түзүү</span>
+        </button>
+      </div>
+      <h3 data-i18n="nav_lessons">Сабактар</h3>
+      <div id="lessonHistory"></div>
+    </section>
+
+  </main>
+
+  <div id="toasts"></div>
+  <script type="module" src="./teacher.js?v=3"></script>
+</body>
+</html>

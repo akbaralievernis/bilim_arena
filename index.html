@@ -1,174 +1,105 @@
 <!DOCTYPE html>
-<html lang="ky">
+<html lang="ky" data-theme="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
-  <meta name="description" content="Билим Арена — мектеп окуучулары жана студенттер үчүн кыргыз, орус жана англис тилдерин оюн аркылуу үйрөнүүчү билим берүү платформасы." />
+  <meta name="description" content="Билим Арена — мектеп үчүн интерактивдүү билим берүү платформасы: сабактар, оюндар, командалык мелдештер жана интерактивдүү доска режими." />
   <title>Билим Арена — Ойлон, Ойно, Жең!</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
   <link rel="manifest" href="./manifest.webmanifest" />
 
-  <meta property="og:title" content="Билим Арена — Ойлон, Ойно, Жең!" />
-  <meta property="og:description" content="Тил үйрөнүүчү жана логикалык оюндар — 100% кыргызча." />
+  <meta property="og:title" content="Билим Арена" />
+  <meta property="og:description" content="Сабакты интерактивдүү оюнга айландыруучу платформа" />
   <meta property="og:image" content="./assets/suilom.webp" />
 
-  <link rel="stylesheet" href="./shared/ui.css?v=2">
-  <link rel="stylesheet" href="./portal.css?v=2">
+  <link rel="stylesheet" href="./core/ui.css?v=3" />
+  <link rel="stylesheet" href="./home.css?v=3" />
 </head>
 
-<body class="ba-portal">
-  <a class="skipLink" href="#games">Оюндарга өтүү</a>
-  <div class="bgFX" aria-hidden="true">
-    <div class="bgBlob b1"></div>
-    <div class="bgBlob b2"></div>
-    <div class="bgGrain"></div>
-  </div>
+<body>
+  <a class="skip-link" href="#main">Мазмунга өтүү</a>
+  <div id="header"></div>
 
-  <header class="baTop" role="banner">
-    <div class="header-wrap">
-      <a href="./index.html" class="baBrand">
-        <div class="baLogo" aria-hidden="true">🚀</div>
-        <div class="brandText">
-          <h1 class="baTitle">БИЛИМ АРЕНА</h1>
-          <div class="baSub">Ойлон • Ойно • Жең</div>
-        </div>
-      </a>
-      <div class="topRight">
-        <a href="#profile" class="topXP" id="topXP" aria-label="Менин прогрессим">
-          <span>⭐</span><b id="topLevel">1</b><span class="sep">·</span><span>🔥</span><b id="topStreak">0</b>
+  <main id="main">
+    <!-- Три входа: ученик с телефона, доска, учитель -->
+    <section class="hero wrap">
+      <div class="hero-text center">
+        <span class="chip on">🇰🇬 100% кыргызча</span>
+        <h1 data-i18n="home_hero_title">Сабакты интерактивдүү оюнга айландыр</h1>
+        <p class="muted" data-i18n="home_hero_sub"></p>
+      </div>
+
+      <div class="grid three entries">
+        <a class="entry card" href="./play.html">
+          <div class="entry-icon" aria-hidden="true">📱</div>
+          <h2 data-i18n="join_title">Оюнга кирүү</h2>
+          <p class="muted" data-i18n="home_join_sub"></p>
+          <span class="btn primary block" data-i18n="join_button">Кирүү</span>
         </a>
-        <button class="favBtn" id="themeBtn" type="button" aria-label="Теманы алмаштыруу">
-          <span class="themeIcon" aria-hidden="true">🌙</span>
-        </button>
-      </div>
-    </div>
-  </header>
 
-  <main class="wrap" style="max-width: 1400px;">
-    <section class="hero" aria-labelledby="heroTitle">
-      <div class="heroCard reveal">
-        <div class="heroBadge">Мектеп e-sport • 100% кыргызча</div>
-        <h2 class="h1" id="heroTitle">Билим менен бийиктикке!</h2>
-        <p class="p hero-p">
-          Тилдерди ойноп үйрөн, логикаңды сына, досторуң менен мелдеш. Ар бир оюн — XP, деңгээл жана жаңы белгилер!
-        </p>
-        <div class="heroActions">
-          <a href="#language" class="glow-btn" style="text-decoration: none;">📚 Тил үйрөнүү</a>
-          <a href="#games" class="ghost-btn">🎮 Бардык оюндар</a>
-        </div>
+        <a class="entry card" href="./board.html">
+          <div class="entry-icon" aria-hidden="true">🖥️</div>
+          <h2 data-i18n="board_mode">Доска режими</h2>
+          <p class="muted" data-i18n="home_board_sub"></p>
+          <span class="btn block" data-i18n="lesson_start">Сабакты баштоо</span>
+        </a>
+
+        <a class="entry card" href="./teacher.html">
+          <div class="entry-icon" aria-hidden="true">👩‍🏫</div>
+          <h2 data-i18n="role_teacher">Мугалим</h2>
+          <p class="muted" data-i18n="role_teacher_desc"></p>
+          <span class="btn block" data-i18n="nav_dashboard">Панель</span>
+        </a>
       </div>
     </section>
 
-    <!-- Профиль жана күндүн сөзү -->
-    <section class="dash reveal" id="profile" aria-label="Менин прогрессим">
-      <div class="dashCard profileCard">
-        <div class="profTop">
-          <div class="avatar" aria-hidden="true">🎓</div>
-          <div>
-            <div class="profTitle" id="profTitle">Жаңы окуучу</div>
-            <div class="profSub"><span id="profLevel">1-деңгээл</span> · <span id="profXP">0 XP</span></div>
+    <!-- Прогресс ученика -->
+    <section class="wrap" id="progressSection">
+      <div class="card stack">
+        <div class="row between">
+          <div class="row" style="gap:12px">
+            <div class="avatar-big" id="avatar" aria-hidden="true">🦊</div>
+            <div class="stack" style="gap:2px">
+              <b id="profileName">—</b>
+              <span class="small muted" id="profileLevel"></span>
+            </div>
           </div>
+          <a class="btn" href="./progress.html" data-i18n="nav_progress">Прогресс</a>
         </div>
-        <div class="xpBar" role="progressbar" aria-label="Кийинки деңгээлге чейин" aria-valuemin="0" aria-valuemax="100" id="xpBarWrap"><i id="xpBar"></i></div>
-        <div class="xpNote" id="xpNote">Кийинки деңгээлге 100 XP</div>
-        <div class="miniStats">
-          <div><b id="statStreak">0</b><span>🔥 күн катары</span></div>
-          <div><b id="statLearned">0</b><span>📗 үйрөнгөн сөз</span></div>
-          <div><b id="statGames">0</b><span>🎮 оюн түрү</span></div>
-        </div>
-      </div>
-
-      <div class="dashCard goalCard">
-        <div class="dashLabel">🎯 Күнүмдүк максат</div>
-        <div class="ring" id="goalRing" style="--p:0">
-          <div><b id="goalNum">0</b><span>/ 100 XP</span></div>
-        </div>
-        <div class="goalText" id="goalText">Бүгүн ойной баштаңыз!</div>
-      </div>
-
-      <div class="dashCard wodCard">
-        <div class="dashLabel">📅 Күндүн сөзү</div>
-        <div class="wodEmoji" id="wodEmoji">📕</div>
-        <div class="wodWord" id="wodWord">китеп</div>
-        <div class="wodTr" id="wodTr">книга · book</div>
-        <button class="wodSay" id="wodSay" type="button">🔊 Угуу</button>
-      </div>
-
-      <div class="dashCard badgeCard">
-        <div class="dashLabel">🏅 Белгилер</div>
-        <div class="badges" id="badges"></div>
+        <div class="bar thick"><i id="xpBar" style="width:0%"></i></div>
+        <div class="stats" id="quickStats"></div>
       </div>
     </section>
 
-    <!-- Тил үйрөнүү оюндары -->
-    <section class="games langSection" id="language">
-      <div class="gamesHeader reveal">
-        <div>
-          <span class="heroBadge langBadge">Жаңы • Кыргызча · Русский · English</span>
-          <h2 class="section-title">Тил үйрөнүү 📚</h2>
-          <p class="p">Сөздөрдү ойноп үйрөн: карточкалар, табышмактар, шарлар жана сөз жамгыры. Ар бир жооп эсте калат!</p>
-        </div>
-      </div>
-      <div class="grid" id="langGrid"></div>
+    <!-- Предметы и темы -->
+    <section class="wrap stack" id="subjectsSection">
+      <h2 data-i18n="subjects">Предметтер</h2>
+      <div class="grid auto" id="subjectGrid"></div>
     </section>
 
-    <section class="games" id="games">
-      <div class="gamesHeader reveal">
-        <div class="gameLabelRow">
-          <h2 class="section-title">Класс мелдештери 🏆</h2>
-          <p class="p">Команда менен ойноо үчүн — сабакта проектор же интерактивдүү доскага ылайыктуу</p>
-        </div>
-
-        <div class="gameControls">
-          <div class="searchWrapper">
-            <svg class="searchIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="search" id="searchInput" class="searchInput" placeholder="Оюн издөө..." aria-label="Оюн издөө">
-          </div>
-          <div id="filterButtons" class="filter-group" role="group" aria-label="Категориялар"></div>
-        </div>
+    <!-- Игры платформы -->
+    <section class="wrap stack" id="gamesSection">
+      <div class="row between">
+        <h2 data-i18n="nav_games">Оюндар</h2>
+        <div class="chips" id="gameFilters" role="group"></div>
       </div>
-
-      <div class="grid" id="gameGrid">
-        <div class="gameCard skeleton"></div>
-        <div class="gameCard skeleton"></div>
-        <div class="gameCard skeleton"></div>
-      </div>
+      <div class="grid auto" id="gameGrid"></div>
     </section>
 
-    <section class="games webcam-section reveal" id="webcam-games">
-      <div class="gamesHeader">
-        <div>
-          <span class="heroBadge" style="background: hsla(var(--s-h), var(--s-s), var(--s-l), 0.1); color: var(--secondary);">Нейротармак & AI</span>
-          <h2 class="section-title">Интерактивдүү Зона 📷</h2>
-          <p class="p">Колдун кыймылы жана веб-камера аркылуу ойнолуучу оюндар. Камерага уруксат бериңиз — видео эч жакка жөнөтүлбөйт.</p>
-        </div>
-      </div>
-
-      <div class="grid" id="webcamGrid"></div>
+    <!-- Для учителя -->
+    <section class="wrap stack">
+      <h2 data-i18n="home_for_teachers">Мугалимдер үчүн</h2>
+      <div class="grid auto" id="teacherTips"></div>
     </section>
 
-    <section class="teacher reveal" aria-labelledby="teacherTitle">
-      <h2 class="section-title" id="teacherTitle">Мугалимдер үчүн 👩‍🏫</h2>
-      <div class="tips">
-        <div class="tip"><b>1. Жылытуу (5 мүн)</b><p>Сабакты «Күндүн сөзү» же «Сөз табышмак» менен баштаңыз — бүт класс чогуу тапсын.</p></div>
-        <div class="tip"><b>2. Жаңы сөздөр (10 мүн)</b><p>«Сөз карточкалары» менен теманы өтүңүз, анан «Жупташтыр» менен бекемдеңиз.</p></div>
-        <div class="tip"><b>3. Мелдеш (15 мүн)</b><p>Классты экиге бөлүп, «Цитадель», «Сүйлөмдү түз» же «Фокус Дуэль» ойнотуңуз.</p></div>
-        <div class="tip"><b>4. Үй тапшырма</b><p>Окуучуларга күнүмдүк 100 XP максатын бериңиз — прогресс ар бир түзмөктө сакталат.</p></div>
-      </div>
-    </section>
-
-    <footer class="footer">
-      <p class="p">© 2026 Билим Арена · ОшМУ студенттеринин долбоору</p>
-      <p class="p footSmall">Прогресс ушул браузерде гана сакталат. <button type="button" class="linkBtn" id="resetBtn">Прогрессти тазалоо</button></p>
+    <footer class="wrap footer center">
+      <p class="muted small">© 2026 Билим Арена · ОшМУ студенттеринин долбоору</p>
+      <p class="muted small" id="footerNote"></p>
     </footer>
   </main>
 
-  <div id="toastContainer" aria-live="polite"></div>
-  <div class="pageFade" id="pageFade"></div>
-
-  <script src="./shared/vocab.js?v=2"></script>
-  <script src="./shared/progress.js?v=2"></script>
-  <script src="./portal.js?v=2"></script>
+  <div id="toasts"></div>
+  <script type="module" src="./home.js?v=3"></script>
 </body>
 </html>
