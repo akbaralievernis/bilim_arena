@@ -17,19 +17,23 @@ import QuickVoteGame from './games/quickvote/game.js';
 import TerritoryGame from './games/territory/game.js';
 import ErrorHuntGame from './games/errorhunt/game.js';
 import TimelineGame from './games/timeline/game.js';
+import CodeLockGame from './games/codelock/game.js';
 import InvestigationGame, { PHASE } from './games/investigation/game.js';
 import { CASES, loadCase } from './data/investigations/index.js';
 import { packAssignments, mergeSubmissions } from './core/sync.js';
 
 const GAMES = {
   quickvote: QuickVoteGame, territory: TerritoryGame, investigation: InvestigationGame,
-  errorhunt: ErrorHuntGame, timeline: TimelineGame
+  errorhunt: ErrorHuntGame, timeline: TimelineGame, codelock: CodeLockGame
 };
 
-/** Игры со своим форматом заданий — запускаются отдельным режимом */
-const FORMAT_GAMES = ['errorhunt', 'timeline'];
+/**
+ * Игры, которые запускаются отдельным режимом (не этапом плана урока).
+ * У некоторых свой формат заданий (questionFilter), остальным подходят любые.
+ */
+const FORMAT_GAMES = ['codelock', 'errorhunt', 'timeline'];
 
-/** Сколько заданий нужного формата есть в теме: { topicId: { errorhunt: n, timeline: n } } */
+/** Сколько подходящих заданий есть в теме: { topicId: { errorhunt: n, timeline: n, ... } } */
 const formatCounts = new Map();
 
 async function countFormats(topicId) {
@@ -118,6 +122,7 @@ function renderSetup() {
     onclick: () => { state.topic = tp.id; renderSetup(); }
   }, `${t('grade', { n: tp.grade })} · ${pick(tp.title, lang)}`)));
 
+  $('#durationChips').closest('.card')?.classList.toggle('hidden', state.mode !== 'lesson' || !!state.review);
   $('#durationChips').replaceChildren(...[20, 30, 45].map((d) => el('button', {
     class: 'chip', type: 'button',
     'aria-pressed': String(d === state.duration),
@@ -137,7 +142,7 @@ function renderSetup() {
   state.plan = state.review
     ? [{ id: 'review', key: 'lesson_stage_practice', game: 'quickvote', questions: Math.max(4, state.review.ids.length), minutes: 10, difficulty: [1, 2, 3] }]
     : FORMAT_GAMES.includes(state.mode)
-      ? [{ id: state.mode, key: 'lesson_stage_practice', game: state.mode, questions: Math.min(8, counts?.[state.mode] || 0), minutes: 10, difficulty: [1, 2, 3] }]
+      ? [{ id: state.mode, key: 'lesson_stage_practice', game: state.mode, questions: Math.min(GAMES[state.mode].meta.questions || 8, counts?.[state.mode] || 0), minutes: 10, difficulty: [1, 2, 3] }]
       : buildPlan(state.duration);
   const topic = getTopic(state.topic);
   $('#planPreview').replaceChildren(
@@ -594,7 +599,9 @@ function showResults(game) {
 
   const title = isCase
     ? (r.verdict?.solved ? t('inv_solved') : t('inv_failed'))
-    : (r.teams
+    : r.lock
+      ? (r.lock.opened === r.lock.total ? t('cl_opened', { code: r.lock.code }) : t('cl_partly', { n: r.lock.opened, total: r.lock.total }))
+      : (r.teams
       ? (r.winner === 'draw' ? t('results_draw') : t('results_team_won', { team: r.winner === 'A' ? t('board_team_a') : t('board_team_b') }))
       : t('results_title'));
   $('#resultTitle').textContent = title;
@@ -608,6 +615,7 @@ function showResults(game) {
       stat(fmtTime(r.durationSec), t('game_time'))
     ]
     : [
+      ...(r.lock ? [stat(`🔐 ${r.lock.opened}/${r.lock.total}`, t('cl_digits'))] : []),
       stat(r.correctAnswers, t('results_correct')),
       stat(r.totalAnswers - r.correctAnswers, t('results_wrong')),
       stat(`${r.accuracy}%`, t('analytics_class_average')),

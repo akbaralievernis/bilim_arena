@@ -250,5 +250,16 @@ export default [
     ],
     correct: 2,
     explain: { ky: '4/2 = 2, 1/2 эмес.', ru: '4/2 = 2, а не 1/2.', en: '4/2 = 2, not 1/2.' }
+  },
+  {
+    id: 'f-err-05', skill: 'common-denominator', difficulty: 2, type: 'choice', errorHunt: true,
+    prompt: { ky: '3/4 жана 5/6 жалпы бөлүмгө келтирилди. Ката кайсы сапта?', ru: '3/4 и 5/6 привели к общему знаменателю. Где ошибка?', en: '3/4 and 5/6 were brought to a common denominator. Where is the mistake?' },
+    options: [
+      { ky: 'Жалпы бөлүм: 12', ru: 'Общий знаменатель: 12', en: 'Common denominator: 12' },
+      '3/4 = 9/12',
+      '5/6 = 11/12'
+    ],
+    correct: 2,
+    explain: { ky: 'Алымы да 2ге көбөйтүлөт: 5 × 2 = 10, демек 5/6 = 10/12.', ru: 'Числитель тоже умножаем на 2: 5 × 2 = 10, значит 5/6 = 10/12.', en: 'Multiply the numerator by 2 too: 5 × 2 = 10, so 5/6 = 10/12.' }
   }
 ];

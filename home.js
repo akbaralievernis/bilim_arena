@@ -59,7 +59,18 @@ const GAMES = [
       ru: 'Учитель ошибся в решении — класс ищет строку с ошибкой',
       en: 'The teacher made a mistake — the class finds the wrong line'
     },
-    subject: { ky: 'Математика, информатика', ru: 'Математика, информатика', en: 'Maths, computer science' }
+    subject: { ky: 'Математика, тилдер, информатика', ru: 'Математика, языки, информатика', en: 'Maths, languages, computer science' }
+  },
+  {
+    id: 'codelock', icon: '🔐', kind: 'board',
+    href: './board.html?game=codelock', grad: 'linear-gradient(135deg,#0f766e,#22c55e)',
+    title: { ky: 'Коддуу кулпу', ru: 'Кодовый замок', en: 'Code lock' },
+    desc: {
+      ky: 'Бүт класс болуп тапшырмаларды чечип, кулпунун сандарын ачыңыз — каталар аягында кайра келет',
+      ru: 'Всем классом решайте задания и открывайте цифры замка — ошибки вернутся в конце',
+      en: 'Solve tasks together to open the lock — mistakes come back at the end'
+    },
+    subject: { ky: 'Бардык предметтер', ru: 'Любой предмет', en: 'Any subject' }
   },
   {
     id: 'timeline', icon: '⏳', kind: 'board',

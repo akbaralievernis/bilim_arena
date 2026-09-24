@@ -271,5 +271,16 @@ export default {
   eh_line_n: 'Line {n}',
   tl_order_hint: 'Order the events, earliest first',
   tl_placed: 'Placed correctly: {pct}%',
-  tl_hardest: 'The class got this one wrong most often'
+  tl_hardest: 'The class got this one wrong most often',
+
+  // "Code lock"
+  cl_locked: 'locked',
+  cl_need: 'At least {pct}% of the class must answer correctly to open a digit',
+  cl_digit_open: 'Digit opened: {n}',
+  cl_retry: 'Not this time — the task will come back at the end',
+  cl_stuck: 'This digit stays locked',
+  cl_progress: 'Opened: {n}/{total}',
+  cl_opened: 'The lock is open! Code: {code}',
+  cl_partly: 'Digits opened: {n}/{total}',
+  cl_digits: 'Digits'
 };

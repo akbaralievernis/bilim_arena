@@ -83,5 +83,34 @@ export default [
       ru: 'С «I» используется начальная форма глагола: I go.',
       en: 'With "I" we use the base form: I go.'
     }
+  },
+  // ─── «Ошибка учителя»: найдите предложение с ошибкой ──────────────────────
+  {
+    id: 'e-err-01', skill: 'animals', difficulty: 2, type: 'choice', errorHunt: true,
+    prompt: { ky: 'Мугалим ит жөнүндө текст жазды. Кайсы сүйлөмдө ката бар?', ru: 'Учитель написал текст о собаке. В каком предложении ошибка?', en: 'The teacher wrote about a dog. Which sentence has a mistake?' },
+    options: ['I have a dog.', 'My dog is big.', 'It like bones.', 'We play in the park.'],
+    correct: 2,
+    explain: { ky: 'he / she / it менен этишке -s кошулат: It likes bones.', ru: 'С he / she / it к глаголу добавляется -s: It likes bones.', en: 'With he / she / it the verb takes -s: It likes bones.' }
+  },
+  {
+    id: 'e-err-02', skill: 'school', difficulty: 2, type: 'choice', errorHunt: true,
+    prompt: { ky: 'Мектеп жөнүндө текст. Ката кайсы сүйлөмдө?', ru: 'Текст о школе. В каком предложении ошибка?', en: 'A text about school. Which sentence is wrong?' },
+    options: ['This is my school.', 'There are many classroom.', 'My teacher is kind.'],
+    correct: 1,
+    explain: { ky: 'many дегенден кийин көптүк сан керек: many classrooms.', ru: 'После many нужно множественное число: many classrooms.', en: 'After "many" use the plural: many classrooms.' }
+  },
+  {
+    id: 'e-err-03', skill: 'food', difficulty: 2, type: 'choice', errorHunt: true,
+    prompt: { ky: 'Тамак-аш жөнүндө текст. Кайсы сүйлөмдө ката бар?', ru: 'Текст о еде. В каком предложении ошибка?', en: 'A text about food. Which sentence has a mistake?' },
+    options: ['I like apples.', 'She eat an apple every day.', 'Bananas are yellow.'],
+    correct: 1,
+    explain: { ky: 'She менен этишке -s кошулат: She eats an apple every day.', ru: 'С she глагол получает -s: She eats an apple every day.', en: 'With "she" the verb takes -s: She eats an apple every day.' }
+  },
+  {
+    id: 'e-err-04', skill: 'verbs', difficulty: 3, type: 'choice', errorHunt: true,
+    prompt: { ky: 'Мугалим ар кандай чактагы сүйлөмдөрдү жазды. Ката кайсында?', ru: 'Учитель написал предложения о разном времени. Где ошибка?', en: 'The teacher wrote sentences about different times. Where is the mistake?' },
+    options: ['Every day I go to school.', 'Yesterday I go to the park.', 'Tomorrow I will read a book.'],
+    correct: 1,
+    explain: { ky: 'Yesterday — өткөн чак: Yesterday I went to the park.', ru: 'Yesterday — прошедшее время: Yesterday I went to the park.', en: '"Yesterday" needs the past tense: Yesterday I went to the park.' }
   }
 ];

@@ -98,5 +98,25 @@ export default [
       { ky: 'Мамлекеттик герб', ru: 'Государственный герб', en: 'State coat of arms' }
     ],
     explain: { ky: 'Туу — 1992-жылдын мартында, гимн — 1992-жылдын декабрында, герб — 1994-жылдын январында.', ru: 'Флаг — март 1992, гимн — декабрь 1992, герб — январь 1994.', en: 'Flag — March 1992, anthem — December 1992, coat of arms — January 1994.' }
+  },
+  {
+    id: 'h-time-04', skill: 'people', difficulty: 2, type: 'sort',
+    prompt: { ky: 'Чыңгыз Айтматовдун чыгармаларын жазылган убагы боюнча иреттеңиз', ru: 'Расставьте произведения Чингиза Айтматова по времени написания', en: 'Order the works of Chingiz Aitmatov by the time they were written' },
+    items: [
+      { ky: '«Жамийла»', ru: '«Джамиля»', en: '"Jamila"' },
+      { ky: '«Ак кеме»', ru: '«Белый пароход»', en: '"The White Ship"' },
+      { ky: '«Кылым карытар бир күн»', ru: '«И дольше века длится день»', en: '"The Day Lasts More Than a Hundred Years"' }
+    ],
+    explain: { ky: '«Жамийла» — 1958, «Ак кеме» — 1970, «Кылым карытар бир күн» — 1980.', ru: '«Джамиля» — 1958, «Белый пароход» — 1970, «И дольше века длится день» — 1980.', en: '"Jamila" — 1958, "The White Ship" — 1970, "The Day Lasts..." — 1980.' }
+  },
+  {
+    id: 'h-time-05', skill: 'dates', difficulty: 2, type: 'sort',
+    prompt: { ky: 'Эгемендүүлүк жылдарынын окуяларын иреттеңиз', ru: 'Расставьте события лет независимости по порядку', en: 'Put these events of the independence years in order' },
+    items: [
+      { ky: 'Эгемендүүлүк жарыяланды', ru: 'Провозглашена независимость', en: 'Independence was declared' },
+      { ky: '«Манас» эпосунун 1000 жылдыгы белгиленди', ru: 'Отмечено 1000-летие эпоса «Манас»', en: 'The 1000th anniversary of the Manas epic was celebrated' },
+      { ky: 'Салижан Шарипов космоско учту', ru: 'Салижан Шарипов полетел в космос', en: 'Salizhan Sharipov flew to space' }
+    ],
+    explain: { ky: '1991 → 1995 → 1998.', ru: '1991 → 1995 → 1998.', en: '1991 → 1995 → 1998.' }
   }
 ];

@@ -221,3 +221,21 @@ body.controller {
 
 /* Игры со своим видом задания (строки решения, линия времени) — на всю ширину */
 #options > .options, #options > .timeline, #options > .sort-box, #options > .full { grid-column: 1 / -1; }
+
+/* «Кодовый замок» */
+.lock-box { display: grid; justify-items: center; gap: 10px; padding: 14px; border-radius: var(--radius); background: var(--surface); border: 2px solid var(--line); }
+.lock-box.unlocked { border-color: var(--ok); }
+.lock-icon { font-size: clamp(2.2rem, 6vw, 3.4rem); line-height: 1; }
+.lock-box.unlocked .lock-icon { animation: pulse 1s 2; }
+.lock-digits { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.lock-digit {
+  width: clamp(44px, 7vw, 64px); aspect-ratio: 3 / 4; border-radius: 12px;
+  display: grid; place-items: center;
+  font-family: var(--font-title); font-weight: 900; font-size: clamp(1.4rem, 4vw, 2.2rem);
+  background: var(--surface-2); color: var(--text-soft); border: 2px solid var(--line);
+}
+.lock-digit.open { background: color-mix(in srgb, var(--ok) 25%, var(--surface)); border-color: var(--ok); color: var(--text); }
+.lock-digit.current { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 35%, transparent); }
+.lock-note { margin: 0; text-align: center; font-weight: 700; }
+.lock-note.ok { color: var(--ok); }
+.lock-note.bad { color: var(--warn); }
