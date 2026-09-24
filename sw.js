@@ -1,5 +1,5 @@
 /* Билим Арена — офлайн кэш. Файлдар өзгөргөндө VERSION'ду көбөйтүңүз. */
-const VERSION = 'ba-v7';
+const VERSION = 'ba-v8';
 const CORE = [
   './', './index.html', './home.css', './home.js',
   './board.html', './board.js', './play.html', './play.js',
@@ -12,7 +12,7 @@ const CORE = [
   './core/ui.css', './core/board.css', './core/ui.js', './core/i18n.js',
   './core/store.js', './core/profile.js', './core/curriculum.js',
   './core/progress.js', './core/engine.js', './core/realtime.js',
-  './core/questions.js', './core/assignments.js', './core/quiz-ui.js',
+  './core/questions.js', './core/assignments.js', './core/quiz-ui.js', './core/sync.js',
   './locales/ky.js', './locales/ru.js', './locales/en.js',
   './games/quickvote/game.js', './games/territory/game.js',
   './games/investigation/game.js',

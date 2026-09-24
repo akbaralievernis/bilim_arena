@@ -13,6 +13,7 @@ import { getProfile, quickJoinProfile } from './core/profile.js';
 import { store } from './core/store.js';
 import { recordAnswer } from './core/progress.js';
 import { renderQuestion } from './core/quiz-ui.js';
+import { mergeAssignments, packSubmissions } from './core/sync.js';
 
 const conn = { room: null, spec: null, topic: null };
 
@@ -182,6 +183,16 @@ function sendAnswer(value) {
   if (navigator.vibrate && navigator.userActivation?.hasBeenActive) navigator.vibrate(20);
 }
 
+// ─── Синхронизация домашних заданий через урок ────────────────────────────────
+
+async function syncWithTeacher(payload) {
+  const added = await mergeAssignments(payload);
+  if (added) toast(t('sync_new_tasks', { n: added }), { icon: '📝' });
+  const profile = await getProfile();
+  const submissions = await packSubmissions(profile.id);
+  if (submissions.length) conn.room?.send({ type: 'sync-submissions', submissions });
+}
+
 // ─── Подключение ──────────────────────────────────────────────────────────────
 
 async function connect(code, name) {
@@ -197,6 +208,7 @@ async function connect(code, name) {
       playerId: saved,
       onMessage: (msg) => {
         if (msg.type === 'screen') render(msg.spec);
+        if (msg.type === 'sync-assignments') syncWithTeacher(msg);
         if (msg.type === 'result' && msg.topic && msg.skill) {
           // Доска сообщила результат ответа — сохраняем его в прогрессе ученика
           recordAnswer({

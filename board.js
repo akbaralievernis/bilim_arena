@@ -17,6 +17,7 @@ import QuickVoteGame from './games/quickvote/game.js';
 import TerritoryGame from './games/territory/game.js';
 import InvestigationGame, { PHASE } from './games/investigation/game.js';
 import { CASES, loadCase } from './data/investigations/index.js';
+import { packAssignments, mergeSubmissions } from './core/sync.js';
 
 const GAMES = { quickvote: QuickVoteGame, territory: TerritoryGame, investigation: InvestigationGame };
 
@@ -164,14 +165,24 @@ async function openRoom() {
 
   try {
     state.room = await createRoom({
-      onJoin: (player) => {
+      onJoin: async (player) => {
         state.players.set(player.id, { ...player, team: null });
         renderPlayers();
         sfx.tap();
         pushToPhones();
+        // Синхронизация без сервера: ученик получает задания учителя
+        state.room?.send(player.id, { type: 'sync-assignments', ...(await packAssignments()) });
       },
       onLeave: () => renderPlayers(),
       onMessage: (playerId, msg) => {
+        // Результаты домашки с телефона ученика попадают в аналитику учителя
+        if (msg.type === 'sync-submissions') {
+          mergeSubmissions(msg.submissions).then((n) => {
+            if (n) toast(t('sync_received', { n }), { icon: '📥' });
+          });
+          return;
+        }
+
         if (!state.game) return;
 
         // Обвинение из телефона: подозреваемый + доказательства
