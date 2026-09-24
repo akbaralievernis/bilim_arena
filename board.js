@@ -18,20 +18,21 @@ import TerritoryGame from './games/territory/game.js';
 import ErrorHuntGame from './games/errorhunt/game.js';
 import TimelineGame from './games/timeline/game.js';
 import CodeLockGame from './games/codelock/game.js';
+import FormulaGame from './games/formula/game.js';
 import InvestigationGame, { PHASE } from './games/investigation/game.js';
 import { CASES, loadCase } from './data/investigations/index.js';
 import { packAssignments, mergeSubmissions } from './core/sync.js';
 
 const GAMES = {
   quickvote: QuickVoteGame, territory: TerritoryGame, investigation: InvestigationGame,
-  errorhunt: ErrorHuntGame, timeline: TimelineGame, codelock: CodeLockGame
+  errorhunt: ErrorHuntGame, timeline: TimelineGame, codelock: CodeLockGame, formula: FormulaGame
 };
 
 /**
  * Игры, которые запускаются отдельным режимом (не этапом плана урока).
  * У некоторых свой формат заданий (questionFilter), остальным подходят любые.
  */
-const FORMAT_GAMES = ['codelock', 'errorhunt', 'timeline'];
+const FORMAT_GAMES = ['codelock', 'formula', 'errorhunt', 'timeline'];
 
 /** Сколько подходящих заданий есть в теме: { topicId: { errorhunt: n, timeline: n, ... } } */
 const formatCounts = new Map();
@@ -335,7 +336,7 @@ async function startStage(stageIndex, customQuestions = null) {
     questions,
     topic: state.topic,
     lang: getLang(),
-    perQuestionSec: stage.game === 'territory' ? 30 : 25,
+    perQuestionSec: ['territory', 'formula'].includes(stage.game) ? 30 : 25,
     cellCount: Math.min(12, stage.questions),
     onUpdate: (game, kind) => {
       renderGame(game, kind);

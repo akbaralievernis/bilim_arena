@@ -282,5 +282,11 @@ export default {
   cl_progress: 'Opened: {n}/{total}',
   cl_opened: 'The lock is open! Code: {code}',
   cl_partly: 'Digits opened: {n}/{total}',
-  cl_digits: 'Digits'
+  cl_digits: 'Digits',
+
+  // "Formula battle"
+  fb_hint: 'The team with the larger share of correct answers pulls the rope',
+  fb_pull: '{team} pulls the rope!',
+  fb_pull_double: '{team}: everyone was right — double pull!',
+  fb_no_pull: 'The rope stays — no correct answers'
 };

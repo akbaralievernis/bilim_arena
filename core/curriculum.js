@@ -39,6 +39,18 @@ export const GRADES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
  */
 export const TOPICS = [
   {
+    id: 'math-5-numbers',
+    subject: 'math', grade: 5, section: { ky: 'Сандар', ru: 'Числа', en: 'Numbers' },
+    title: { ky: 'Натурал сандар менен амалдар', ru: 'Действия с натуральными числами', en: 'Operations with whole numbers' },
+    skills: [
+      { id: 'add-sub', title: { ky: 'Кошуу жана кемитүү', ru: 'Сложение и вычитание', en: 'Adding and subtracting' } },
+      { id: 'mul-div', title: { ky: 'Көбөйтүү жана бөлүү', ru: 'Умножение и деление', en: 'Multiplying and dividing' } },
+      { id: 'order', title: { ky: 'Амалдардын тартиби', ru: 'Порядок действий', en: 'Order of operations' } },
+      { id: 'word', title: { ky: 'Текст маселелер', ru: 'Текстовые задачи', en: 'Word problems' } }
+    ],
+    bank: () => import('../data/questions/math-5-numbers.js')
+  },
+  {
     id: 'math-6-fractions',
     subject: 'math', grade: 6, section: { ky: 'Сандар', ru: 'Числа', en: 'Numbers' },
     title: { ky: 'Бөлчөктөр', ru: 'Дроби', en: 'Fractions' },
@@ -95,6 +107,18 @@ export const TOPICS = [
       { id: 'loop', title: { ky: 'Циклдер', ru: 'Циклы', en: 'Loops' } }
     ],
     bank: () => import('../data/questions/informatics-7-algorithms.js')
+  },
+  {
+    id: 'geography-7-kyrgyzstan',
+    subject: 'geography', grade: 7, section: { ky: 'Кыргызстандын географиясы', ru: 'География Кыргызстана', en: 'Geography of Kyrgyzstan' },
+    title: { ky: 'Кыргызстандын жаратылышы', ru: 'Природа Кыргызстана', en: 'Nature of Kyrgyzstan' },
+    skills: [
+      { id: 'relief', title: { ky: 'Рельеф', ru: 'Рельеф', en: 'Relief' } },
+      { id: 'water', title: { ky: 'Суулар', ru: 'Воды', en: 'Waters' } },
+      { id: 'regions', title: { ky: 'Аймактар', ru: 'Регионы', en: 'Regions' } },
+      { id: 'nature', title: { ky: 'Жаратылыш', ru: 'Природа', en: 'Nature' } }
+    ],
+    bank: () => import('../data/questions/geography-7-kyrgyzstan.js')
   }
 ];
 

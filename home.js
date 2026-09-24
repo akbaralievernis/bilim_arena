@@ -62,6 +62,17 @@ const GAMES = [
     subject: { ky: 'Математика, тилдер, информатика', ru: 'Математика, языки, информатика', en: 'Maths, languages, computer science' }
   },
   {
+    id: 'formula', icon: '⚔️', kind: 'board',
+    href: './board.html?game=formula&subject=math&topic=math-5-numbers', grad: 'linear-gradient(135deg,#2563eb,#e11d48)',
+    title: { ky: 'Формула-беттеш', ru: 'Формула-бой', en: 'Formula battle' },
+    desc: {
+      ky: 'Эки команда аркан тартат: ким тез жана так эсептесе, ошол тартат',
+      ru: 'Две команды перетягивают канат: тянет тот, кто считает быстро и точно',
+      en: 'Two teams play tug of war: accurate, fast counting pulls the rope'
+    },
+    subject: { ky: 'Математика', ru: 'Математика', en: 'Maths' }
+  },
+  {
     id: 'codelock', icon: '🔐', kind: 'board',
     href: './board.html?game=codelock', grad: 'linear-gradient(135deg,#0f766e,#22c55e)',
     title: { ky: 'Коддуу кулпу', ru: 'Кодовый замок', en: 'Code lock' },
