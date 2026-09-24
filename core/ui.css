@@ -444,3 +444,30 @@ p { margin: 0 0 0.8em; }
   accent-color: var(--primary); cursor: pointer;
 }
 .q-row { cursor: pointer; }
+
+/* ─── «Айт! / Говори» ─────────────────────────────────────────────────────── */
+.speak-card { text-align: center; }
+.speak-target {
+  font-family: var(--font-title); font-weight: 900; line-height: 1.15;
+  font-size: clamp(2rem, 8vw, 3.6rem); word-break: break-word;
+}
+.speak-sound { font-size: 1.15rem; letter-spacing: 0.02em; }
+.speak-meaning { font-size: 1.1rem; font-weight: 700; }
+.speak-tip { padding: 0.6em 0.9em; border-radius: 10px; background: var(--surface-2); text-align: left; }
+.speak-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.speak-actions .btn { min-width: 150px; }
+.speak-mic.listening {
+  background: var(--bad); border-color: var(--bad);
+  animation: pulse 1s infinite;
+}
+.speak-heard { min-height: 1.4em; }
+.speak-feedback { min-height: 1.5em; font-weight: 800; font-size: 1.1rem; }
+.speak-feedback.ok { color: var(--ok); }
+.speak-feedback.bad { color: var(--bad); }
+.speak-feedback.warn { color: var(--warn); }
+.speak-attempts { display: inline-flex; gap: 6px; }
+.speak-attempts i { width: 12px; height: 12px; border-radius: 50%; background: var(--surface-2); border: 2px solid var(--line); }
+.speak-attempts i.on { background: var(--primary); border-color: var(--primary); }
+.speak-review { padding: 0.5em 0; border-bottom: 1px solid var(--line); gap: 10px; }
+.speak-review:last-child { border-bottom: 0; }
+@media (prefers-reduced-motion: reduce) { .speak-mic.listening { animation: none; } }

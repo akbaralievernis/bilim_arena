@@ -88,9 +88,9 @@ export const sfx = {
 
 const STUDENT_NAV = [
   { href: 'index.html', key: 'nav_home', icon: '🏠' },
-  { href: 'learn.html', key: 'nav_learn', icon: '📚' },
+  { href: 'speak.html', key: 'nav_speak', icon: '🎤' },
   { href: 'practice.html', key: 'nav_practice', icon: '🎯' },
-  { href: 'arena.html', key: 'nav_arena', icon: '⚔️' },
+  { href: 'play.html', key: 'join_title', icon: '🎮' },
   { href: 'tasks.html', key: 'nav_tasks', icon: '📝' },
   { href: 'progress.html', key: 'nav_progress', icon: '📈' }
 ];

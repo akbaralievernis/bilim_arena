@@ -10,6 +10,7 @@ import { t, pick, getLang } from './core/i18n.js';
 import { SUBJECTS, TOPICS, getTopic, getSubject, skillTitle, findQuestion } from './core/curriculum.js';
 import { store, KEYS } from './core/store.js';
 import { loadCase, CASES } from './data/investigations/index.js';
+import { findSpeakItem } from './data/speaking/index.js';
 import { getProgress, knowledgeMap, weakSkills, reviewSuggestions, history, BADGES, migrateLegacy } from './core/progress.js';
 import { getProfile, saveProfile, AVATARS } from './core/profile.js';
 
@@ -114,6 +115,11 @@ async function recentMistakes(limit) {
         const clue = data?.clues.find((c) => c.id === e.questionId);
         if (clue) { q = clue.question; break; }
       }
+    }
+    // Произношение: слово или фраза из наборов «Айт!»
+    if (!q && e.gameId === 'speak') {
+      const item = findSpeakItem(e.questionId);
+      if (item) q = { prompt: `🎤 ${item.text} ${item.sound}`, explain: item.tip || item.hint };
     }
     if (!q) continue;
 

@@ -95,6 +95,17 @@ const GAMES = [
     subject: { ky: 'Тарых', ru: 'История', en: 'History' }
   },
   {
+    id: 'speak', icon: '🎤', kind: 'solo', href: './speak.html',
+    grad: 'linear-gradient(135deg,#f43f5e,#8b5cf6)',
+    title: { ky: 'Айт!', ru: 'Говори!', en: 'Speak!' },
+    desc: {
+      ky: 'Англисче сөздөрдү үнүң менен айт — браузер угуп, айтылышын текшерет',
+      ru: 'Произноси английские слова вслух — браузер слушает и проверяет произношение',
+      en: 'Say English words out loud — the browser listens and checks your pronunciation'
+    },
+    subject: { ky: 'Англис тили', ru: 'Английский язык', en: 'English' }
+  },
+  {
     id: 'flashcards', icon: '📇', kind: 'solo', href: './games/flashcards/index.html',
     grad: 'linear-gradient(135deg,#6366f1,#ec4899)',
     title: { ky: 'Сөз карточкалары', ru: 'Карточки слов', en: 'Flashcards' },
