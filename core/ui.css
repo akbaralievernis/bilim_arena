@@ -471,3 +471,10 @@ p { margin: 0 0 0.8em; }
 .speak-review { padding: 0.5em 0; border-bottom: 1px solid var(--line); gap: 10px; }
 .speak-review:last-child { border-bottom: 0; }
 @media (prefers-reduced-motion: reduce) { .speak-mic.listening { animation: none; } }
+
+/* ─── Аккаунт и облачные классы ───────────────────────────────────────────── */
+.code-input { text-transform: uppercase; letter-spacing: 0.3em; font-family: var(--font-title); font-weight: 900; font-size: 1.4rem; text-align: center; }
+.class-code { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; padding: 0.6em 0.9em; border-radius: 12px; background: var(--surface-2); }
+.class-code b { font-family: var(--font-title); font-size: 1.6rem; letter-spacing: 0.2em; }
+.pill-x { margin-left: 6px; border: 0; background: transparent; color: var(--text-soft); font: inherit; font-weight: 800; cursor: pointer; min-width: 24px; min-height: 24px; }
+.pill-x:hover { color: var(--bad); }

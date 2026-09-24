@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ky" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="description" content="Билим Арена — аккаунт: окуучу класстын коду менен, мугалим почта менен кирет." />
+  <title>Аккаунт — Билим Арена</title>
+  <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./core/ui.css?v=11" />
+  <link rel="stylesheet" href="./home.css?v=11" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Мазмунга өтүү</a>
+  <div id="header"></div>
+
+  <main id="main" class="wrap stack" style="padding-top:20px;padding-bottom:40px;max-width:900px">
+    <h1 data-i18n="acc_title">Аккаунт</h1>
+
+    <!-- Облако не подключено -->
+    <section class="card stack hidden" id="localScreen">
+      <p data-i18n="acc_local_mode"></p>
+      <p class="muted small" data-i18n="acc_setup_hint"></p>
+    </section>
+
+    <!-- Вход -->
+    <section class="grid two hidden" id="signedOutScreen">
+      <form class="card stack" id="studentForm" autocomplete="off">
+        <h2>🎒 <span data-i18n="acc_student">Мен окуучумун</span></h2>
+        <p class="muted small" data-i18n="acc_student_hint"></p>
+        <label class="field">
+          <span class="label" data-i18n="acc_class_code">Класстын коду</span>
+          <input class="input code-input" id="codeInput" maxlength="6" autocapitalize="characters" spellcheck="false" required />
+        </label>
+        <label class="field">
+          <span class="label" data-i18n="profile_name">Атың</span>
+          <input class="input" id="studentName" maxlength="40" autocomplete="given-name" required />
+        </label>
+        <button class="btn primary big block" type="submit" data-i18n="acc_join">Класска кирүү</button>
+      </form>
+
+      <form class="card stack" id="teacherForm">
+        <h2>🧑‍🏫 <span data-i18n="acc_teacher">Мен мугалиммин</span></h2>
+        <p class="muted small" data-i18n="acc_teacher_hint"></p>
+        <label class="field">
+          <span class="label" data-i18n="acc_email">Почта</span>
+          <input class="input" id="emailInput" type="email" autocomplete="email" required />
+        </label>
+        <label class="field">
+          <span class="label" data-i18n="acc_password">Сырсөз</span>
+          <input class="input" id="passwordInput" type="password" minlength="8" autocomplete="current-password" required />
+        </label>
+        <label class="field hidden" id="teacherNameField">
+          <span class="label" data-i18n="profile_name">Атыңыз</span>
+          <input class="input" id="teacherName" maxlength="40" autocomplete="name" />
+        </label>
+        <button class="btn primary big block" type="submit" id="teacherSubmit" data-i18n="acc_sign_in">Кирүү</button>
+        <button class="btn ghost block" type="button" id="toggleSignUp" data-i18n="acc_no_account">Аккаунт жокпу? Катталуу</button>
+      </form>
+    </section>
+
+    <!-- Вошёл -->
+    <section class="card stack hidden" id="signedInScreen">
+      <div class="row between">
+        <div>
+          <h2 id="whoName" style="margin:0"></h2>
+          <div class="muted small" id="whoRole"></div>
+        </div>
+        <span class="chip" id="syncState" role="status" aria-live="polite"></span>
+      </div>
+      <div class="muted small" id="lastSync"></div>
+      <div class="row">
+        <button class="btn primary" type="button" id="syncBtn" data-i18n="acc_sync_now">Азыр синхрондоо</button>
+        <button class="btn ghost" type="button" id="signOutBtn" data-i18n="acc_sign_out">Чыгуу</button>
+      </div>
+
+      <form class="stack hidden" id="joinMoreForm" autocomplete="off">
+        <div class="label" data-i18n="acc_join_other">Башка класска кирүү</div>
+        <div class="row">
+          <input class="input code-input" id="moreCode" maxlength="6" autocapitalize="characters" spellcheck="false" style="max-width:200px" required />
+          <button class="btn" type="submit" data-i18n="acc_join">Класска кирүү</button>
+        </div>
+      </form>
+    </section>
+
+    <p class="muted small" data-i18n="acc_privacy"></p>
+  </main>
+
+  <div id="toasts"></div>
+  <script type="module" src="./account.js?v=11"></script>
+</body>
+</html>

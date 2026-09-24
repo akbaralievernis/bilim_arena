@@ -1,18 +1,18 @@
 /* Билим Арена — офлайн кэш. Файлдар өзгөргөндө VERSION'ду көбөйтүңүз. */
-const VERSION = 'ba-v13';
+const VERSION = 'ba-v14';
 const CORE = [
   './', './index.html', './home.css', './home.js',
   './board.html', './board.js', './play.html', './play.js',
   './teacher.html', './teacher.js', './progress.html', './progress.js',
   './practice.html', './practice.js',
   './tasks.html', './tasks.js', './homework.html', './homework.js',
-  './questions.html', './questions.js', './speak.html', './speak.js',
+  './questions.html', './questions.js', './speak.html', './speak.js', './account.html', './account.js',
   './manifest.webmanifest', './assets/logo.svg',
   // Ядро платформы
   './core/ui.css', './core/board.css', './core/ui.js', './core/i18n.js',
   './core/store.js', './core/profile.js', './core/curriculum.js',
   './core/progress.js', './core/engine.js', './core/realtime.js',
-  './core/questions.js', './core/assignments.js', './core/quiz-ui.js', './core/sync.js', './core/speech.js',
+  './core/questions.js', './core/assignments.js', './core/quiz-ui.js', './core/sync.js', './core/speech.js', './core/config.js', './core/cloud.js',
   './locales/ky.js', './locales/ru.js', './locales/en.js',
   './games/quickvote/game.js', './games/territory/game.js',
   './games/investigation/game.js', './games/errorhunt/game.js', './games/timeline/game.js', './games/codelock/game.js', './games/formula/game.js', './games/city/game.js', './games/lab/game.js',

@@ -58,6 +58,9 @@ export async function quickJoinProfile(name) {
   return saveProfile({ name, role: 'student' });
 }
 
+/** Сбросить кеш — после загрузки профиля из облака */
+export function invalidateProfile() { cached = null; }
+
 export async function clearProfile() {
   cached = null;
   await store.remove(KEYS.profile);

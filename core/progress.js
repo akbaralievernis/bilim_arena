@@ -43,6 +43,9 @@ async function read() {
   return cached;
 }
 
+/** Сбросить кеш — после загрузки прогресса из облака */
+export function invalidateProgress() { cached = null; }
+
 async function write(data) {
   cached = data;
   await store.set(KEYS.progress, data);

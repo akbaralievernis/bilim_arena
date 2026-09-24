@@ -1,0 +1,14 @@
+{
+  "name": "bilim-arena-supabase-tests",
+  "private": true,
+  "type": "module",
+  "description": "Проверка supabase/schema.sql (RLS) и core/cloud.js на Postgres в WebAssembly (PGlite)",
+  "scripts": {
+    "test": "npm run test:rls && npm run test:cloud",
+    "test:rls": "node rls.test.mjs",
+    "test:cloud": "node --import ./register.mjs cloud.test.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.2.17"
+  }
+}

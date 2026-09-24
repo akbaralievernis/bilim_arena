@@ -264,6 +264,8 @@ async function showResults(game) {
   mountHeader($('#header'), { role: 'student', active: 'tasks.html' });
 
   await renderList();
+  // Пришли задания из облака — обновить список (если ученик не внутри задания)
+  window.addEventListener('ba:synced', () => { if (!state.game) renderList(); });
 
   const params = new URLSearchParams(location.search);
   if (params.get('id')) openIntro(params.get('id'));

@@ -165,11 +165,15 @@ async function renderHistory() {
   mountHeader($('#header'), { role: 'student', active: 'progress.html' });
   await migrateLegacy(); // перенос прогресса со старой версии сайта
 
-  await renderProfile();
-  await renderKnowledgeMap();
-  await renderReview();
-  await renderBadges();
-  await renderHistory();
+  const renderAll = async () => {
+    await renderProfile();
+    await renderKnowledgeMap();
+    await renderReview();
+    await renderBadges();
+    await renderHistory();
+  };
+  await renderAll();
+  window.addEventListener('ba:synced', renderAll); // прогресс с другого устройства
 
   $('#saveProfileBtn').addEventListener('click', async () => {
     const name = $('#nameInput').value.trim();

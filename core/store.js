@@ -38,14 +38,18 @@ export class LocalStore {
     }
   }
 
-  async set(key, value) {
+  /**
+   * @param {object} opts.silent — не сообщать о записи (данные пришли из облака)
+   */
+  async set(key, value, { silent = false } = {}) {
     if (!this.available) return false;
     try {
       localStorage.setItem(this.prefix + key, JSON.stringify(value));
-      return true;
     } catch {
       return false; // место кончилось
     }
+    if (!silent) this.onWrite?.(key, value);
+    return true;
   }
 
   async remove(key) {
@@ -131,7 +135,11 @@ export class RemoteStore {
   }
 }
 
-/** Текущее хранилище платформы. Меняется одной строкой при появлении сервера. */
+/**
+ * Текущее хранилище платформы. Все данные читаются и пишутся локально
+ * (быстро и офлайн), а core/cloud.js через store.onWrite отправляет
+ * изменения в Supabase, когда облако подключено и пользователь вошёл.
+ */
 export const store = new LocalStore();
 
 /** Ключи — в одном месте, чтобы не искать строки по всему проекту */

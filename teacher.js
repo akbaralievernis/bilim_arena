@@ -10,6 +10,7 @@ import { bootstrap, mountHeader, el, $, toast } from './core/ui.js';
 import { t, pick, getLang } from './core/i18n.js';
 import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, skillTitle } from './core/curriculum.js';
 import { store, KEYS } from './core/store.js';
+import { SUPABASE } from './core/config.js';
 import { setRole } from './core/profile.js';
 
 const state = { subject: null, topic: null, duration: 30, classes: [], lessons: [] };
@@ -77,27 +78,51 @@ function startLesson() {
 
 // ─── Классы ───────────────────────────────────────────────────────────────────
 
+/** Облачный модуль — только если облако настроено */
+const cloud = () => (SUPABASE.url ? import('./core/cloud.js') : Promise.resolve(null));
+const cloudError = (e) => (/fetch|network/i.test(String(e?.message)) ? t('acc_err_network') : t('acc_err_generic'));
+
 async function renderClasses() {
   state.classes = await store.get(KEYS.classes, []);
   const lang = getLang();
 
   const cards = state.classes.map((c) => el('div', { class: 'card stack' },
     el('div', { class: 'row between' },
-      el('h3', { style: 'margin:0' }, c.name),
+      el('h3', { style: 'margin:0' }, `${c.cloud ? '☁️ ' : ''}${c.name}`),
       el('button', {
         class: 'btn ghost', type: 'button', 'aria-label': t('close'),
         onclick: async () => {
           if (!confirm(`${c.name}?`)) return;
-          state.classes = state.classes.filter((x) => x.id !== c.id);
-          await store.set(KEYS.classes, state.classes);
+          if (c.cloud) {
+            try { await (await cloud()).deleteClass(c.id); } catch (e) { return toast(cloudError(e), { icon: '⚠️' }); }
+          } else {
+            state.classes = state.classes.filter((x) => x.id !== c.id);
+            await store.set(KEYS.classes, state.classes);
+          }
           renderClasses();
         }
       }, '✕')
     ),
     el('div', { class: 'muted small' }, `${t('grade', { n: c.grade })} · ${c.students.length} ${t('role_student').toLowerCase()}`),
-    el('div', { class: 'players' }, c.students.map((s) => el('span', { class: 'player-pill' }, s))),
+    // Облачный класс: ученики входят сами по коду
+    c.cloud ? el('div', { class: 'class-code' },
+      el('span', { class: 'muted small' }, t('acc_class_code')),
+      el('b', {}, c.code),
+      el('span', { class: 'muted small' }, t('acc_class_code_hint'))
+    ) : null,
+    el('div', { class: 'players' }, (c.members || c.students.map((name) => ({ name }))).map((s) => el('span', { class: 'player-pill' },
+      s.name,
+      c.cloud && s.id ? el('button', {
+        class: 'pill-x', type: 'button', 'aria-label': `${t('close')}: ${s.name}`,
+        onclick: async () => {
+          if (!confirm(`${s.name}?`)) return;
+          try { await (await cloud()).removeStudent(c.id, s.id); } catch (e) { return toast(cloudError(e), { icon: '⚠️' }); }
+          renderClasses();
+        }
+      }, '×') : null
+    ))),
     el('div', { class: 'row' },
-      el('button', {
+      c.cloud ? null : el('button', {
         class: 'btn', type: 'button',
         onclick: async () => {
           const name = prompt(t('profile_name'));
@@ -123,7 +148,20 @@ async function renderClasses() {
 async function addClass() {
   const name = prompt(t('nav_classes'), '6-А');
   if (!name) return;
-  const grade = Number(prompt(t('lesson_grade'), '6')) || 6;
+  const grade = Math.min(11, Math.max(1, Number(prompt(t('lesson_grade'), '6')) || 6));
+
+  // Учитель вошёл в облако — класс создаётся там и получает код для учеников
+  const c = await cloud();
+  if (c && c.cloudStatus().role === 'teacher') {
+    try {
+      await c.createClass({ name, grade });
+      toast(t('save'), { icon: '✅' });
+    } catch (e) {
+      toast(cloudError(e), { icon: '⚠️' });
+    }
+    return renderClasses();
+  }
+
   state.classes.push({ id: `c_${Date.now()}`, name: name.slice(0, 20), grade, students: [] });
   await store.set(KEYS.classes, state.classes);
   toast(t('save'), { icon: '✅' });
@@ -200,6 +238,7 @@ const stat = (value, label) => el('div', { class: 'stat' }, el('b', {}, String(v
   renderLessonSetup();
   await renderClasses();
   await renderResults();
+  window.addEventListener('ba:synced', () => { renderClasses(); renderResults(); });
 
   $('#startBtn').addEventListener('click', startLesson);
   $('#addClassBtn').addEventListener('click', addClass);

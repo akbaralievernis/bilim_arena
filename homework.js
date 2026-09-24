@@ -310,6 +310,8 @@ async function openStats(assignmentId) {
   mountHeader($('#header'), { role: 'teacher', active: 'homework.html' });
 
   await renderList();
+  // Пришли результаты учеников из облака — обновить список, если открыт он
+  window.addEventListener('ba:synced', () => { if (!$('#listScreen')?.classList.contains('hidden')) renderList(); });
 
   $('#createBtn').addEventListener('click', () => openForm(null));
   $('#cancelBtn').addEventListener('click', renderList);

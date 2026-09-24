@@ -7,3 +7,6 @@ mafia-src/node_modules/
 *.log
 .vscode/
 .idea/
+
+# Тесты Supabase
+supabase/tests/node_modules/

@@ -5,6 +5,7 @@
 
 import { t, LANGS, getLang, setLang, initI18n } from './i18n.js';
 import { store } from './store.js';
+import { SUPABASE } from './config.js';
 
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -147,6 +148,11 @@ export function mountHeader(target, { role = 'student', active = '' } = {}) {
     ),
     nav,
     el('span', { class: 'spacer' }),
+    // Аккаунт появляется, только когда подключено облако
+    SUPABASE.url ? el('a', {
+      class: 'btn ghost cloud-btn', href: 'account.html', id: 'cloudBtn',
+      title: t('acc_title'), 'aria-label': t('acc_title')
+    }, '☁️') : null,
     langBtn,
     themeBtn
   );
@@ -170,6 +176,17 @@ export async function bootstrap() {
   await initTheme();
   await initI18n();
   document.body.classList.remove('boot');
+  // Облако подгружается, только если настроено, и не задерживает страницу
+  if (SUPABASE.url && SUPABASE.anonKey) {
+    import('./cloud.js').then((m) => m.initCloud()).catch((e) => console.warn('[cloud]', e));
+    window.addEventListener('ba:cloud-status', (e) => {
+      const btn = document.getElementById('cloudBtn');
+      if (!btn) return;
+      const icon = { syncing: '🔄', ok: '☁️', error: '⚠️', offline: '📴' }[e.detail.state] || '☁️';
+      btn.textContent = icon;
+      btn.title = `${t('acc_title')}: ${t('acc_state_' + e.detail.state)}`;
+    });
+  }
   return { lang: getLang() };
 }
 
