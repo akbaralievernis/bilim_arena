@@ -11,6 +11,7 @@ import { SUBJECTS, TOPICS, getTopic, getSubject, skillTitle, findQuestion } from
 import { store, KEYS } from './core/store.js';
 import { loadCase, CASES } from './data/investigations/index.js';
 import { findSpeakItem } from './data/speaking/index.js';
+import { findLabStep } from './data/labs/index.js';
 import { getProgress, knowledgeMap, weakSkills, reviewSuggestions, history, BADGES, migrateLegacy } from './core/progress.js';
 import { getProfile, saveProfile, AVATARS } from './core/profile.js';
 
@@ -117,6 +118,7 @@ async function recentMistakes(limit) {
       }
     }
     // Произношение: слово или фраза из наборов «Айт!»
+    if (!q && e.gameId === 'lab') q = findLabStep(e.questionId);
     if (!q && e.gameId === 'speak') {
       const item = findSpeakItem(e.questionId);
       if (item) q = { prompt: `🎤 ${item.text} ${item.sound}`, explain: item.tip || item.hint };

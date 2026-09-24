@@ -119,6 +119,118 @@ export const TOPICS = [
       { id: 'nature', title: { ky: 'Жаратылыш', ru: 'Природа', en: 'Nature' } }
     ],
     bank: () => import('../data/questions/geography-7-kyrgyzstan.js')
+  },
+  {
+    id: 'kyrgyz-lit-7-manas',
+    subject: 'kyrgyz-lit', grade: 7, section: { ky: 'Эпос', ru: 'Эпос', en: 'Epic' },
+    title: { ky: '«Манас» эпосу жана акындар', ru: 'Эпос «Манас» и акыны', en: 'The Manas epic and poets' },
+    skills: [
+      { id: 'characters', title: { ky: 'Каармандар', ru: 'Герои', en: 'Characters' } },
+      { id: 'epic', title: { ky: 'Эпостун түзүлүшү', ru: 'Строение эпоса', en: 'Structure of the epic' } },
+      { id: 'narrators', title: { ky: 'Манасчылар', ru: 'Манасчы', en: 'Narrators' } },
+      { id: 'poets', title: { ky: 'Акындар', ru: 'Акыны', en: 'Poets' } }
+    ],
+    bank: () => import('../data/questions/kyrgyz-lit-7-manas.js')
+  },
+  {
+    id: 'russian-5-noun',
+    subject: 'russian', grade: 5, section: { ky: 'Морфология', ru: 'Морфология', en: 'Morphology' },
+    title: { ky: 'Зат атооч жана жазуу эрежелери', ru: 'Имя существительное и орфография', en: 'Nouns and spelling' },
+    skills: [
+      { id: 'gender', title: { ky: 'Жыныс', ru: 'Род', en: 'Gender' } },
+      { id: 'cases', title: { ky: 'Жөндөмөлөр (падежи)', ru: 'Падежи', en: 'Cases' } },
+      { id: 'spelling', title: { ky: 'Жазуу эрежелери', ru: 'Орфография', en: 'Spelling' } }
+    ],
+    bank: () => import('../data/questions/russian-5-noun.js')
+  },
+  {
+    id: 'russian-lit-6-classics',
+    subject: 'russian-lit', grade: 6, section: { ky: 'Классика', ru: 'Классика', en: 'Classics' },
+    title: { ky: 'Орус классикасы', ru: 'Русская классика', en: 'Russian classics' },
+    skills: [
+      { id: 'authors', title: { ky: 'Авторлор', ru: 'Авторы', en: 'Authors' } },
+      { id: 'genres', title: { ky: 'Жанрлар', ru: 'Жанры', en: 'Genres' } },
+      { id: 'works', title: { ky: 'Чыгармалар', ru: 'Произведения', en: 'Works' } }
+    ],
+    bank: () => import('../data/questions/russian-lit-6-classics.js')
+  },
+  {
+    id: 'physics-7-mechanics',
+    subject: 'physics', grade: 7, section: { ky: 'Механика', ru: 'Механика', en: 'Mechanics' },
+    title: { ky: 'Механиканын негиздери', ru: 'Основы механики', en: 'Basics of mechanics' },
+    skills: [
+      { id: 'motion', title: { ky: 'Кыймыл жана ылдамдык', ru: 'Движение и скорость', en: 'Motion and speed' } },
+      { id: 'force', title: { ky: 'Күч жана салмак', ru: 'Сила и вес', en: 'Force and weight' } },
+      { id: 'density', title: { ky: 'Тыгыздык', ru: 'Плотность', en: 'Density' } },
+      { id: 'units', title: { ky: 'Өлчөө бирдиктери', ru: 'Единицы измерения', en: 'Units' } }
+    ],
+    bank: () => import('../data/questions/physics-7-mechanics.js')
+  },
+  {
+    id: 'chemistry-8-basics',
+    subject: 'chemistry', grade: 8, section: { ky: 'Негизги түшүнүктөр', ru: 'Основные понятия', en: 'Core ideas' },
+    title: { ky: 'Химиянын баштапкы түшүнүктөрү', ru: 'Первоначальные химические понятия', en: 'First ideas of chemistry' },
+    skills: [
+      { id: 'symbols', title: { ky: 'Элементтердин белгилери', ru: 'Знаки элементов', en: 'Element symbols' } },
+      { id: 'formulas', title: { ky: 'Формулалар', ru: 'Формулы', en: 'Formulas' } },
+      { id: 'phenomena', title: { ky: 'Кубулуштар', ru: 'Явления', en: 'Phenomena' } }
+    ],
+    bank: () => import('../data/questions/chemistry-8-basics.js')
+  },
+  {
+    id: 'biology-6-plants',
+    subject: 'biology', grade: 6, section: { ky: 'Ботаника', ru: 'Ботаника', en: 'Botany' },
+    title: { ky: 'Клетка жана өсүмдүктөр', ru: 'Клетка и растения', en: 'Cells and plants' },
+    skills: [
+      { id: 'cell', title: { ky: 'Клетка', ru: 'Клетка', en: 'The cell' } },
+      { id: 'photosynthesis', title: { ky: 'Фотосинтез', ru: 'Фотосинтез', en: 'Photosynthesis' } },
+      { id: 'plants', title: { ky: 'Өсүмдүктүн түзүлүшү', ru: 'Строение растения', en: 'Plant structure' } }
+    ],
+    bank: () => import('../data/questions/biology-6-plants.js')
+  },
+  {
+    id: 'world-history-5-ancient',
+    subject: 'world-history', grade: 5, section: { ky: 'Байыркы дүйнө', ru: 'Древний мир', en: 'Ancient world' },
+    title: { ky: 'Байыркы цивилизациялар', ru: 'Древние цивилизации', en: 'Ancient civilisations' },
+    skills: [
+      { id: 'civilizations', title: { ky: 'Цивилизациялар', ru: 'Цивилизации', en: 'Civilisations' } },
+      { id: 'culture', title: { ky: 'Маданият', ru: 'Культура', en: 'Culture' } },
+      { id: 'dates', title: { ky: 'Даталар', ru: 'Даты', en: 'Dates' } }
+    ],
+    bank: () => import('../data/questions/world-history-5-ancient.js')
+  },
+  {
+    id: 'social-9-state',
+    subject: 'social', grade: 9, section: { ky: 'Укук', ru: 'Право', en: 'Law' },
+    title: { ky: 'Мамлекет жана укук', ru: 'Государство и право', en: 'The state and law' },
+    skills: [
+      { id: 'state', title: { ky: 'Мамлекет', ru: 'Государство', en: 'The state' } },
+      { id: 'rights', title: { ky: 'Укуктар', ru: 'Права', en: 'Rights' } },
+      { id: 'citizenship', title: { ky: 'Жарандык', ru: 'Гражданство', en: 'Citizenship' } }
+    ],
+    bank: () => import('../data/questions/social-9-state.js')
+  },
+  {
+    id: 'economics-10-basics',
+    subject: 'economics', grade: 10, section: { ky: 'Микроэкономика', ru: 'Микроэкономика', en: 'Microeconomics' },
+    title: { ky: 'Экономиканын негиздери', ru: 'Основы экономики', en: 'Basics of economics' },
+    skills: [
+      { id: 'market', title: { ky: 'Рынок', ru: 'Рынок', en: 'The market' } },
+      { id: 'money', title: { ky: 'Акча', ru: 'Деньги', en: 'Money' } },
+      { id: 'business', title: { ky: 'Ишкердик', ru: 'Предпринимательство', en: 'Business' } }
+    ],
+    bank: () => import('../data/questions/economics-10-basics.js')
+  },
+  {
+    id: 'finance-8-budget',
+    subject: 'finance', grade: 8, section: { ky: 'Жеке каржы', ru: 'Личные финансы', en: 'Personal finance' },
+    title: { ky: 'Жеке бюджет жана коопсуздук', ru: 'Личный бюджет и безопасность', en: 'Personal budget and safety' },
+    skills: [
+      { id: 'budget', title: { ky: 'Бюджет', ru: 'Бюджет', en: 'Budget' } },
+      { id: 'saving', title: { ky: 'Топтоо', ru: 'Сбережения', en: 'Saving' } },
+      { id: 'safety', title: { ky: 'Финансылык коопсуздук', ru: 'Финансовая безопасность', en: 'Financial safety' } }
+    ],
+    bank: () => import('../data/questions/finance-8-budget.js')
   }
 ];
 
@@ -219,7 +331,7 @@ export async function getQuestions({ topic, count = 10, skills, difficulty, type
 export function shuffleOptions(question, lang) {
   const opts = (question.options || []).map((o, i) => ({ text: pick(o, lang), index: i }));
   // В «поиске ошибки» варианты — строки решения, их порядок важен
-  const mixed = question.errorHunt ? opts : shuffle(opts);
+  const mixed = question.errorHunt || question.vote ? opts : shuffle(opts);
   return {
     options: mixed,
     correctIndex: mixed.findIndex((o) => o.index === (question.correct ?? 0))

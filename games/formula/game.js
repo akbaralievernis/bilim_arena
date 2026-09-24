@@ -35,7 +35,7 @@ export default class FormulaGame extends BaseGame {
     teamBased: true,
     needsPhones: true,
     minPlayers: 2,
-    subjects: ['math'],
+    subjects: ['math', 'physics', 'chemistry', 'economics', 'finance'],
     questions: 10
   };
 

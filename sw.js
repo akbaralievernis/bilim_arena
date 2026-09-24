@@ -1,5 +1,5 @@
 /* Билим Арена — офлайн кэш. Файлдар өзгөргөндө VERSION'ду көбөйтүңүз. */
-const VERSION = 'ba-v12';
+const VERSION = 'ba-v13';
 const CORE = [
   './', './index.html', './home.css', './home.js',
   './board.html', './board.js', './play.html', './play.js',
@@ -15,7 +15,7 @@ const CORE = [
   './core/questions.js', './core/assignments.js', './core/quiz-ui.js', './core/sync.js', './core/speech.js',
   './locales/ky.js', './locales/ru.js', './locales/en.js',
   './games/quickvote/game.js', './games/territory/game.js',
-  './games/investigation/game.js', './games/errorhunt/game.js', './games/timeline/game.js', './games/codelock/game.js', './games/formula/game.js',
+  './games/investigation/game.js', './games/errorhunt/game.js', './games/timeline/game.js', './games/codelock/game.js', './games/formula/game.js', './games/city/game.js', './games/lab/game.js',
   './data/investigations/index.js', './data/investigations/case-001-museum.js',
   // Банки вопросов
   './data/questions/math-6-fractions.js',
@@ -26,6 +26,17 @@ const CORE = [
   './data/questions/math-5-numbers.js',
   './data/questions/geography-7-kyrgyzstan.js',
   './data/speaking/index.js',
+  './data/labs/index.js',
+  './data/questions/biology-6-plants.js',
+  './data/questions/chemistry-8-basics.js',
+  './data/questions/economics-10-basics.js',
+  './data/questions/finance-8-budget.js',
+  './data/questions/kyrgyz-lit-7-manas.js',
+  './data/questions/physics-7-mechanics.js',
+  './data/questions/russian-5-noun.js',
+  './data/questions/russian-lit-6-classics.js',
+  './data/questions/social-9-state.js',
+  './data/questions/world-history-5-ancient.js',
   // Прежние игры — продолжают работать офлайн
   './shared/ui.css', './shared/game.css', './shared/vocab.js',
   './shared/progress.js', './shared/game-shell.js',

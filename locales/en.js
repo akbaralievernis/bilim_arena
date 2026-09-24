@@ -320,5 +320,24 @@ export default {
   sp_other_set: 'Another set',
   sp_points: 'Points',
   sp_type_ok: 'Spelled correctly!',
-  sp_type_again: 'Not quite. Listen again and fix it ({n} left)'
+  sp_type_again: 'Not quite. Listen again and fix it ({n} left)',
+
+  // "Science lab" and "City economy"
+  lab_predict: 'Predict: what will happen? Choose a hypothesis on your phone',
+  lab_votes_in: 'Students who predicted: {n}',
+  lab_result: 'Experiment complete!',
+  lab_steps: 'Steps',
+  lab_predicted: '{pct}% of the class predicted correctly. A wrong prediction is a normal part of science — the experiment tests it.',
+  city_vote_hint: 'Vote on your phone: what do we build?',
+  city_earn_hint: 'If everyone is right, the treasury gets +{n} 🪙',
+  city_earned: 'Treasury +{n} 🪙 ({pct}% answered correctly)',
+  city_built: 'Built: {name}!',
+  city_opportunity: 'Opportunity cost: this money could have built {name}.',
+  city_poor: 'Not enough money for {name} — {n} 🪙 more needed. The money is saved.',
+  city_no_votes: 'Nobody voted — the treasury is saved.',
+  city_buildings: 'City buildings',
+  city_happiness: 'Happiness',
+  city_ecology: 'Ecology',
+  city_coins: 'Treasury',
+  city_result: 'The city is built! Score: {n}'
 };

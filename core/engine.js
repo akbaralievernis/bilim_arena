@@ -149,7 +149,7 @@ export class BaseGame {
       // Варианты перемешиваются: правильный не должен быть всегда первым
       const sh = shuffleOptions(q, lang);
       options = sh.options.map((o) => o.text);
-      correctIndex = sh.correctIndex;
+      correctIndex = q.vote ? -1 : sh.correctIndex; // у голосования нет верного ответа
     } else if (type === 'multiple') {
       const order = (q.options || []).map((_, i) => i);
       shuffleArray(order);
@@ -183,6 +183,7 @@ export class BaseGame {
       items,
       numeric: !!q.numeric,
       errorHunt: !!q.errorHunt,
+      vote: !!q.vote,
       answer: q.answer || null,
       skill: q.skill,
       startedAt: Date.now()
@@ -203,6 +204,15 @@ export class BaseGame {
     if (!player) return { ignored: true };
 
     const ms = Date.now() - this.current.startedAt;
+
+    // Голосование (гипотеза, решение класса): без очков и без записи в разбор ошибок
+    if (this.current.vote) {
+      this.answers.set(playerId, { value, correct: null, ms, points: 0 });
+      this._update();
+      if (this.answers.size >= this.players.size && this.players.size > 0) this.revealAnswer();
+      return { vote: true };
+    }
+
     const correct = this.checkAnswer(value);
     const points = this.scoreAnswer({ correct, ms, player, value });
 
@@ -368,6 +378,16 @@ export class BaseGame {
     return r;
   }
 
+  /** Сколько голосов у каждого варианта (для голосований) */
+  voteCounts() {
+    const counts = new Array(this.current?.options?.length || 0).fill(0);
+    this.answers.forEach((a) => {
+      const i = Number(a.value);
+      if (Number.isInteger(i) && i >= 0 && i < counts.length) counts[i] += 1;
+    });
+    return counts;
+  }
+
   /** Вопросы, где были ошибки — для кнопки «Повторить тему» */
   wrongQuestionIds() {
     return [...new Set(this.log.filter((e) => !e.correct).map((e) => e.questionId))];
@@ -384,6 +404,9 @@ export class BaseGame {
 
     if (this.state === STATE.FINISHED) {
       return { screen: 'end', score: player?.score || 0, correct: player?.correct || 0, total: player?.total || 0 };
+    }
+    if (this.state === STATE.REVEAL && this.current?.vote) {
+      return { screen: 'sent', score: player?.score || 0 };
     }
     if (this.state === STATE.REVEAL) {
       return {
@@ -417,7 +440,7 @@ export class BaseGame {
   /** Текст правильного ответа — нужен и доске, и телефону */
   correctText() {
     const c = this.current;
-    if (!c) return '';
+    if (!c || c.vote) return '';
     switch (c.type) {
       case 'input': return c.answer?.[0] || '';
       case 'multiple': return [...c.correctSet].map((i) => c.options[i]).join(', ');

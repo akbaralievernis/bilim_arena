@@ -263,3 +263,27 @@ body.controller {
 .rope-note.pull-A { color: var(--team-a); }
 .rope-note.pull-B { color: var(--team-b); }
 @media (prefers-reduced-motion: reduce) { .rope-knot { transition: none; } }
+
+/* «Лаборатория»: колба заполняется выполненными шагами опыта */
+.lab-box { display: grid; gap: 10px; justify-items: center; padding: 14px; border-radius: var(--radius); background: var(--surface); border: 2px solid var(--line); }
+.lab-title { font-weight: 800; text-align: center; }
+.lab-flask {
+  position: relative; width: 70px; height: 96px; overflow: hidden;
+  border: 3px solid var(--text-soft); border-top-width: 0;
+  border-radius: 8px 8px 34px 34px; background: var(--surface-2);
+}
+.lab-flask i {
+  position: absolute; left: 0; right: 0; bottom: 0; display: block;
+  background: linear-gradient(180deg, #22d3ee, #6366f1);
+  transition: height 0.8s var(--ease);
+}
+.lab-note { margin: 0; text-align: center; font-weight: 700; }
+.lab-notes { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 6px; font-size: 0.9rem; justify-self: stretch; }
+.lab-notes li.ok { color: var(--text); }
+.lab-notes li.miss { color: var(--warn); }
+
+/* «Экономика города» */
+.city-box { display: grid; gap: 10px; padding: 14px; border-radius: var(--radius); background: var(--surface); border: 2px solid var(--line); text-align: center; }
+.city-skyline { font-size: clamp(1.6rem, 4vw, 2.4rem); line-height: 1.3; word-break: break-word; }
+.city-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; font-weight: 800; }
+.city-note { margin: 0; font-weight: 700; font-size: 0.95rem; }

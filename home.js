@@ -73,6 +73,28 @@ const GAMES = [
     subject: { ky: 'Математика', ru: 'Математика', en: 'Maths' }
   },
   {
+    id: 'lab', icon: '🧪', kind: 'board',
+    href: './board.html?lab=lab-ice', grad: 'linear-gradient(135deg,#06b6d4,#6366f1)',
+    title: { ky: 'Лаборатория', ru: 'Лаборатория', en: 'Science lab' },
+    desc: {
+      ky: 'Божомолдо, тажрыйба жаса, корутунду чыгар: муз, дат жана өсүмдүктөр',
+      ru: 'Предскажи, проведи опыт, сделай вывод: лёд, ржавчина и растения',
+      en: 'Predict, experiment, conclude: ice, rust and plants'
+    },
+    subject: { ky: 'Физика, химия, биология', ru: 'Физика, химия, биология', en: 'Physics, chemistry, biology' }
+  },
+  {
+    id: 'city', icon: '🏙️', kind: 'board',
+    href: './board.html?game=city&subject=economics&topic=economics-10-basics', grad: 'linear-gradient(135deg,#84cc16,#0ea5e9)',
+    title: { ky: 'Шаар экономикасы', ru: 'Экономика города', en: 'City economy' },
+    desc: {
+      ky: 'Туура жооптор казынаны толтурат, класс эмне курууну чечет — акча баарына жетпейт',
+      ru: 'Верные ответы пополняют казну, класс решает, что строить, — денег на всё не хватит',
+      en: 'Correct answers fill the treasury and the class decides what to build — money is limited'
+    },
+    subject: { ky: 'Экономика, финансы', ru: 'Экономика, финансы', en: 'Economics, finance' }
+  },
+  {
     id: 'codelock', icon: '🔐', kind: 'board',
     href: './board.html?game=codelock', grad: 'linear-gradient(135deg,#0f766e,#22c55e)',
     title: { ky: 'Коддуу кулпу', ru: 'Кодовый замок', en: 'Code lock' },

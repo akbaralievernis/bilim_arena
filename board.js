@@ -19,20 +19,24 @@ import ErrorHuntGame from './games/errorhunt/game.js';
 import TimelineGame from './games/timeline/game.js';
 import CodeLockGame from './games/codelock/game.js';
 import FormulaGame from './games/formula/game.js';
+import CityGame from './games/city/game.js';
+import LabGame from './games/lab/game.js';
+import { getLab, labsFor } from './data/labs/index.js';
 import InvestigationGame, { PHASE } from './games/investigation/game.js';
 import { CASES, loadCase } from './data/investigations/index.js';
 import { packAssignments, mergeSubmissions } from './core/sync.js';
 
 const GAMES = {
   quickvote: QuickVoteGame, territory: TerritoryGame, investigation: InvestigationGame,
-  errorhunt: ErrorHuntGame, timeline: TimelineGame, codelock: CodeLockGame, formula: FormulaGame
+  errorhunt: ErrorHuntGame, timeline: TimelineGame, codelock: CodeLockGame, formula: FormulaGame,
+  city: CityGame, lab: LabGame
 };
 
 /**
  * Игры, которые запускаются отдельным режимом (не этапом плана урока).
  * У некоторых свой формат заданий (questionFilter), остальным подходят любые.
  */
-const FORMAT_GAMES = ['codelock', 'formula', 'errorhunt', 'timeline'];
+const FORMAT_GAMES = ['codelock', 'formula', 'city', 'errorhunt', 'timeline'];
 
 /** Сколько подходящих заданий есть в теме: { topicId: { errorhunt: n, timeline: n, ... } } */
 const formatCounts = new Map();
@@ -75,8 +79,9 @@ function buildPlan(durationMin) {
 }
 
 const state = {
-  mode: 'lesson',      // 'lesson' | 'investigation' | 'errorhunt' | 'timeline'
+  mode: 'lesson',      // 'lesson' | 'investigation' | 'lab' | одна из FORMAT_GAMES
   caseId: null,
+  labId: null,
   subject: null,
   topic: null,
   duration: 30,
@@ -132,6 +137,8 @@ function renderSetup() {
 
   // План урока — учитель сразу видит структуру.
   // В режиме повторения — один этап из вопросов, где класс ошибся.
+  if (state.mode === 'lab' && getLab(state.labId)?.subject !== state.subject) state.mode = 'lesson';
+
   const counts = formatCounts.get(state.topic);
   if (!counts) {
     // Узнаём, есть ли в теме задания для отдельных игр, и перерисовываем
@@ -168,6 +175,11 @@ function renderSetup() {
         class: 'chip', type: 'button', 'aria-pressed': String(state.mode === id),
         onclick: () => { state.mode = id; renderSetup(); }
       }, `${GAMES[id].meta.icon} ${pick(GAMES[id].meta.title, lang)}`)),
+      ...labsFor(state.subject).map((lab) => el('button', {
+        class: 'chip', type: 'button',
+        'aria-pressed': String(state.mode === 'lab' && state.labId === lab.id),
+        onclick: () => { state.mode = 'lab'; state.labId = lab.id; state.topic = lab.topic; renderSetup(); }
+      }, `🧪 ${pick(lab.title, lang)}`)),
       ...CASES.map((c) => el('button', {
         class: 'chip', type: 'button',
         'aria-pressed': String(state.mode === 'investigation' && state.caseId === c.id),
@@ -180,6 +192,16 @@ function renderSetup() {
     const meta = GAMES[state.mode].meta;
     $('#planPreview').append(
       el('p', { class: 'muted', style: 'margin-top:8px' }, pick(meta.how, lang))
+    );
+  }
+
+  if (state.mode === 'lab') {
+    const lab = getLab(state.labId);
+    $('#planPreview').replaceChildren(
+      el('div', { class: 'label' }, `${lab.icon} ${pick(LabGame.meta.title, lang)}`),
+      el('p', {}, el('b', {}, pick(lab.title, lang))),
+      el('p', {}, pick(lab.question, lang)),
+      el('p', { class: 'muted' }, pick(LabGame.meta.how, lang))
     );
   }
 
@@ -249,7 +271,7 @@ async function openRoom() {
         const question = state.game.current;
         const res = state.game.handleAnswer(playerId, msg.value);
         // Сообщаем ученику итог ответа, чтобы он сохранился в его прогрессе
-        if (res && !res.ignored && question) {
+        if (res && !res.ignored && !res.vote && question) {
           state.room?.send(playerId, {
             type: 'result',
             correct: res.correct,
@@ -301,6 +323,7 @@ function pushToPhones() {
 
 async function startStage(stageIndex, customQuestions = null) {
   if (state.mode === 'investigation') return startInvestigation();
+  if (state.mode === 'lab') return startLab();
 
   state.stageIndex = stageIndex;
   const stage = state.plan[stageIndex];
@@ -353,6 +376,33 @@ async function startStage(stageIndex, customQuestions = null) {
 
   $('#gameName').textContent = `${GameClass.meta.icon} ${pick(GameClass.meta.title, getLang())}`;
   renderStages();
+  show('gameScreen');
+  await state.game.start();
+  pushToPhones();
+}
+
+// ─── 3a. Лаборатория ──────────────────────────────────────────────────────────
+
+async function startLab() {
+  const lab = getLab(state.labId);
+  if (!lab) return toast(t('empty_none'), { icon: '⚠️' });
+  state.topic = lab.topic;
+
+  state.game?.destroy();
+  state.game = new LabGame({
+    lab,
+    lang: getLang(),
+    perQuestionSec: 30,
+    onUpdate: (game, kind) => {
+      renderGame(game, kind);
+      if (kind !== 'tick') pushToPhones();
+      else if (game.timeLeft <= 5) pushToPhones();
+    }
+  });
+  state.players.forEach((p) => state.game.addPlayer({ id: p.id, name: p.name }));
+
+  $('#gameName').textContent = `${lab.icon} ${pick(LabGame.meta.title, getLang())}`;
+  $('#lessonTitle').textContent = pick(lab.title, getLang());
   show('gameScreen');
   await state.game.start();
   pushToPhones();
@@ -523,8 +573,8 @@ function renderGame(game, kind) {
   const reveal = game.state === 'reveal';
 
   // Варианты ответа — крупные, читаются с задней парты
-  if (game.renderOptions) {
-    game.renderOptions($('#options'), reveal);
+  if (game.renderOptions && game.renderOptions($('#options'), reveal) !== false) {
+    // игра нарисовала задание сама
   } else if (game.current && game.current.type !== 'choice') {
     // Ввод, сопоставление, сортировка — ученики отвечают на телефонах,
     // доска показывает задание, а после — правильный ответ
@@ -597,8 +647,13 @@ function showResults(game) {
   });
 
   const isCase = !!r.caseId;
+  const lang = getLang();
 
-  const title = isCase
+  const title = r.lab
+    ? t('lab_result')
+    : r.city
+      ? t('city_result', { n: r.city.score })
+      : isCase
     ? (r.verdict?.solved ? t('inv_solved') : t('inv_failed'))
     : r.lock
       ? (r.lock.opened === r.lock.total ? t('cl_opened', { code: r.lock.code }) : t('cl_partly', { n: r.lock.opened, total: r.lock.total }))
@@ -617,6 +672,12 @@ function showResults(game) {
     ]
     : [
       ...(r.lock ? [stat(`🔐 ${r.lock.opened}/${r.lock.total}`, t('cl_digits'))] : []),
+      ...(r.lab ? [stat(`🧪 ${r.lab.stepsDone}/${r.lab.stepsTotal}`, t('lab_steps'))] : []),
+      ...(r.city ? [
+        stat(`😊 ${r.city.happiness}`, t('city_happiness')),
+        stat(`🌿 ${r.city.ecology}`, t('city_ecology')),
+        stat(`🪙 ${r.city.coins}`, t('city_coins'))
+      ] : []),
       stat(r.correctAnswers, t('results_correct')),
       stat(r.totalAnswers - r.correctAnswers, t('results_wrong')),
       stat(`${r.accuracy}%`, t('analytics_class_average')),
@@ -625,11 +686,21 @@ function showResults(game) {
 
   // Разбор дела: логическая цепочка доказательств
   if (isCase) {
-    const lang = getLang();
     $('#leaderboard').replaceChildren(
       el('p', {}, `💡 ${pick(r.solution, lang)}`),
       el('div', { class: 'small muted' },
         `${t('inv_evidence')}: ${r.verdict?.matchedClues?.length || 0}/${r.verdict?.clues?.length || 0}`)
+    );
+  }
+
+  // Вывод опыта и сравнение с прогнозом класса
+  if (r.lab) {
+    $('#leaderboard').replaceChildren(
+      el('p', {}, el('b', {}, `✅ ${r.lab.hypothesis}`)),
+      el('p', {}, `💡 ${r.lab.conclusion}`),
+      r.lab.predictedPct !== null
+        ? el('div', { class: 'small muted' }, t('lab_predicted', { pct: r.lab.predictedPct }))
+        : null
     );
   }
 
@@ -650,7 +721,7 @@ function showResults(game) {
 
   // Лучшие ученики (в расследовании там показан разбор дела)
   const top = r.players.slice(0, 5);
-  if (!isCase) $('#leaderboard').replaceChildren(...(top.length
+  if (!isCase && !r.lab) $('#leaderboard').replaceChildren(...(top.length
     ? top.map((p, i) => el('div', { class: 'row between lead-row' },
       el('span', {}, `${['🥇', '🥈', '🥉'][i] || `${i + 1}.`} ${p.name}`),
       el('b', {}, `${p.score}`)))
@@ -660,6 +731,24 @@ function showResults(game) {
   const wrongIds = game.wrongQuestionIds();
   $('#repeatBtn').disabled = wrongIds.length === 0;
   $('#repeatBtn').textContent = isCase ? `🔁 ${t('inv_repeat_mistakes')}` : t('results_repeat_topic');
+
+  if (r.lab) {
+    $('#repeatBtn').onclick = () => {
+      const lab = getLab(r.lab.id);
+      const questions = lab.steps.filter((s) => wrongIds.includes(s.id));
+      if (!questions.length) return;
+      state.mode = 'lesson';
+      state.topic = lab.topic;
+      state.plan = [{ id: 'review', key: 'lesson_stage_practice', game: 'quickvote', questions: questions.length, minutes: 5, difficulty: [1, 2, 3] }];
+      state.stageIndex = 0;
+      toast(t('results_repeat_topic'), { icon: '🔁' });
+      startStage(0, questions);
+    };
+    $('#nextStageBtn').textContent = t('lesson_finish');
+    $('#nextStageBtn').onclick = () => finishLesson();
+    pushToPhones();
+    return;
+  }
 
   if (isCase) {
     // Повтор ошибок расследования — обычная викторина по тем же заданиям
@@ -754,6 +843,13 @@ function finishLesson() {
     };
   }
   if (FORMAT_GAMES.includes(params.get('game'))) state.mode = params.get('game');
+  if (getLab(params.get('lab'))) {
+    const lab = getLab(params.get('lab'));
+    state.mode = 'lab';
+    state.labId = lab.id;
+    state.subject = lab.subject;
+    state.topic = lab.topic;
+  }
   if (params.get('case')) {
     state.mode = 'investigation';
     state.caseId = params.get('case');
