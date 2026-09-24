@@ -15,8 +15,10 @@ import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, getQuestions, skillTi
 import { createRoom, joinUrl, renderQR } from './core/realtime.js';
 import QuickVoteGame from './games/quickvote/game.js';
 import TerritoryGame from './games/territory/game.js';
+import InvestigationGame, { PHASE } from './games/investigation/game.js';
+import { CASES, loadCase } from './data/investigations/index.js';
 
-const GAMES = { quickvote: QuickVoteGame, territory: TerritoryGame };
+const GAMES = { quickvote: QuickVoteGame, territory: TerritoryGame, investigation: InvestigationGame };
 
 /** План урока: этапы подбираются под выбранную длительность */
 function buildPlan(durationMin) {
@@ -41,6 +43,8 @@ function buildPlan(durationMin) {
 }
 
 const state = {
+  mode: 'lesson',      // 'lesson' | 'investigation'
+  caseId: null,
   subject: null,
   topic: null,
   duration: 30,
@@ -50,7 +54,8 @@ const state = {
   game: null,
   players: new Map(),   // playerId -> { id, name, team }
   lessonStats: { answered: 0, correct: 0, bySkill: {} },
-  repeatQuestions: null // вопросы для повторного прохождения по ошибкам
+  repeatQuestions: null, // вопросы для повторного прохождения по ошибкам
+  review: null           // { ids, skills } — повторение по ошибкам класса
 };
 
 // ─── Экраны ───────────────────────────────────────────────────────────────────
@@ -92,8 +97,11 @@ function renderSetup() {
     onclick: () => { state.duration = d; renderSetup(); }
   }, `${d} ${t('minutes')}`)));
 
-  // План урока — учитель сразу видит структуру
-  state.plan = buildPlan(state.duration);
+  // План урока — учитель сразу видит структуру.
+  // В режиме повторения — один этап из вопросов, где класс ошибся.
+  state.plan = state.review
+    ? [{ id: 'review', key: 'lesson_stage_practice', game: 'quickvote', questions: Math.max(4, state.review.ids.length), minutes: 10, difficulty: [1, 2, 3] }]
+    : buildPlan(state.duration);
   const topic = getTopic(state.topic);
   $('#planPreview').replaceChildren(
     el('div', { class: 'label' }, t('lesson_plan')),
@@ -103,6 +111,34 @@ function renderSetup() {
       el('span', { class: 'muted' }, ` · ${pick(GAMES[st.game].meta.title, lang)}`)
     )))
   );
+
+  // Выбор режима: обычный урок или расследование
+  const modeBox = $('#modeChips');
+  if (modeBox) {
+    modeBox.replaceChildren(
+      el('button', {
+        class: 'chip', type: 'button', 'aria-pressed': String(state.mode === 'lesson'),
+        onclick: () => { state.mode = 'lesson'; renderSetup(); }
+      }, `📘 ${t('lesson_plan')}`),
+      ...CASES.map((c) => el('button', {
+        class: 'chip', type: 'button',
+        'aria-pressed': String(state.mode === 'investigation' && state.caseId === c.id),
+        onclick: () => { state.mode = 'investigation'; state.caseId = c.id; renderSetup(); }
+      }, `🔍 ${t('inv_case_n', { n: c.number })}: ${pick(c.title, lang)}`))
+    );
+  }
+
+  // В режиме расследования план урока заменяется описанием дела
+  if (state.mode === 'investigation') {
+    const meta = CASES.find((c) => c.id === state.caseId) || CASES[0];
+    state.caseId = meta?.id || null;
+    state.topic = meta?.topic || state.topic;
+    $('#planPreview').replaceChildren(
+      el('div', { class: 'label' }, t('inv_title')),
+      el('p', {}, `${t('inv_case_n', { n: meta?.number })} — ${pick(meta?.title, lang)}`),
+      el('p', { class: 'muted' }, pick(InvestigationGame.meta.how, lang))
+    );
+  }
 
   $('#lessonTitle').textContent = topic ? pick(topic.title, lang) : '—';
   $('#lessonSub').textContent = topic
@@ -136,7 +172,15 @@ async function openRoom() {
       },
       onLeave: () => renderPlayers(),
       onMessage: (playerId, msg) => {
-        if (msg.type !== 'answer' || !state.game) return;
+        if (!state.game) return;
+
+        // Обвинение из телефона: подозреваемый + доказательства
+        if (msg.type === 'accuse') {
+          state.game.submitAccusation?.(playerId, msg);
+          return;
+        }
+
+        if (msg.type !== 'answer') return;
         const question = state.game.current;
         const res = state.game.handleAnswer(playerId, msg.value);
         // Сообщаем ученику итог ответа, чтобы он сохранился в его прогрессе
@@ -191,16 +235,33 @@ function pushToPhones() {
 // ─── 3. Запуск этапа ──────────────────────────────────────────────────────────
 
 async function startStage(stageIndex, customQuestions = null) {
+  if (state.mode === 'investigation') return startInvestigation();
+
   state.stageIndex = stageIndex;
   const stage = state.plan[stageIndex];
   if (!stage) return finishLesson();
 
   const GameClass = GAMES[stage.game];
-  const questions = customQuestions || await getQuestions({
-    topic: state.topic,
-    count: stage.questions,
-    difficulty: stage.difficulty
-  });
+  let questions = customQuestions;
+
+  if (!questions && state.review && stage.id === 'review') {
+    // Повторение строится на реальных ошибках класса
+    const wrong = state.review.ids.length
+      ? await getQuestions({ topic: state.topic, ids: state.review.ids })
+      : [];
+    const extra = state.review.skills.length
+      ? await getQuestions({ topic: state.topic, count: 4, skills: state.review.skills })
+      : [];
+    questions = [...new Map([...wrong, ...extra].map((q) => [q.id, q])).values()].slice(0, 12);
+  }
+
+  if (!questions) {
+    questions = await getQuestions({
+      topic: state.topic,
+      count: stage.questions,
+      difficulty: stage.difficulty
+    });
+  }
 
   if (!questions.length) {
     toast('Суроолор табылган жок', { icon: '⚠️' });
@@ -234,6 +295,137 @@ async function startStage(stageIndex, customQuestions = null) {
   pushToPhones();
 }
 
+// ─── 3b. Расследование ────────────────────────────────────────────────────────
+
+async function startInvestigation() {
+  const data = await loadCase(state.caseId);
+  if (!data) return toast(t('empty_none'), { icon: '⚠️' });
+
+  state.game?.destroy();
+  state.game = new InvestigationGame({
+    investigation: data,
+    lang: getLang(),
+    perQuestionSec: 40,
+    onUpdate: (game, kind) => {
+      renderGame(game, kind);
+      if (kind !== 'tick') pushToPhones();
+    }
+  });
+
+  state.players.forEach((p) => state.game.addPlayer({ id: p.id, name: p.name }));
+  state.game.splitTeams();
+  state.players.forEach((p) => { p.team = state.game.players.get(p.id)?.team || null; });
+
+  $('#gameName').textContent = `🔍 ${t('inv_case_n', { n: data.number })}`;
+  $('#lessonTitle').textContent = pick(data.title, getLang());
+  show('gameScreen');
+  await state.game.start();
+  pushToPhones();
+}
+
+/** Экраны расследования на доске: вступление, улика, обвинение, вердикт */
+function renderInvestigation(game) {
+  const lang = getLang();
+  const phase = game.phase;
+  const options = $('#options');
+  const explain = $('#explain');
+
+  $('#questionCounter').textContent = `${t('inv_clues')}: ${game.unlocked.size}/${game.clues.length}`;
+  $('#answeredCount').textContent = phase === PHASE.ACCUSE
+    ? t('game_waiting_answers', { answered: game.votes.size, total: game.players.size })
+    : (game.statusText ? game.statusText() : '');
+
+  if (phase === PHASE.INTRO) {
+    $('#prompt').textContent = pick(game.case.intro, lang);
+    explain.classList.add('hidden');
+    options.replaceChildren(el('button', {
+      class: 'btn primary big', type: 'button',
+      onclick: () => game.beginInvestigation()
+    }, `🔍 ${t('inv_start')}`));
+    return;
+  }
+
+  if (phase === PHASE.ACCUSE) {
+    $('#prompt').textContent = pick(game.case.final.question, lang);
+    explain.classList.remove('hidden');
+    explain.replaceChildren(el('span', {}, t('inv_accuse_hint', { n: game.case.final.requiredEvidence })));
+    options.replaceChildren(...game.suspects.map((sus) => {
+      const votes = [...game.votes.values()].filter((v) => v.suspect === sus.id).length;
+      return el('div', { class: 'option' },
+        el('span', { class: 'key', 'aria-hidden': 'true' }, sus.letter),
+        el('span', {}, `${sus.emoji} ${pick(sus.name, lang)}`),
+        votes ? el('span', { class: 'match-tag' }, String(votes)) : null
+      );
+    }));
+    return;
+  }
+
+  if (phase === PHASE.VERDICT) {
+    const v = game.verdict;
+    $('#prompt').textContent = v?.solved ? t('inv_solved') : t('inv_failed');
+    explain.classList.remove('hidden');
+    explain.replaceChildren(el('b', {}, `💡 `), el('span', {}, pick(game.case.final.solution, lang)));
+    options.replaceChildren();
+    return;
+  }
+
+  // Фаза улики: вопрос рисуется базовой логикой, а после ответа — содержание улики
+  const clue = game.currentClue;
+  $('#prompt').textContent = game.current?.prompt || '';
+  const reveal = game.state === 'reveal';
+
+  options.replaceChildren(...(game.current?.options || []).map((text, i) => el('div', {
+    class: `option ${reveal && i === game.current.correctIndex ? 'correct' : ''}`
+  },
+    el('span', { class: 'key', 'aria-hidden': 'true' }, String.fromCharCode(65 + i)),
+    el('span', {}, text)
+  )));
+
+  explain.classList.toggle('hidden', !reveal);
+  if (reveal && clue) {
+    explain.replaceChildren(
+      el('b', {}, `${clue.icon} ${pick(clue.title, lang)}: `),
+      el('span', {}, pick(clue.content, lang)),
+      el('div', { class: 'small muted', style: 'margin-top:6px' }, `🔎 ${pick(clue.insight, lang)}`)
+    );
+  }
+}
+
+/** Карта расследования: улики и подозреваемые — крупно, для доски */
+function renderInvestigationBoard(game, container) {
+  const lang = getLang();
+  container.replaceChildren(
+    el('div', { class: 'row between' },
+      el('b', {}, `🔍 ${t('inv_progress')}`),
+      el('span', { class: 'muted' }, `${game.unlocked.size}/${game.clues.length}`)
+    ),
+    el('div', { class: 'bar thick' }, el('i', { style: `width:${game.progress}%` })),
+    el('div', { class: 'clue-grid' }, game.clues.map((c) => {
+      const open = game.unlocked.has(c.id);
+      const key = game.case.final.keyClues.includes(c.id);
+      return el('div', {
+        class: `clue-cell ${open ? 'open' : ''} ${open && key ? 'key' : ''}`,
+        title: open ? pick(c.title, lang) : '?'
+      },
+        el('span', { class: 'clue-icon' }, open ? c.icon : '🔒'),
+        el('span', { class: 'clue-name' }, open ? pick(c.title, lang) : '?')
+      );
+    })),
+    el('div', { class: 'label', style: 'margin-top:10px' }, t('inv_suspects')),
+    el('div', { class: 'suspects' }, game.suspects.map((sus) => {
+      const votes = [...game.votes.values()].filter((v) => v.suspect === sus.id).length;
+      const shown = game.phase === PHASE.VERDICT && sus.id === game.case.final.guilty;
+      return el('div', { class: `suspect ${shown ? 'guilty' : ''}` },
+        el('span', { class: 'suspect-emoji' }, sus.emoji),
+        el('span', { class: 'suspect-letter' }, sus.letter),
+        el('span', { class: 'suspect-name' }, pick(sus.name, lang)),
+        el('span', { class: 'small muted' }, pick(sus.statement, lang)),
+        votes ? el('span', { class: 'match-tag' }, String(votes)) : null
+      );
+    }))
+  );
+}
+
 // ─── 4. Отрисовка игры на доске ───────────────────────────────────────────────
 
 function renderGame(game, kind) {
@@ -247,6 +439,20 @@ function renderGame(game, kind) {
 
   if (game.state === 'finished') return showResults(game);
 
+  // Расследование рисуется по-своему: улики, подозреваемые, обвинение
+  if (state.mode === 'investigation' && game.case) {
+    renderInvestigation(game);
+    renderInvestigationBoard(game, $('#gameExtra'));
+    renderPlayers();
+    if (game.state === 'reveal' && !game._revealTimer) {
+      game._revealTimer = setTimeout(() => {
+        game._revealTimer = null;
+        game.nextQuestion();
+      }, 6000);
+    }
+    return;
+  }
+
   $('#questionCounter').textContent = t('game_question', { n: `${game.current?.number || 0}/${game.questionCount}` });
   $('#answeredCount').textContent = game.statusText ? game.statusText() : '';
   $('#prompt').textContent = game.current?.prompt || '';
@@ -254,12 +460,27 @@ function renderGame(game, kind) {
   const reveal = game.state === 'reveal';
 
   // Варианты ответа — крупные, читаются с задней парты
-  if (game.current?.type === 'input') {
-    // Ответ вводят на телефонах: на доске показываем подсказку, а после — верный ответ
+  if (game.current && game.current.type !== 'choice') {
+    // Ввод, сопоставление, сортировка — ученики отвечают на телефонах,
+    // доска показывает задание, а после — правильный ответ
+    const hint = { input: '⌨️', match: '🔗', sort: '↕️', multiple: '☑️' }[game.current.type] || '📱';
+    const preview = game.current.type === 'match'
+      ? el('div', { class: 'match-box' },
+        el('div', { class: 'match-col' }, game.current.pairs.left.map((x) => el('div', { class: 'option' }, x))),
+        el('div', { class: 'match-col' }, game.current.pairs.right.map((x) => el('div', { class: 'option' }, x.text))))
+      : game.current.type === 'sort'
+        ? el('div', { class: 'sort-box' }, game.current.items.map((x) => el('div', { class: 'option' }, x.text)))
+        : game.current.type === 'multiple'
+          ? el('div', { class: 'options' }, game.current.options.map((x, i) => el('div', {
+            class: `option ${reveal && game.current.correctSet.has(i) ? 'correct' : ''}`
+          }, el('span', { class: 'key' }, String.fromCharCode(65 + i)), el('span', {}, x))))
+          : null;
+
     $('#options').replaceChildren(el('div', { class: 'input-note' },
+      preview,
       reveal
-        ? el('div', { class: 'answer-big' }, `${t('game_correct_answer')}: ${game.current.answer?.[0] ?? ''}`)
-        : el('div', { class: 'muted center' }, `⌨️ ${t('join_look_at_board')}`)
+        ? el('div', { class: 'answer-big', style: 'font-size:clamp(1.2rem,3vw,2rem);margin-top:10px' }, `${t('game_correct_answer')}: ${game.correctText()}`)
+        : el('div', { class: 'muted center', style: 'margin-top:10px' }, `${hint} 📱`)
     ));
   } else {
     $('#options').replaceChildren(...(game.current?.options || []).map((text, i) => el('div', {
@@ -308,17 +529,39 @@ function showResults(game) {
     acc.ok += s.ok; acc.total += s.total;
   });
 
-  const title = r.teams
-    ? (r.winner === 'draw' ? t('results_draw') : t('results_team_won', { team: r.winner === 'A' ? t('board_team_a') : t('board_team_b') }))
-    : t('results_title');
+  const isCase = !!r.caseId;
+
+  const title = isCase
+    ? (r.verdict?.solved ? t('inv_solved') : t('inv_failed'))
+    : (r.teams
+      ? (r.winner === 'draw' ? t('results_draw') : t('results_team_won', { team: r.winner === 'A' ? t('board_team_a') : t('board_team_b') }))
+      : t('results_title'));
   $('#resultTitle').textContent = title;
 
-  $('#resultStats').replaceChildren(
-    stat(r.correctAnswers, t('results_correct')),
-    stat(r.totalAnswers - r.correctAnswers, t('results_wrong')),
-    stat(`${r.accuracy}%`, t('analytics_class_average')),
-    stat(fmtTime(r.durationSec), t('game_time'))
-  );
+  $('#resultStats').replaceChildren(...(isCase
+    ? [
+      stat(`${r.cluesFound}/${r.cluesTotal}`, t('inv_clues')),
+      stat(`${r.correctAnswers}/${r.totalAnswers}`, t('results_correct')),
+      stat(`${r.accuracy}%`, t('accuracy')),
+      stat(r.players[0]?.score || 0, 'XP'),
+      stat(fmtTime(r.durationSec), t('game_time'))
+    ]
+    : [
+      stat(r.correctAnswers, t('results_correct')),
+      stat(r.totalAnswers - r.correctAnswers, t('results_wrong')),
+      stat(`${r.accuracy}%`, t('analytics_class_average')),
+      stat(fmtTime(r.durationSec), t('game_time'))
+    ]));
+
+  // Разбор дела: логическая цепочка доказательств
+  if (isCase) {
+    const lang = getLang();
+    $('#leaderboard').replaceChildren(
+      el('p', {}, `💡 ${pick(r.solution, lang)}`),
+      el('div', { class: 'small muted' },
+        `${t('inv_evidence')}: ${r.verdict?.matchedClues?.length || 0}/${r.verdict?.clues?.length || 0}`)
+    );
+  }
 
   // Разбор по навыкам: видно, что именно не усвоено
   const rows = Object.entries(r.bySkill).map(([skill, s]) => {
@@ -335,16 +578,41 @@ function showResults(game) {
   });
   $('#skillBreakdown').replaceChildren(...(rows.length ? rows : [el('p', { class: 'muted' }, t('results_nothing_wrong'))]));
 
-  // Лучшие ученики
+  // Лучшие ученики (в расследовании там показан разбор дела)
   const top = r.players.slice(0, 5);
-  $('#leaderboard').replaceChildren(...(top.length
+  if (!isCase) $('#leaderboard').replaceChildren(...(top.length
     ? top.map((p, i) => el('div', { class: 'row between lead-row' },
       el('span', {}, `${['🥇', '🥈', '🥉'][i] || `${i + 1}.`} ${p.name}`),
       el('b', {}, `${p.score}`)))
     : [el('p', { class: 'muted' }, t('board_waiting'))]));
 
+
   const wrongIds = game.wrongQuestionIds();
   $('#repeatBtn').disabled = wrongIds.length === 0;
+  $('#repeatBtn').textContent = isCase ? `🔁 ${t('inv_repeat_mistakes')}` : t('results_repeat_topic');
+
+  if (isCase) {
+    // Повтор ошибок расследования — обычная викторина по тем же заданиям
+    $('#repeatBtn').onclick = async () => {
+      const wrongClues = game.case.clues.filter((c) => wrongIds.includes(c.id));
+      const questions = wrongClues.map((c) => ({
+        id: c.id, skill: c.skill, difficulty: game.case.difficulty || 2, ...c.question
+      }));
+      if (!questions.length) return;
+
+      state.mode = 'lesson';
+      state.topic = game.case.topic;
+      state.plan = [{ id: 'review', key: 'lesson_stage_practice', game: 'quickvote', questions: questions.length, minutes: 5, difficulty: [1, 2, 3] }];
+      state.stageIndex = 0;
+      toast(t('inv_repeat_mistakes'), { icon: '🔁' });
+      startStage(0, questions);
+    };
+    $('#nextStageBtn').textContent = t('lesson_finish');
+    $('#nextStageBtn').onclick = () => finishLesson();
+    pushToPhones();
+    return;
+  }
+
   $('#repeatBtn').onclick = async () => {
     // Новая игра ровно по тем вопросам, где класс ошибся
     const all = await getQuestions({ topic: state.topic, count: 50 });
@@ -408,6 +676,16 @@ function finishLesson() {
   if (params.get('subject')) state.subject = params.get('subject');
   if (params.get('topic')) state.topic = params.get('topic');
   if (params.get('duration')) state.duration = Number(params.get('duration')) || 30;
+  if (params.get('mode') === 'review') {
+    state.review = {
+      ids: (params.get('questions') || '').split(',').filter(Boolean),
+      skills: (params.get('skills') || '').split(',').filter(Boolean)
+    };
+  }
+  if (params.get('case')) {
+    state.mode = 'investigation';
+    state.caseId = params.get('case');
+  }
 
   renderSetup();
   show('setupScreen');
@@ -440,6 +718,7 @@ function finishLesson() {
 
   // Комната живёт в этой вкладке — предупреждаем о закрытии
   window.addEventListener('beforeunload', (e) => {
-    if (state.room && state.players.size > 0) { e.preventDefault(); e.returnValue = ''; }
+    const active = navigator.userActivation ? navigator.userActivation.hasBeenActive : true;
+    if (active && state.room && state.players.size > 0) { e.preventDefault(); e.returnValue = ''; }
   });
 })();

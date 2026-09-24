@@ -12,6 +12,7 @@ import { joinRoom } from './core/realtime.js';
 import { getProfile, quickJoinProfile } from './core/profile.js';
 import { store } from './core/store.js';
 import { recordAnswer } from './core/progress.js';
+import { renderQuestion } from './core/quiz-ui.js';
 
 const conn = { room: null, spec: null, topic: null };
 
@@ -35,28 +36,95 @@ function render(spec) {
 
   switch (spec.screen) {
     case 'answer': {
-      status.replaceChildren(
+      status.replaceChildren(...[
+        spec.clue ? el('div', { class: 'chip on' }, `${spec.clue.icon} ${spec.clue.title}`) : null,
         el('div', { class: 'small muted' }, `${spec.number} / ${spec.total}`),
         el('h2', {}, spec.prompt)
-      );
+      ].filter(Boolean));
       $('#footHint').textContent = t('game_time') + ': ' + (spec.timeLeft ?? '');
 
-      if (spec.type === 'input') {
-        inputBox.classList.remove('hidden');
-        $('#answerInput').value = '';
-        $('#answerInput').focus();
-      } else {
-        options.classList.remove('hidden');
-        (spec.options || []).forEach((text, i) => {
-          options.append(el('button', {
-            class: 'option', type: 'button',
-            onclick: () => sendAnswer(i)
-          },
-            el('span', { class: 'key', 'aria-hidden': 'true' }, String.fromCharCode(65 + i)),
-            el('span', {}, text)
-          ));
-        });
+      // Все типы заданий рисует общий модуль — телефон не знает логики проверки
+      options.classList.remove('hidden');
+      renderQuestion(options, spec, { onAnswer: (value) => sendAnswer(value) });
+      break;
+    }
+
+    case 'accuse': {
+      // Бланк обвинения: подозреваемый + минимум N улик.
+      // Перерисовываем только состояние кнопок, чтобы не терять прокрутку.
+      if (spec.sent) {
+        status.replaceChildren(
+          el('div', { class: 'big-emoji' }, '⏳'),
+          el('h2', {}, t('join_answer_sent'))
+        );
+        $('#footHint').textContent = t('inv_accuse');
+        break;
       }
+
+      const chosen = { suspect: null, clues: new Set() };
+
+      status.replaceChildren(
+        el('div', { class: 'big-emoji' }, '🔍'),
+        el('h2', {}, t('inv_accuse')),
+        el('p', { class: 'small muted' }, t('inv_accuse_hint', { n: spec.required }))
+      );
+
+      const sendBtn = el('button', {
+        class: 'btn primary big block', type: 'button', style: 'margin-top:12px', disabled: true,
+        onclick: () => {
+          if (!chosen.suspect || chosen.clues.size < spec.required) return;
+          conn.room?.send({ type: 'accuse', suspect: chosen.suspect, clues: [...chosen.clues] });
+          sfx.tap();
+          render({ screen: 'sent', score: spec.score });
+        }
+      }, `✓ ${t('confirm_choice')}`);
+
+      const refresh = () => {
+        sendBtn.disabled = !chosen.suspect || chosen.clues.size < spec.required;
+        sendBtn.textContent = chosen.clues.size < spec.required
+          ? `${chosen.clues.size}/${spec.required} · ${t('inv_evidence')}`
+          : `✓ ${t('confirm_choice')}`;
+      };
+
+      const suspectBtns = spec.suspects.map((s) => el('button', {
+        class: 'option', type: 'button', 'aria-pressed': 'false',
+        onclick: (e) => {
+          chosen.suspect = s.id;
+          suspectBtns.forEach((b) => { b.classList.remove('chosen'); b.setAttribute('aria-pressed', 'false'); });
+          e.currentTarget.classList.add('chosen');
+          e.currentTarget.setAttribute('aria-pressed', 'true');
+          refresh();
+        }
+      },
+        el('span', { class: 'key', 'aria-hidden': 'true' }, s.letter),
+        el('span', {}, `${s.emoji} ${s.name}`)
+      ));
+
+      const clueBtns = spec.clues.map((c) => {
+        const mark = el('span', { class: 'key', 'aria-hidden': 'true' }, '☐');
+        return el('button', {
+          class: 'option', type: 'button', 'aria-pressed': 'false',
+          onclick: (e) => {
+            const on = chosen.clues.has(c.id);
+            if (on) chosen.clues.delete(c.id); else chosen.clues.add(c.id);
+            e.currentTarget.classList.toggle('chosen', !on);
+            e.currentTarget.setAttribute('aria-pressed', String(!on));
+            mark.textContent = on ? '☐' : '☑';
+            refresh();
+          }
+        }, mark, el('span', {}, `${c.icon} ${c.title}`));
+      });
+
+      options.classList.remove('hidden');
+      options.replaceChildren(
+        el('div', { class: 'label' }, t('inv_suspects')),
+        ...suspectBtns,
+        el('div', { class: 'label', style: 'margin-top:10px' }, t('inv_evidence')),
+        ...clueBtns,
+        sendBtn
+      );
+      refresh();
+      $('#footHint').textContent = t('inv_accuse');
       break;
     }
 
@@ -111,7 +179,7 @@ function sendAnswer(value) {
   conn.room.send({ type: 'answer', value });
   // Мгновенная реакция, не дожидаясь ответа доски
   render({ screen: 'sent', score: conn.spec?.score });
-  if (navigator.vibrate) navigator.vibrate(20);
+  if (navigator.vibrate && navigator.userActivation?.hasBeenActive) navigator.vibrate(20);
 }
 
 // ─── Подключение ──────────────────────────────────────────────────────────────

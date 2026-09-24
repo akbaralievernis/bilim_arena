@@ -7,7 +7,9 @@
 
 import { bootstrap, mountHeader, el, $, toast } from './core/ui.js';
 import { t, pick, getLang } from './core/i18n.js';
-import { SUBJECTS, TOPICS, getTopic, getSubject, skillTitle } from './core/curriculum.js';
+import { SUBJECTS, TOPICS, getTopic, getSubject, skillTitle, findQuestion } from './core/curriculum.js';
+import { store, KEYS } from './core/store.js';
+import { loadCase, CASES } from './data/investigations/index.js';
 import { getProgress, knowledgeMap, weakSkills, reviewSuggestions, history, BADGES, migrateLegacy } from './core/progress.js';
 import { getProfile, saveProfile, AVATARS } from './core/profile.js';
 
@@ -80,10 +82,48 @@ async function renderReview() {
     class: 'btn', href: `./practice.html?topic=${s.id}`
   }, `🔁 ${pick(s.topic.title, lang)} — ${Math.round(s.mastery * 100)}%`));
 
+  // Последние ошибки — всегда с объяснением, а не просто «неверно»
+  const explained = await recentMistakes(4);
+
   $('#reviewList').replaceChildren(
     ...(items.length ? items : [el('p', { class: 'muted' }, t('results_nothing_wrong'))]),
+    ...(explained.length ? [el('div', { class: 'label', style: 'margin-top:14px' }, t('review_you_should'))] : []),
+    ...explained,
     ...(suggestions.length ? [el('div', { class: 'row', style: 'margin-top:10px' }, suggestions)] : [])
   );
+}
+
+/** Ошибки из общей аналитики + текст вопроса и объяснение */
+async function recentMistakes(limit) {
+  const lang = getLang();
+  const errors = (await store.get(KEYS.errors, [])).slice().reverse();
+  const seen = new Set();
+  const cards = [];
+
+  for (const e of errors) {
+    if (cards.length >= limit) break;
+    const key = `${e.topic}::${e.questionId}`;
+    if (seen.has(key) || !e.questionId) continue;
+    seen.add(key);
+
+    let q = await findQuestion(e.topic, e.questionId);
+    // Вопросы расследований хранятся в файлах дел
+    if (!q && e.gameId === 'investigation') {
+      for (const meta of CASES.filter((c) => c.topic === e.topic)) {
+        const data = await loadCase(meta.id);
+        const clue = data?.clues.find((c) => c.id === e.questionId);
+        if (clue) { q = clue.question; break; }
+      }
+    }
+    if (!q) continue;
+
+    cards.push(el('div', { class: 'card plain', style: 'margin-bottom:8px' },
+      el('div', { class: 'small muted' }, `⚠️ ${skillTitle(e.topic, e.skill, lang)} · ${pick(getTopic(e.topic)?.title, lang)}`),
+      el('b', {}, pick(q.prompt ?? q.question, lang)),
+      el('p', { class: 'small', style: 'margin:6px 0 0' }, `💡 ${pick(q.explain ?? q.explanation, lang)}`)
+    ));
+  }
+  return cards;
 }
 
 async function renderBadges() {

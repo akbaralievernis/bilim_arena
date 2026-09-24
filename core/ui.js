@@ -97,8 +97,9 @@ const STUDENT_NAV = [
 
 const TEACHER_NAV = [
   { href: 'teacher.html', key: 'nav_dashboard', icon: '🧭' },
+  { href: 'homework.html', key: 'nav_assignments', icon: '📝' },
+  { href: 'questions.html', key: 'nav_builder', icon: '🛠️' },
   { href: 'teacher.html#classes', key: 'nav_classes', icon: '👥' },
-  { href: 'teacher.html#lessons', key: 'nav_lessons', icon: '📘' },
   { href: 'teacher.html#results', key: 'nav_results', icon: '📊' }
 ];
 
@@ -109,11 +110,16 @@ const TEACHER_NAV = [
 export function mountHeader(target, { role = 'student', active = '' } = {}) {
   const items = role === 'teacher' ? TEACHER_NAV : STUDENT_NAV;
 
+  // На планшете подписи прячутся, остаются иконки — меню помещается целиком
   const nav = el('nav', { class: 'nav', 'aria-label': t('nav_home') },
     items.map((it) => el('a', {
       href: it.href,
+      title: t(it.key),
       ...(active === it.href ? { 'aria-current': 'page' } : {})
-    }, `${it.icon} ${t(it.key)}`))
+    },
+      el('span', { class: 'nav-icon', 'aria-hidden': 'true' }, it.icon),
+      el('span', { class: 'nav-label' }, t(it.key))
+    ))
   );
 
   const langBtn = el('button', {

@@ -184,3 +184,37 @@ body.controller {
   .game-foot { flex-wrap: wrap; }
   .game-foot .btn { flex: 1 1 140px; }
 }
+
+
+/* ─── Расследование ───────────────────────────────────────────────────────── */
+.clue-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 8px;
+  margin: 10px 0;
+}
+.clue-cell {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 0.7em 0.4em; border-radius: 14px; text-align: center;
+  border: 2px dashed var(--line); background: var(--surface);
+  min-height: 84px; justify-content: center;
+}
+.clue-cell.open { border-style: solid; border-color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, var(--surface)); }
+.clue-cell.key { border-color: var(--warn); box-shadow: 0 0 0 2px color-mix(in srgb, var(--warn) 30%, transparent); }
+.clue-icon { font-size: 1.6rem; line-height: 1; }
+.clue-name { font-size: 0.7rem; font-weight: 700; line-height: 1.2; }
+
+.suspects { display: grid; gap: 8px; }
+.suspect {
+  display: grid; grid-template-columns: auto auto 1fr auto; gap: 6px 10px; align-items: center;
+  padding: 0.6em 0.8em; border-radius: 14px;
+  border: 1px solid var(--line); background: var(--surface);
+}
+.suspect .small { grid-column: 1 / -1; }
+.suspect.guilty { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, var(--surface)); }
+.suspect-emoji { font-size: 1.4rem; }
+.suspect-letter {
+  width: 1.8em; height: 1.8em; border-radius: 8px; display: grid; place-items: center;
+  background: var(--surface-2); font-family: var(--font-title); font-weight: 900;
+}
+.suspect-name { font-weight: 700; }

@@ -11,6 +11,16 @@ import { pick } from './i18n.js';
 import { shuffleOptions } from './curriculum.js';
 import { recordAnswer, recordGame } from './progress.js';
 
+const norm = (v) => String(v ?? '').trim().toLowerCase().replace(/\s+/g, '');
+
+function shuffleArray(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 /** Состояния игры */
 export const STATE = {
   IDLE: 'idle',
@@ -129,15 +139,49 @@ export class BaseGame {
     if (this.index >= this.questionCount) return this.finish('completed');
 
     const q = this.ctx.questions[this.index];
-    const shuffled = q.type === 'input' ? null : shuffleOptions(q, this.ctx.lang);
+    const type = q.type || 'choice';
+    const lang = this.ctx.lang;
+
+    // Для каждого типа готовим то, что нужно показать и с чем сравнить ответ
+    let options = null, correctIndex = null, correctSet = null, pairs = null, items = null;
+
+    if (type === 'choice') {
+      // Варианты перемешиваются: правильный не должен быть всегда первым
+      const sh = shuffleOptions(q, lang);
+      options = sh.options.map((o) => o.text);
+      correctIndex = sh.correctIndex;
+    } else if (type === 'multiple') {
+      const order = (q.options || []).map((_, i) => i);
+      shuffleArray(order);
+      options = order.map((i) => pick(q.options[i], lang));
+      correctSet = new Set(order.map((orig, pos) => ((q.correct || []).includes(orig) ? pos : -1)).filter((x) => x >= 0));
+    } else if (type === 'match') {
+      // Левый столбец по порядку, правый — перемешанный
+      pairs = {
+        left: (q.pairs || []).map(([l]) => pick(l, lang)),
+        right: shuffleArray((q.pairs || []).map(([, r], i) => ({ text: pick(r, lang), index: i })))
+      };
+    } else if (type === 'sort') {
+      const correctOrder = (q.items || []).map((x, i) => ({ text: pick(x, lang), index: i }));
+      items = shuffleArray(correctOrder.slice());
+      // если перемешивание совпало с правильным порядком — меняем местами два элемента
+      if (items.length > 1 && items.every((x, i) => x.index === i)) {
+        [items[0], items[1]] = [items[1], items[0]];
+      }
+    }
+
     this.current = {
       raw: q,
       number: this.index + 1,
-      prompt: pick(q.prompt, this.ctx.lang),
-      explain: pick(q.explain, this.ctx.lang),
-      type: q.type || 'choice',
-      options: shuffled ? shuffled.options.map((o) => o.text) : null,
-      correctIndex: shuffled ? shuffled.correctIndex : null,
+      prompt: pick(q.prompt, lang),
+      explain: pick(q.explain, lang),
+      type,
+      options,
+      correctIndex,
+      correctSet,
+      pairs,
+      items,
+      numeric: !!q.numeric,
       answer: q.answer || null,
       skill: q.skill,
       startedAt: Date.now()
@@ -181,12 +225,42 @@ export class BaseGame {
   }
 
   checkAnswer(value) {
-    if (!this.current) return false;
-    if (this.current.type === 'input') {
-      const given = String(value).trim().toLowerCase().replace(/\s+/g, '');
-      return (this.current.answer || []).some((a) => String(a).trim().toLowerCase().replace(/\s+/g, '') === given);
+    const c = this.current;
+    if (!c) return false;
+
+    switch (c.type) {
+      case 'input': {
+        if (c.numeric) {
+          const a = Number(String(value).replace(',', '.'));
+          return (c.answer || []).some((x) => Math.abs(Number(String(x).replace(',', '.')) - a) < 1e-9);
+        }
+        const given = norm(value);
+        return (c.answer || []).some((a) => norm(a) === given);
+      }
+
+      case 'multiple': {
+        // Верно, только если отмечены все нужные варианты и ничего лишнего
+        const given = new Set((Array.isArray(value) ? value : [value]).map(Number));
+        if (given.size !== c.correctSet.size) return false;
+        for (const i of c.correctSet) if (!given.has(i)) return false;
+        return true;
+      }
+
+      case 'match': {
+        // value: массив индексов правого столбца для каждой левой строки
+        const given = Array.isArray(value) ? value : [];
+        return c.pairs.left.every((_, i) => c.pairs.right[given[i]]?.index === i);
+      }
+
+      case 'sort': {
+        // value: порядок элементов (индексы в показанном списке)
+        const given = Array.isArray(value) ? value : [];
+        return given.length === c.items.length && given.every((pos, i) => c.items[pos]?.index === i);
+      }
+
+      default:
+        return Number(value) === c.correctIndex;
     }
-    return Number(value) === this.current.correctIndex;
   }
 
   /** Очки за ответ. Быстрый верный ответ ценится выше — но только верный. */
@@ -314,7 +388,7 @@ export class BaseGame {
       return {
         screen: 'reveal',
         correct: answered?.correct ?? null,
-        correctText: this.current?.options?.[this.current.correctIndex] ?? (this.current?.answer?.[0] || ''),
+        correctText: this.correctText(),
         explain: this.current?.explain || '',
         score: player?.score || 0
       };
@@ -328,11 +402,27 @@ export class BaseGame {
         type: this.current.type,
         prompt: this.current.prompt,
         options: this.current.options,
+        pairs: this.current.pairs,
+        items: this.current.items,
+        numeric: this.current.numeric,
         timeLeft: this.timeLeft,
         team: player?.team || null
       };
     }
     return { screen: 'wait', team: player?.team || null, score: player?.score || 0 };
+  }
+
+  /** Текст правильного ответа — нужен и доске, и телефону */
+  correctText() {
+    const c = this.current;
+    if (!c) return '';
+    switch (c.type) {
+      case 'input': return c.answer?.[0] || '';
+      case 'multiple': return [...c.correctSet].map((i) => c.options[i]).join(', ');
+      case 'match': return c.pairs.left.map((l, i) => `${l} → ${c.pairs.right.find((r) => r.index === i)?.text}`).join('; ');
+      case 'sort': return c.items.slice().sort((a, b) => a.index - b.index).map((x) => x.text).join(' → ');
+      default: return c.options?.[c.correctIndex] ?? '';
+    }
   }
 
   // ── Таймер ────────────────────────────────────────────────────────────────

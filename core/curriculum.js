@@ -9,6 +9,7 @@
  */
 
 import { pick } from './i18n.js';
+import { engineQuestions as teacherQuestions, engineQuestionsByIds } from './questions.js';
 
 /** Предметы платформы. `bank` — есть ли уже банк вопросов. */
 export const SUBJECTS = [
@@ -161,15 +162,28 @@ const shuffle = (arr) => {
  * @param {number[]} opts.difficulty — например [1,2]
  * @param {string[]} opts.types   — 'choice' | 'input' | 'order' | 'truefalse'
  */
-export async function getQuestions({ topic, count = 10, skills, difficulty, types } = {}) {
-  let list = await loadBank(topic);
+export async function getQuestions({ topic, count = 10, skills, difficulty, types, ids, includeCustom = true } = {}) {
+  // Явный список вопросов (домашнее задание с ручным выбором)
+  if (ids?.length) {
+    const bank = await loadBank(topic);
+    const fromBank = bank.filter((q) => ids.includes(q.id));
+    const fromTeacher = await engineQuestionsByIds(ids.filter((id) => !fromBank.some((q) => q.id === id)));
+    return [...fromBank, ...fromTeacher];
+  }
+
+  // Вопросы предмета + вопросы, созданные учителем в конструкторе
+  const bank = await loadBank(topic);
+  const custom = includeCustom ? await teacherQuestions({ topic }) : [];
+  const pool = [...bank, ...custom];
+
+  let list = pool;
   if (skills?.length) list = list.filter((q) => skills.includes(q.skill));
   if (difficulty?.length) list = list.filter((q) => difficulty.includes(q.difficulty ?? 1));
   if (types?.length) list = list.filter((q) => types.includes(q.type || 'choice'));
 
-  // Если отфильтровали слишком сильно — добираем из общего банка темы
+  // Если отфильтровали слишком сильно — добираем из общего набора темы
   if (list.length < count) {
-    const rest = (await loadBank(topic)).filter((q) => !list.includes(q));
+    const rest = pool.filter((q) => !list.includes(q));
     list = list.concat(shuffle(rest).slice(0, count - list.length));
   }
   return shuffle(list).slice(0, count);
@@ -183,4 +197,16 @@ export function shuffleOptions(question, lang) {
     options: mixed,
     correctIndex: mixed.findIndex((o) => o.index === (question.correct ?? 0))
   };
+}
+
+/**
+ * Найти вопрос по id — нужен для разбора ошибок с объяснением.
+ * Ищет в банке темы и среди вопросов учителя.
+ */
+export async function findQuestion(topicId, questionId) {
+  const bank = await loadBank(topicId);
+  const fromBank = bank.find((q) => q.id === questionId);
+  if (fromBank) return fromBank;
+  const [custom] = await engineQuestionsByIds([questionId]);
+  return custom || null;
 }

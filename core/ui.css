@@ -368,3 +368,52 @@ p { margin: 0 0 0.8em; }
 .badge-icon { font-size: 2rem; line-height: 1.2; }
 .plan-list { margin: 0; padding-left: 1.2em; }
 .plan-list li { margin-bottom: 0.3em; }
+
+/* ─── Задания: сопоставление, сортировка, ввод ────────────────────────────── */
+.match-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.match-col { display: grid; gap: 8px; align-content: start; }
+.match-left, .match-right { justify-content: flex-start; }
+.match-tag {
+  margin-left: auto; padding: 0.2em 0.6em; border-radius: 8px;
+  background: var(--primary); color: #fff; font-size: 0.8rem; white-space: nowrap;
+}
+.sort-box { display: grid; gap: 8px; }
+.sort-row { cursor: default; }
+.sort-buttons { display: flex; gap: 4px; }
+.sort-buttons .btn { min-height: 40px; min-width: 40px; padding: 0 0.6em; }
+.answer-review { text-align: center; }
+@media (max-width: 520px) {
+  .match-box { grid-template-columns: 1fr; }
+  .match-col + .match-col { border-top: 1px dashed var(--line); padding-top: 10px; }
+}
+
+/* ─── Домашние задания ────────────────────────────────────────────────────── */
+.hw-card { display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: inherit; }
+.hw-status { padding: 0.25em 0.8em; border-radius: 999px; font-size: 0.78rem; font-weight: 800; }
+.hw-status.new { background: color-mix(in srgb, var(--primary) 22%, transparent); color: var(--primary); }
+.hw-status.progress { background: color-mix(in srgb, var(--warn) 22%, transparent); color: var(--warn); }
+.hw-status.done { background: color-mix(in srgb, var(--ok) 22%, transparent); color: var(--ok); }
+.hw-status.late { background: color-mix(in srgb, var(--bad) 22%, transparent); color: var(--bad); }
+.hw-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.85rem; color: var(--text-soft); }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.q-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0.7em; border-radius: 14px; border: 1px solid var(--line); background: var(--surface);
+}
+.q-row.sel { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, var(--surface)); }
+.q-row .q-text { flex: 1; min-width: 0; }
+.q-row .q-text b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Планшет: меню из иконок, чтобы все пункты были видны */
+@media (min-width: 721px) and (max-width: 1100px) {
+  .nav .nav-label { display: none; }
+  .nav a { min-width: var(--tap); justify-content: center; font-size: 1.2rem; }
+}
+
+/* Чекбоксы в списках — под палец, а не 13px */
+.q-row input[type='checkbox'] {
+  width: 28px; height: 28px; flex: none;
+  accent-color: var(--primary); cursor: pointer;
+}
+.q-row { cursor: pointer; }

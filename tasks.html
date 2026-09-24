@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
-  <meta name="description" content="Билим Арена — өз алдынча машыгуу: теманы тандап, суроолорго жооп бериңиз." />
-  <title>Машыгуу — Билим Арена</title>
+  <meta name="description" content="Билим Арена — үй тапшырмалар: мугалим берген тапшырмаларды аткарып, каталарыңызды талдаңыз." />
+  <title>Үй тапшырмалар — Билим Арена</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="./core/ui.css?v=4" />
   <link rel="stylesheet" href="./home.css?v=4" />
@@ -17,40 +17,32 @@
 
   <main id="main" class="wrap stack" style="padding-top:20px;padding-bottom:40px">
 
-    <!-- Выбор темы -->
-    <section class="stack" id="pickScreen">
-      <h1 data-i18n="nav_practice">Машыгуу</h1>
-      <div class="card stack">
-        <div class="label" data-i18n="lesson_subject">Предмет</div>
-        <div class="chips" id="subjectChips"></div>
-        <div class="label" data-i18n="topic_choose">Теманы тандаңыз</div>
-        <div class="grid auto" id="topicGrid"></div>
+    <!-- Список заданий -->
+    <section class="stack" id="listScreen">
+      <div class="row between">
+        <h1 data-i18n="hw_title">Үй тапшырмалар</h1>
+        <span class="chip" id="countChip"></span>
       </div>
+      <div class="grid auto" id="taskList"></div>
     </section>
 
-    <!-- Экран «перед игрой»: цель, правила, время -->
+    <!-- Перед началом: цель, правила, срок -->
     <section class="card pad-lg stack hidden" id="introScreen">
       <div class="center stack">
-        <div class="entry-icon" id="introIcon">🎯</div>
+        <div class="entry-icon">📝</div>
         <h1 id="introTitle"></h1>
-        <p class="muted" id="introSubject"></p>
+        <p class="muted" id="introMeta"></p>
       </div>
-      <div class="grid two">
-        <div class="card plain">
-          <div class="label" data-i18n="game_goal">Максат</div>
-          <p id="introGoal"></p>
-        </div>
-        <div class="card plain">
-          <div class="label" data-i18n="game_how">Кантип ойнойт</div>
-          <p id="introHow"></p>
-        </div>
+      <div class="hw-meta" id="introDetails"></div>
+      <div class="card plain">
+        <div class="label" data-i18n="game_how">Кантип ойнойт</div>
+        <p id="introHow"></p>
       </div>
-      <div class="stats" id="introStats"></div>
-      <button class="btn primary big block" id="startBtn" type="button" data-i18n="game_start">Оюнду баштоо</button>
+      <button class="btn primary big block" id="startBtn" type="button" data-i18n="hw_start">Баштоо</button>
       <button class="btn ghost block" id="backBtn" type="button" data-i18n="back">Артка</button>
     </section>
 
-    <!-- Игра -->
+    <!-- Выполнение -->
     <section class="stack hidden" id="playScreen">
       <div class="row between">
         <span class="chip" id="counter"></span>
@@ -59,11 +51,7 @@
       <div class="bar"><i id="progressBar" style="width:0%"></i></div>
       <div class="card pad-lg stack">
         <div class="question-prompt" id="prompt"></div>
-        <div class="options" id="options"></div>
-        <div id="inputWrap" class="hidden">
-          <input class="input" id="answerInput" style="text-align:center;font-size:1.3rem" />
-          <button class="btn primary big block" id="sendBtn" type="button" style="margin-top:10px">✓</button>
-        </div>
+        <div id="answerArea"></div>
         <div class="explain hidden" id="explain"></div>
       </div>
     </section>
@@ -73,15 +61,17 @@
       <div class="center stack">
         <div class="entry-icon" id="resultIcon">🎉</div>
         <h1 data-i18n="results_title">Жыйынтык</h1>
+        <p class="muted" id="resultXP"></p>
       </div>
       <div class="stats" id="resultStats"></div>
       <div>
         <div class="label" data-i18n="results_mistakes">Каталар боюнча</div>
         <div id="skillBreakdown"></div>
       </div>
+      <div id="mistakeList"></div>
       <div class="row">
         <button class="btn danger" id="repeatBtn" type="button" data-i18n="results_repeat_topic">Теманы кайталоо</button>
-        <button class="btn primary" id="againBtn" type="button" data-i18n="retry">Кайра аракет</button>
+        <button class="btn" id="toListBtn" type="button" data-i18n="hw_title">Үй тапшырмалар</button>
         <a class="btn ghost" href="./progress.html" data-i18n="nav_progress">Прогресс</a>
       </div>
     </section>
@@ -89,6 +79,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./practice.js?v=4"></script>
+  <script type="module" src="./tasks.js?v=4"></script>
 </body>
 </html>

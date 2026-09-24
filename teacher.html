@@ -7,7 +7,8 @@
   <meta name="description" content="Билим Арена — мугалимдин панели: сабак өткөрүү, класстар, жыйынтыктар жана каталардын анализи." />
   <title>Мугалимдин панели — Билим Арена</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./core/ui.css?v=3" />
+  <link rel="stylesheet" href="./core/ui.css?v=4" />
+  <link rel="stylesheet" href="./home.css?v=4" />
 </head>
 
 <body>
@@ -45,6 +46,20 @@
       <p class="small muted center" id="startHint"></p>
     </section>
 
+    <!-- Быстрые разделы -->
+    <section class="grid auto">
+      <a class="entry card" href="./homework.html">
+        <div class="entry-icon" aria-hidden="true">📝</div>
+        <h2 data-i18n="hw_title">Үй тапшырмалар</h2>
+        <p class="muted" data-i18n="hw_create">Тапшырма түзүү</p>
+      </a>
+      <a class="entry card" href="./questions.html">
+        <div class="entry-icon" aria-hidden="true">🛠️</div>
+        <h2 data-i18n="qb_title">Менин суроолорум</h2>
+        <p class="muted" data-i18n="qb_create">Суроо түзүү</p>
+      </a>
+    </section>
+
     <!-- Классы -->
     <section class="card stack" id="classes">
       <div class="row between">
@@ -58,7 +73,7 @@
     <section class="card stack" id="results">
       <h2 style="margin:0" data-i18n="nav_results">Жыйынтыктар</h2>
       <div class="stats" id="resultStats"></div>
-      <h3 data-i18n="analytics_common_mistakes">Көп кездешкен каталар</h3>
+      <h3 data-i18n="review_topics_teacher">Кайталоону талап кылган темалар</h3>
       <div id="mistakeList"></div>
       <div class="row">
         <button class="btn danger" id="reviewGameBtn" type="button">
@@ -72,6 +87,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./teacher.js?v=3"></script>
+  <script type="module" src="./teacher.js?v=4"></script>
 </body>
 </html>

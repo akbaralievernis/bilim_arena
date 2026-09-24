@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ky" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="description" content="Билим Арена — мугалим үчүн үй тапшырмалар: түзүү, жыйынтыктар жана каталардын анализи." />
+  <title>Үй тапшырмалар — Билим Арена</title>
+  <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./core/ui.css?v=4" />
+  <link rel="stylesheet" href="./home.css?v=4" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Мазмунга өтүү</a>
+  <div id="header"></div>
+
+  <main id="main" class="wrap stack" style="padding-top:20px;padding-bottom:40px">
+
+    <!-- Список заданий с аналитикой -->
+    <section class="stack" id="listScreen">
+      <div class="row between">
+        <h1 data-i18n="hw_title">Үй тапшырмалар</h1>
+        <div class="row" style="gap:8px">
+          <a class="btn ghost" href="./questions.html" data-i18n="qb_title">Менин суроолорум</a>
+          <button class="btn primary" id="createBtn" type="button">➕ <span data-i18n="hw_create">Тапшырма түзүү</span></button>
+        </div>
+      </div>
+      <div class="grid auto" id="assignmentList"></div>
+    </section>
+
+    <!-- Форма создания / редактирования -->
+    <section class="card pad-lg stack hidden" id="formScreen">
+      <h1 id="formTitle" data-i18n="hw_create">Тапшырма түзүү</h1>
+
+      <div class="form-grid">
+        <label class="field">
+          <span class="label" data-i18n="hw_name">Тапшырманын аты</span>
+          <input class="input" id="fTitle" maxlength="60" />
+        </label>
+
+        <label class="field">
+          <span class="label" data-i18n="lesson_subject">Предмет</span>
+          <select class="input" id="fSubject"></select>
+        </label>
+
+        <label class="field">
+          <span class="label" data-i18n="lesson_grade">Класс</span>
+          <select class="input" id="fGrade"></select>
+        </label>
+
+        <label class="field">
+          <span class="label" data-i18n="hw_section">Бөлүм</span>
+          <input class="input" id="fSection" readonly />
+        </label>
+
+        <label class="field">
+          <span class="label" data-i18n="lesson_topic">Тема</span>
+          <select class="input" id="fTopic"></select>
+        </label>
+
+        <label class="field">
+          <span class="label" data-i18n="hw_skill">Көндүм</span>
+          <select class="input" id="fSkill"></select>
+        </label>
+
+        <label class="field">
+          <span class="label" data-i18n="hw_difficulty">Татаалдыгы</span>
+          <select class="input" id="fDifficulty"></select>
+        </label>
+
+        <label class="field">
+          <span class="label" data-i18n="hw_count">Суроолордун саны</span>
+          <input class="input" id="fCount" type="number" min="3" max="30" value="10" />
+        </label>
+
+        <label class="field">
+          <span class="label" data-i18n="hw_class">Класс</span>
+          <select class="input" id="fClass"></select>
+        </label>
+
+        <label class="field">
+          <span class="label" data-i18n="hw_assigned_at">Берилген күнү</span>
+          <input class="input" id="fAssigned" type="date" />
+        </label>
+
+        <label class="field">
+          <span class="label" data-i18n="hw_due_at">Аяктоо мөөнөтү</span>
+          <input class="input" id="fDue" type="date" />
+        </label>
+
+        <label class="field">
+          <span class="label" data-i18n="hw_attempts">Аракеттердин саны</span>
+          <input class="input" id="fAttempts" type="number" min="1" max="10" value="2" />
+        </label>
+
+        <label class="field">
+          <span class="label" data-i18n="hw_xp">XP</span>
+          <input class="input" id="fXP" type="number" min="10" max="500" step="10" value="50" />
+        </label>
+      </div>
+
+      <div class="card plain stack">
+        <div class="row" style="gap:8px">
+          <button class="chip on" id="modeAuto" type="button" data-i18n="hw_auto_questions">Суроолорду система тандасын</button>
+          <button class="chip" id="modePick" type="button" data-i18n="hw_pick_questions">Даяр суроолордон тандоо</button>
+        </div>
+        <div id="pickBox" class="stack hidden">
+          <div class="small muted" id="pickCount"></div>
+          <div class="stack" id="pickList" style="max-height:320px;overflow:auto"></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn primary big" id="saveBtn" type="button" data-i18n="save">Сактоо</button>
+        <button class="btn ghost" id="cancelBtn" type="button" data-i18n="cancel">Жокко чыгаруу</button>
+      </div>
+    </section>
+
+    <!-- Подробная аналитика задания -->
+    <section class="card pad-lg stack hidden" id="statsScreen">
+      <div class="row between">
+        <h1 id="statsTitle"></h1>
+        <button class="btn ghost" id="statsBackBtn" type="button" data-i18n="back">Артка</button>
+      </div>
+      <p class="muted" id="statsMeta"></p>
+      <div class="stats" id="statsNumbers"></div>
+
+      <div class="grid two">
+        <div class="card plain stack">
+          <h2 data-i18n="analytics_common_mistakes">Көп кездешкен каталар</h2>
+          <div id="statsSkills"></div>
+          <button class="btn danger" id="reviewBtn" type="button">
+            🔁 <span data-i18n="results_repeat_topic">Теманы кайталоо</span>
+          </button>
+        </div>
+        <div class="card plain stack">
+          <h2 data-i18n="nav_results">Жыйынтыктар</h2>
+          <div id="statsStudents"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toasts"></div>
+  <script type="module" src="./homework.js?v=4"></script>
+</body>
+</html>

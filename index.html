@@ -13,8 +13,8 @@
   <meta property="og:description" content="Сабакты интерактивдүү оюнга айландыруучу платформа" />
   <meta property="og:image" content="./assets/suilom.webp" />
 
-  <link rel="stylesheet" href="./core/ui.css?v=3" />
-  <link rel="stylesheet" href="./home.css?v=3" />
+  <link rel="stylesheet" href="./core/ui.css?v=4" />
+  <link rel="stylesheet" href="./home.css?v=4" />
 </head>
 
 <body>
@@ -65,7 +65,10 @@
               <span class="small muted" id="profileLevel"></span>
             </div>
           </div>
-          <a class="btn" href="./progress.html" data-i18n="nav_progress">Прогресс</a>
+          <div class="row" style="gap:8px">
+            <a class="btn" href="./tasks.html" data-i18n="nav_tasks">Тапшырмалар</a>
+            <a class="btn" href="./progress.html" data-i18n="nav_progress">Прогресс</a>
+          </div>
         </div>
         <div class="bar thick"><i id="xpBar" style="width:0%"></i></div>
         <div class="stats" id="quickStats"></div>
@@ -100,6 +103,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./home.js?v=3"></script>
+  <script type="module" src="./home.js?v=4"></script>
 </body>
 </html>

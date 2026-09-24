@@ -10,6 +10,7 @@ import { bootstrap, mountHeader, el, $, toast, sfx, confetti, fmtTime } from './
 import { t, pick, getLang } from './core/i18n.js';
 import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, getQuestions, skillTitle } from './core/curriculum.js';
 import { BaseGame } from './core/engine.js';
+import { renderQuestion } from './core/quiz-ui.js';
 import { topicState, getProgress } from './core/progress.js';
 import { getProfile } from './core/profile.js';
 
@@ -139,29 +140,20 @@ function renderGame(game, kind) {
   $('#progressBar').style.width = `${((game.index) / game.questionCount) * 100}%`;
   $('#prompt').textContent = game.current?.prompt || '';
 
-  const isInput = game.current?.type === 'input';
-  $('#inputWrap').classList.toggle('hidden', !isInput || reveal);
-  $('#options').classList.toggle('hidden', isInput);
-
-  if (isInput) {
-    if (!reveal) $('#answerInput').value = '';
-  } else {
-    $('#options').replaceChildren(...(game.current?.options || []).map((text, i) => el('button', {
-      class: `option ${reveal && i === game.current.correctIndex ? 'correct' : ''}` +
-             `${reveal && answered && Number(answered.value) === i && !answered.correct ? ' wrong' : ''}`,
-      type: 'button',
-      disabled: reveal || !!answered,
-      onclick: () => answer(i)
-    },
-      el('span', { class: 'key', 'aria-hidden': 'true' }, String.fromCharCode(65 + i)),
-      el('span', {}, text)
-    )));
-  }
+  // Один рендерер для всех типов: выбор, ввод, сопоставление, сортировка…
+  $('#inputWrap').classList.add('hidden');
+  $('#options').classList.remove('hidden');
+  renderQuestion($('#options'), game.current, {
+    reveal,
+    given: answered?.value ?? null,
+    correct: answered?.correct ?? null,
+    onAnswer: (value) => answer(value)
+  });
 
   const explain = $('#explain');
   explain.classList.toggle('hidden', !reveal);
   if (reveal) {
-    const correctText = isInput ? (game.current.answer?.[0] || '') : game.current.options[game.current.correctIndex];
+    const correctText = game.correctText();
     explain.replaceChildren(
       el('b', {}, answered?.correct ? `✅ ${t('game_correct')} ` : `❌ ${t('game_correct_answer')}: ${correctText} `),
       el('span', {}, game.current.explain || '')
@@ -246,7 +238,7 @@ async function showResults(game) {
     if ($('#playScreen').classList.contains('hidden')) return;
     const n = parseInt(e.key, 10);
     if (n >= 1 && n <= 4) {
-      const btn = $('#options').children[n - 1];
+      const btn = $('#options').querySelectorAll('.option')[n - 1];
       if (btn && !btn.disabled) btn.click();
     }
   });
