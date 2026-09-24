@@ -1,5 +1,5 @@
 /* Билим Арена — офлайн кэш. Файлдар өзгөргөндө VERSION'ду көбөйтүңүз. */
-const VERSION = 'ba-v8';
+const VERSION = 'ba-v9';
 const CORE = [
   './', './index.html', './home.css', './home.js',
   './board.html', './board.js', './play.html', './play.js',
@@ -15,7 +15,7 @@ const CORE = [
   './core/questions.js', './core/assignments.js', './core/quiz-ui.js', './core/sync.js',
   './locales/ky.js', './locales/ru.js', './locales/en.js',
   './games/quickvote/game.js', './games/territory/game.js',
-  './games/investigation/game.js',
+  './games/investigation/game.js', './games/errorhunt/game.js', './games/timeline/game.js',
   './data/investigations/index.js', './data/investigations/case-001-museum.js',
   // Банки вопросов
   './data/questions/math-6-fractions.js',

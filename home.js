@@ -40,6 +40,39 @@ const GAMES = [
     subject: { ky: 'Бардык предметтер', ru: 'Любой предмет', en: 'Any subject' }
   },
   {
+    id: 'investigation', icon: '🔍', kind: 'board',
+    href: './board.html?case=case-001-museum', grad: 'linear-gradient(135deg,#334155,#7c3aed)',
+    title: { ky: 'Тергөө', ru: 'Расследование', en: 'Investigation' },
+    desc: {
+      ky: 'Музейде эмне болду? Тапшырмаларды чечип, далилдерди ачып, күнөөлүүнү табыңыз',
+      ru: 'Что случилось в музее? Решайте задания, открывайте улики и найдите виновного',
+      en: 'What happened at the museum? Solve tasks, unlock clues and find the culprit'
+    },
+    subject: { ky: 'Математика, логика', ru: 'Математика, логика', en: 'Maths, logic' }
+  },
+  {
+    id: 'errorhunt', icon: '🖍️', kind: 'board',
+    href: './board.html?game=errorhunt&subject=math&topic=math-6-fractions', grad: 'linear-gradient(135deg,#ef4444,#f59e0b)',
+    title: { ky: 'Мугалимдин катасы', ru: 'Ошибка учителя', en: "Teacher's mistake" },
+    desc: {
+      ky: 'Мугалим чечимде ката кетирди — класс ката кеткен сапты табат',
+      ru: 'Учитель ошибся в решении — класс ищет строку с ошибкой',
+      en: 'The teacher made a mistake — the class finds the wrong line'
+    },
+    subject: { ky: 'Математика, информатика', ru: 'Математика, информатика', en: 'Maths, computer science' }
+  },
+  {
+    id: 'timeline', icon: '⏳', kind: 'board',
+    href: './board.html?game=timeline&subject=kg-history&topic=kg-history-8-independence', grad: 'linear-gradient(135deg,#f97316,#b45309)',
+    title: { ky: 'Тарых картасы', ru: 'Карта истории', en: 'History map' },
+    desc: {
+      ky: 'Окуяларды убакыт боюнча иреттеп, линияны бүт класс менен куруңуз',
+      ru: 'Расставьте события по времени и постройте линию всем классом',
+      en: 'Put events in order and build the timeline together'
+    },
+    subject: { ky: 'Тарых', ru: 'История', en: 'History' }
+  },
+  {
     id: 'flashcards', icon: '📇', kind: 'solo', href: './games/flashcards/index.html',
     grad: 'linear-gradient(135deg,#6366f1,#ec4899)',
     title: { ky: 'Сөз карточкалары', ru: 'Карточки слов', en: 'Flashcards' },

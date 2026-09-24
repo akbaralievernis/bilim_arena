@@ -264,5 +264,12 @@ export default {
   game_errorhunt: 'Teacher mistake',
   game_errorhunt_goal: 'Find the mistake in the solution',
   game_sort: 'Sorting',
-  game_sort_goal: 'Put the items in the right order'
+  game_sort_goal: 'Put the items in the right order',
+
+  // "Teacher's mistake" and "History map"
+  eh_votes: '{n} students',
+  eh_line_n: 'Line {n}',
+  tl_order_hint: 'Order the events, earliest first',
+  tl_placed: 'Placed correctly: {pct}%',
+  tl_hardest: 'The class got this one wrong most often'
 };

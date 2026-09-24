@@ -104,5 +104,32 @@ export default [
       { ky: 'Сан', ru: 'Число', en: 'A number' }
     ], correct: 0,
     explain: { ky: 'Рецепт — так кадамдардын ырааттуулугу, демек алгоритм.', ru: 'Рецепт — точная последовательность шагов, то есть алгоритм.', en: 'A recipe is a precise sequence of steps — an algorithm.' }
+  },
+  // ─── «Ошибка учителя»: найдите строку кода с ошибкой ──────────────────────
+  {
+    id: 'a-err-01', skill: 'loop', difficulty: 2, type: 'choice', errorHunt: true,
+    prompt: { ky: 'Программа 1ден 5ке чейинки сандардын суммасын табышы керек. Кайсы сапта ката?', ru: 'Программа должна найти сумму чисел от 1 до 5. В какой строке ошибка?', en: 'The program should sum the numbers 1 to 5. Which line is wrong?' },
+    options: ['s = 0', 'for i in range(1, 6):', '    s = s * i', 'print(s)'],
+    correct: 2,
+    explain: { ky: 'Сумма үчүн кошуу керек: s = s + i. Көбөйтсөк, жооп 0 бойдон калат.', ru: 'Для суммы нужно сложение: s = s + i. При умножении ответ останется 0.', en: 'A sum needs addition: s = s + i. Multiplying keeps the result at 0.' }
+  },
+  {
+    id: 'a-err-02', skill: 'condition', difficulty: 2, type: 'choice', errorHunt: true,
+    prompt: { ky: 'Программа жуп сандарды «жуп» деп жазышы керек. Ката кайсы сапта?', ru: 'Программа должна писать «чётное» для чётных чисел. Где ошибка?', en: 'The program should print "even" for even numbers. Where is the mistake?' },
+    options: ['n = int(input())', 'if n % 2 == 1:', "    print('жуп / even')"],
+    correct: 1,
+    explain: { ky: 'Жуп сан 2ге калдыксыз бөлүнөт: n % 2 == 0.', ru: 'Чётное число делится на 2 без остатка: n % 2 == 0.', en: 'An even number has no remainder: n % 2 == 0.' }
+  },
+  // ─── Последовательность шагов алгоритма ───────────────────────────────────
+  {
+    id: 'a-seq-01', skill: 'sequence', difficulty: 1, type: 'sort',
+    prompt: { ky: 'Чай даярдоо алгоритминин кадамдарын иреттеңиз', ru: 'Расставьте шаги алгоритма «Приготовить чай»', en: 'Order the steps of the "make tea" algorithm' },
+    items: [
+      { ky: 'Чайнекке суу куюу', ru: 'Налить воду в чайник', en: 'Pour water into the kettle' },
+      { ky: 'Сууну кайнатуу', ru: 'Вскипятить воду', en: 'Boil the water' },
+      { ky: 'Чыныга чай салуу', ru: 'Положить чай в чашку', en: 'Put tea in the cup' },
+      { ky: 'Кайнак сууну куюу', ru: 'Залить кипятком', en: 'Pour in the boiling water' }
+    ],
+    explain: { ky: 'Ар бир кадам мурунку кадамдын жыйынтыгына таянат.', ru: 'Каждый шаг опирается на результат предыдущего.', en: 'Each step depends on the result of the previous one.' }
   }
 ];

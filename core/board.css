@@ -218,3 +218,6 @@ body.controller {
   background: var(--surface-2); font-family: var(--font-title); font-weight: 900;
 }
 .suspect-name { font-weight: 700; }
+
+/* Игры со своим видом задания (строки решения, линия времени) — на всю ширину */
+#options > .options, #options > .timeline, #options > .sort-box, #options > .full { grid-column: 1 / -1; }

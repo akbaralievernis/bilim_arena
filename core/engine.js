@@ -182,6 +182,7 @@ export class BaseGame {
       pairs,
       items,
       numeric: !!q.numeric,
+      errorHunt: !!q.errorHunt,
       answer: q.answer || null,
       skill: q.skill,
       startedAt: Date.now()
@@ -203,7 +204,7 @@ export class BaseGame {
 
     const ms = Date.now() - this.current.startedAt;
     const correct = this.checkAnswer(value);
-    const points = this.scoreAnswer({ correct, ms, player });
+    const points = this.scoreAnswer({ correct, ms, player, value });
 
     this.answers.set(playerId, { value, correct, ms, points });
     player.total += 1;
@@ -405,6 +406,7 @@ export class BaseGame {
         pairs: this.current.pairs,
         items: this.current.items,
         numeric: this.current.numeric,
+        errorHunt: this.current.errorHunt,
         timeLeft: this.timeLeft,
         team: player?.team || null
       };

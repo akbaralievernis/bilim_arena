@@ -38,7 +38,7 @@ const letter = (i) => String.fromCharCode(65 + i);
 // ─── Один правильный ответ (и «поиск ошибки») ─────────────────────────────────
 
 function renderChoice(host, q, { onAnswer, reveal, given }) {
-  const box = el('div', { class: 'options' });
+  const box = el('div', { class: q.errorHunt ? 'options solution-lines' : 'options' });
   (q.options || []).forEach((text, i) => {
     const isCorrect = reveal && i === q.correctIndex;
     const isWrong = reveal && given !== null && Number(given) === i && i !== q.correctIndex;
@@ -48,8 +48,8 @@ function renderChoice(host, q, { onAnswer, reveal, given }) {
       disabled: reveal || given !== null,
       onclick: () => onAnswer?.(i)
     },
-      el('span', { class: 'key', 'aria-hidden': 'true' }, letter(i)),
-      el('span', {}, text)
+      el('span', { class: 'key', 'aria-hidden': 'true' }, q.errorHunt ? String(i + 1) : letter(i)),
+      el('span', { class: q.errorHunt ? 'line-text' : '' }, text)
     ));
   });
   host.append(box);

@@ -161,8 +161,10 @@ const shuffle = (arr) => {
  * @param {string[]} opts.skills  — только эти навыки (для повторения ошибок)
  * @param {number[]} opts.difficulty — например [1,2]
  * @param {string[]} opts.types   — 'choice' | 'input' | 'order' | 'truefalse'
+ * @param {function} opts.filter  — отбор под формат игры (например, только «поиск ошибки»)
+ * @param {boolean} opts.strict   — не добирать вопросы другого формата
  */
-export async function getQuestions({ topic, count = 10, skills, difficulty, types, ids, includeCustom = true } = {}) {
+export async function getQuestions({ topic, count = 10, skills, difficulty, types, ids, filter, strict = false, includeCustom = true } = {}) {
   // Явный список вопросов (домашнее задание с ручным выбором)
   if (ids?.length) {
     const bank = await loadBank(topic);
@@ -174,7 +176,7 @@ export async function getQuestions({ topic, count = 10, skills, difficulty, type
   // Вопросы предмета + вопросы, созданные учителем в конструкторе
   const bank = await loadBank(topic);
   const custom = includeCustom ? await teacherQuestions({ topic }) : [];
-  const pool = [...bank, ...custom];
+  const pool = filter ? [...bank, ...custom].filter(filter) : [...bank, ...custom];
 
   let list = pool;
   if (skills?.length) list = list.filter((q) => skills.includes(q.skill));
@@ -182,7 +184,7 @@ export async function getQuestions({ topic, count = 10, skills, difficulty, type
   if (types?.length) list = list.filter((q) => types.includes(q.type || 'choice'));
 
   // Если отфильтровали слишком сильно — добираем из общего набора темы
-  if (list.length < count) {
+  if (list.length < count && !strict) {
     const rest = pool.filter((q) => !list.includes(q));
     list = list.concat(shuffle(rest).slice(0, count - list.length));
   }
@@ -192,7 +194,8 @@ export async function getQuestions({ topic, count = 10, skills, difficulty, type
 /** Варианты ответа в перемешанном порядке (правильный не всегда первый) */
 export function shuffleOptions(question, lang) {
   const opts = (question.options || []).map((o, i) => ({ text: pick(o, lang), index: i }));
-  const mixed = shuffle(opts);
+  // В «поиске ошибки» варианты — строки решения, их порядок важен
+  const mixed = question.errorHunt ? opts : shuffle(opts);
   return {
     options: mixed,
     correctIndex: mixed.findIndex((o) => o.index === (question.correct ?? 0))

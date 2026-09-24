@@ -15,11 +15,37 @@ import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, getQuestions, skillTi
 import { createRoom, joinUrl, renderQR } from './core/realtime.js';
 import QuickVoteGame from './games/quickvote/game.js';
 import TerritoryGame from './games/territory/game.js';
+import ErrorHuntGame from './games/errorhunt/game.js';
+import TimelineGame from './games/timeline/game.js';
 import InvestigationGame, { PHASE } from './games/investigation/game.js';
 import { CASES, loadCase } from './data/investigations/index.js';
 import { packAssignments, mergeSubmissions } from './core/sync.js';
 
-const GAMES = { quickvote: QuickVoteGame, territory: TerritoryGame, investigation: InvestigationGame };
+const GAMES = {
+  quickvote: QuickVoteGame, territory: TerritoryGame, investigation: InvestigationGame,
+  errorhunt: ErrorHuntGame, timeline: TimelineGame
+};
+
+/** Игры со своим форматом заданий — запускаются отдельным режимом */
+const FORMAT_GAMES = ['errorhunt', 'timeline'];
+
+/** Сколько заданий нужного формата есть в теме: { topicId: { errorhunt: n, timeline: n } } */
+const formatCounts = new Map();
+
+async function countFormats(topicId) {
+  if (formatCounts.has(topicId)) return formatCounts.get(topicId);
+  const topic = getTopic(topicId);
+  const counts = {};
+  for (const id of FORMAT_GAMES) {
+    const G = GAMES[id];
+    const allowed = !G.meta.subjects || G.meta.subjects.includes(topic?.subject);
+    counts[id] = allowed
+      ? (await getQuestions({ topic: topicId, count: 100, filter: G.questionFilter, strict: true })).length
+      : 0;
+  }
+  formatCounts.set(topicId, counts);
+  return counts;
+}
 
 /** План урока: этапы подбираются под выбранную длительность */
 function buildPlan(durationMin) {
@@ -44,7 +70,7 @@ function buildPlan(durationMin) {
 }
 
 const state = {
-  mode: 'lesson',      // 'lesson' | 'investigation'
+  mode: 'lesson',      // 'lesson' | 'investigation' | 'errorhunt' | 'timeline'
   caseId: null,
   subject: null,
   topic: null,
@@ -100,9 +126,19 @@ function renderSetup() {
 
   // План урока — учитель сразу видит структуру.
   // В режиме повторения — один этап из вопросов, где класс ошибся.
+  const counts = formatCounts.get(state.topic);
+  if (!counts) {
+    // Узнаём, есть ли в теме задания для отдельных игр, и перерисовываем
+    countFormats(state.topic).then(() => renderSetup());
+  } else if (FORMAT_GAMES.includes(state.mode) && !counts[state.mode]) {
+    state.mode = 'lesson'; // в новой теме нет заданий этого формата
+  }
+
   state.plan = state.review
     ? [{ id: 'review', key: 'lesson_stage_practice', game: 'quickvote', questions: Math.max(4, state.review.ids.length), minutes: 10, difficulty: [1, 2, 3] }]
-    : buildPlan(state.duration);
+    : FORMAT_GAMES.includes(state.mode)
+      ? [{ id: state.mode, key: 'lesson_stage_practice', game: state.mode, questions: Math.min(8, counts?.[state.mode] || 0), minutes: 10, difficulty: [1, 2, 3] }]
+      : buildPlan(state.duration);
   const topic = getTopic(state.topic);
   $('#planPreview').replaceChildren(
     el('div', { class: 'label' }, t('lesson_plan')),
@@ -121,11 +157,23 @@ function renderSetup() {
         class: 'chip', type: 'button', 'aria-pressed': String(state.mode === 'lesson'),
         onclick: () => { state.mode = 'lesson'; renderSetup(); }
       }, `📘 ${t('lesson_plan')}`),
+      // Отдельные игры — только если в теме есть задания их формата
+      ...FORMAT_GAMES.filter((id) => counts?.[id] > 0).map((id) => el('button', {
+        class: 'chip', type: 'button', 'aria-pressed': String(state.mode === id),
+        onclick: () => { state.mode = id; renderSetup(); }
+      }, `${GAMES[id].meta.icon} ${pick(GAMES[id].meta.title, lang)}`)),
       ...CASES.map((c) => el('button', {
         class: 'chip', type: 'button',
         'aria-pressed': String(state.mode === 'investigation' && state.caseId === c.id),
         onclick: () => { state.mode = 'investigation'; state.caseId = c.id; renderSetup(); }
       }, `🔍 ${t('inv_case_n', { n: c.number })}: ${pick(c.title, lang)}`))
+    );
+  }
+
+  if (FORMAT_GAMES.includes(state.mode)) {
+    const meta = GAMES[state.mode].meta;
+    $('#planPreview').append(
+      el('p', { class: 'muted', style: 'margin-top:8px' }, pick(meta.how, lang))
     );
   }
 
@@ -267,11 +315,9 @@ async function startStage(stageIndex, customQuestions = null) {
   }
 
   if (!questions) {
-    questions = await getQuestions({
-      topic: state.topic,
-      count: stage.questions,
-      difficulty: stage.difficulty
-    });
+    questions = await getQuestions(GameClass.questionFilter
+      ? { topic: state.topic, count: stage.questions, filter: GameClass.questionFilter, strict: true }
+      : { topic: state.topic, count: stage.questions, difficulty: stage.difficulty });
   }
 
   if (!questions.length) {
@@ -471,7 +517,9 @@ function renderGame(game, kind) {
   const reveal = game.state === 'reveal';
 
   // Варианты ответа — крупные, читаются с задней парты
-  if (game.current && game.current.type !== 'choice') {
+  if (game.renderOptions) {
+    game.renderOptions($('#options'), reveal);
+  } else if (game.current && game.current.type !== 'choice') {
     // Ввод, сопоставление, сортировка — ученики отвечают на телефонах,
     // доска показывает задание, а после — правильный ответ
     const hint = { input: '⌨️', match: '🔗', sort: '↕️', multiple: '☑️' }[game.current.type] || '📱';
@@ -494,12 +542,14 @@ function renderGame(game, kind) {
         : el('div', { class: 'muted center', style: 'margin-top:10px' }, `${hint} 📱`)
     ));
   } else {
-    $('#options').replaceChildren(...(game.current?.options || []).map((text, i) => el('div', {
-      class: `option ${reveal && i === game.current.correctIndex ? 'correct' : ''}`
-    },
-      el('span', { class: 'key', 'aria-hidden': 'true' }, String.fromCharCode(65 + i)),
-      el('span', {}, text)
-    )));
+    const lines = !!game.current?.errorHunt;
+    $('#options').replaceChildren(el('div', { class: lines ? 'options solution-lines' : 'options' },
+      (game.current?.options || []).map((text, i) => el('div', {
+        class: `option ${reveal && i === game.current.correctIndex ? (lines ? 'wrong-line' : 'correct') : ''}`
+      },
+        el('span', { class: 'key', 'aria-hidden': 'true' }, lines ? String(i + 1) : String.fromCharCode(65 + i)),
+        el('span', { class: lines ? 'line-text' : '' }, text)
+      ))));
   }
 
   const explain = $('#explain');
@@ -632,7 +682,8 @@ function showResults(game) {
     const extra = weakSkills.length
       ? await getQuestions({ topic: state.topic, count: 4, skills: weakSkills })
       : [];
-    const set = [...new Map([...wrong, ...extra].map((q) => [q.id, q])).values()];
+    const fits = GAMES[state.plan[state.stageIndex]?.game]?.questionFilter || (() => true);
+    const set = [...new Map([...wrong, ...extra].filter(fits).map((q) => [q.id, q])).values()];
     toast(t('results_repeat_topic'), { icon: '🔁' });
     startStage(state.stageIndex, set.slice(0, 8));
   };
@@ -693,6 +744,7 @@ function finishLesson() {
       skills: (params.get('skills') || '').split(',').filter(Boolean)
     };
   }
+  if (FORMAT_GAMES.includes(params.get('game'))) state.mode = params.get('game');
   if (params.get('case')) {
     state.mode = 'investigation';
     state.caseId = params.get('case');

@@ -213,5 +213,42 @@ export default [
       ru: '2×3 = 6, 3×4 = 12, значит 6/12 = 1/2.',
       en: '2×3 = 6 and 3×4 = 12, so 6/12 = 1/2.'
     }
+  },
+  // ─── «Ошибка учителя»: найдите неверную строку решения ────────────────────
+  {
+    id: 'f-err-01', skill: 'add-sub', difficulty: 2, type: 'choice', errorHunt: true,
+    prompt: { ky: 'Мугалим 1/2 + 1/3 эсептеди. Кайсы сапта ката бар?', ru: 'Учитель вычислил 1/2 + 1/3. В какой строке ошибка?', en: 'The teacher computed 1/2 + 1/3. Which line has the mistake?' },
+    options: [
+      { ky: 'Жалпы бөлүм — 6', ru: 'Общий знаменатель — 6', en: 'Common denominator is 6' },
+      '1/2 = 3/6,  1/3 = 2/6',
+      '3/6 + 2/6 = 5/12'
+    ],
+    correct: 2,
+    explain: { ky: 'Бөлүмдөр кошулбайт: 3/6 + 2/6 = 5/6.', ru: 'Знаменатели не складываются: 3/6 + 2/6 = 5/6.', en: 'Denominators are not added: 3/6 + 2/6 = 5/6.' }
+  },
+  {
+    id: 'f-err-02', skill: 'compare', difficulty: 2, type: 'choice', errorHunt: true,
+    prompt: { ky: 'Мугалим 2/3 менен 3/4ту салыштырды. Ката кайсы сапта?', ru: 'Учитель сравнил 2/3 и 3/4. Где ошибка?', en: 'The teacher compared 2/3 and 3/4. Where is the mistake?' },
+    options: ['2/3 = 8/12', '3/4 = 9/12', '8/12 > 9/12  ⇒  2/3 > 3/4'],
+    correct: 2,
+    explain: { ky: '8/12 < 9/12, демек 2/3 < 3/4.', ru: '8/12 < 9/12, значит 2/3 < 3/4.', en: '8/12 < 9/12, so 2/3 < 3/4.' }
+  },
+  {
+    id: 'f-err-03', skill: 'multiply-divide', difficulty: 2, type: 'choice', errorHunt: true,
+    prompt: { ky: '2/5 × 3 чечилди. Кайсы сапта ката бар?', ru: 'Решили 2/5 × 3. В какой строке ошибка?', en: '2/5 × 3 was solved. Which line is wrong?' },
+    options: ['3 = 3/1', '2/5 × 3/1 = 6/15', { ky: 'Жооп: 1 1/5', ru: 'Ответ: 1 1/5', en: 'Answer: 1 1/5' }],
+    correct: 1,
+    explain: { ky: 'Бөлүмдөр: 5 × 1 = 5, демек 6/5 болот, 6/15 эмес.', ru: 'Знаменатели: 5 × 1 = 5, получается 6/5, а не 6/15.', en: 'Denominators: 5 × 1 = 5, so it is 6/5, not 6/15.' }
+  },
+  {
+    id: 'f-err-04', skill: 'multiply-divide', difficulty: 3, type: 'choice', errorHunt: true,
+    prompt: { ky: '1/2 : 1/4 чечилди. Ката кайсы сапта?', ru: 'Решили 1/2 : 1/4. Где ошибка?', en: '1/2 ÷ 1/4 was solved. Where is the mistake?' },
+    options: [
+      { ky: 'Бөлүү — тескери бөлчөккө көбөйтүү', ru: 'Деление — умножение на перевёрнутую дробь', en: 'Division means multiplying by the reciprocal' },
+      '1/2 × 4/1 = 4/2',
+      '4/2 = 1/2'
+    ],
+    correct: 2,
+    explain: { ky: '4/2 = 2, 1/2 эмес.', ru: '4/2 = 2, а не 1/2.', en: '4/2 = 2, not 1/2.' }
   }
 ];
