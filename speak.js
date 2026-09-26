@@ -73,6 +73,7 @@ function renderPicker() {
 // ─── Тренировка ───────────────────────────────────────────────────────────────
 
 async function startRound(setId, items = null) {
+  state.finished = false;
   state.startedAt = Date.now();
   state.xpBefore = (await getProgress()).xp;
   state.set = getSet(setId);
@@ -154,8 +155,9 @@ async function onMic() {
     judge(match.score >= PASS_SCORE, match.score >= 1, match.heard);
   } catch (err) {
     const code = err?.code || 'error';
-    if (code === 'not-allowed' || code === 'service-not-allowed' || code === 'unsupported') {
-      toast(t('sp_mic_denied'), { icon: '🎤' });
+    // Нет доступа или нет микрофона — то же задание в режиме «Послушай и напиши»
+    if (code === 'not-allowed' || code === 'service-not-allowed' || code === 'unsupported' || code === 'audio-capture') {
+      toast(t(code === 'audio-capture' ? 'sp_mic_missing' : 'sp_mic_denied'), { icon: '🎤' });
       state.mode = 'type';
       showItem(); // то же задание, но в режиме «Послушай и напиши»
       return;
@@ -222,13 +224,15 @@ async function finishItem(ok, heard) {
   $('#nextBtn').classList.remove('hidden');
   $('#nextBtn').focus();
 
+  // XP только за верно сказанное: пропуск и неудача дают 0 (ошибка всё равно попадёт в разбор)
   await recordAnswer({
     topic: state.set.topic, skill: item.skill, correct: ok,
-    questionId: item.id, timeMs: Date.now() - state.itemStart, gameId: 'speak'
+    questionId: item.id, timeMs: Date.now() - state.itemStart, gameId: 'speak', attemptXP: false
   });
 }
 
 function next() {
+  if (!state.done) return; // повторное нажатие не пропускает следующее слово
   state.index += 1;
   if (state.index >= state.items.length) return finishRound();
   showItem();
@@ -244,6 +248,9 @@ function skip() {
 // ─── Итог ─────────────────────────────────────────────────────────────────────
 
 async function finishRound() {
+  // Двойное нажатие «Андан ары» на последнем слове не должно записать итог дважды
+  if (state.finished) return;
+  state.finished = true;
   const lang = getLang();
   const r = state.results;
   const correct = r.filter((x) => x.ok).length;
@@ -254,9 +261,10 @@ async function finishRound() {
 
   $('#progressBar').style.width = '100%';
 
-  // Что не получилось с первого раза — в разбор ошибок
+  // В разбор ошибок — только не засчитанные слова (их число = всего − верных);
+  // «Кайра ойноо» начинает и с них, и с тех, что получились не с первого раза
   const weak = r.filter((x) => !x.ok || x.attempts > 1);
-  const mistakes = weak.map((x) => el('div', { class: 'row between speak-review' },
+  const mistakes = r.filter((x) => !x.ok).map((x) => el('div', { class: 'row between speak-review' },
     el('div', {},
       el('b', { lang: state.set.lang.slice(0, 2) }, x.item.text), ' ',
       el('span', { class: 'muted' }, `${x.item.sound} · ${pick(x.item.hint, lang)}`)

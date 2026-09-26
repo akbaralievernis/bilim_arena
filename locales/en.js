@@ -310,6 +310,7 @@ export default {
   sp_failed: 'We will practise this one later',
   sp_no_speech: 'Nothing heard — speak closer to the microphone',
   sp_mic_denied: 'No microphone access — switched to "Listen and type"',
+  sp_mic_missing: 'No microphone found — switched to “Listen and type”',
   sp_network: 'Recognition needs the internet. Use "Listen and type" for now.',
   sp_error: 'The microphone did not work. Try again.',
   sp_type_placeholder: 'Type what you heard',

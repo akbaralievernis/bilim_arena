@@ -1,5 +1,12 @@
-/* Билим Арена — офлайн кэш. Файлдар өзгөргөндө VERSION'ду көбөйтүңүз. */
-const VERSION = 'ba-v17';
+/* Билим Арена — офлайн кэш. Файлдар өзгөргөндө VERSION'ду көбөйтүңүз.
+ *
+ * Стратегия: «сначала сеть». Каждый запрос к сайту идёт на сервер с проверкой
+ * свежести (cache: 'no-cache'), кэш — только запасной вариант без интернета.
+ * Поэтому после обновления сайта ученик сразу получает новые файлы.
+ * Прогресс, XP и данные Supabase хранятся в localStorage/облаке — кэш их не трогает.
+ */
+const PREFIX = 'ba-';
+const VERSION = 'ba-v18';
 const CORE = [
   './', './index.html', './home.css', './home.js',
   './board.html', './board.js', './play.html', './play.js',
@@ -38,7 +45,7 @@ const CORE = [
   './data/questions/social-9-state.js',
   './data/questions/world-history-5-ancient.js',
   // Прежние игры — продолжают работать офлайн
-  './shared/game.css', './shared/vocab.js',
+  './shared/game.css', './shared/vocab.js', './shared/sw-register.js', './shared/camera.js',
   './shared/progress.js', './shared/game-shell.js',
   './games/flashcards/index.html', './games/word-match/index.html',
   './games/wordle/index.html', './games/word-rain/index.html',
@@ -46,10 +53,13 @@ const CORE = [
 ];
 
 self.addEventListener('install', (e) => {
-  // cache: 'reload' — берём файлы с сервера, а не из старого кэша браузера
+  // cache: 'reload' — берём файлы с сервера, а не из старого кэша браузера.
+  // Файлы добавляются по одному: если какого-то нет, новая версия всё равно
+  // установится (addAll отменил бы всю установку и оставил старую версию).
   e.waitUntil(
     caches.open(VERSION)
-      .then((c) => c.addAll(CORE.map((u) => new Request(u, { cache: 'reload' }))))
+      .then((c) => Promise.all(CORE.map((u) =>
+        c.add(new Request(u, { cache: 'reload' })).catch((err) => console.warn('[sw] не закэширован', u, err && err.message)))))
       .then(() => self.skipWaiting())
   );
 });
@@ -57,7 +67,8 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== VERSION).map((k) => caches.delete(k))))
+      // Удаляем только свои прошлые версии — чужие кэши и данные ученика не трогаем
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith(PREFIX) && k !== VERSION).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

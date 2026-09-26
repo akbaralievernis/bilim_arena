@@ -182,8 +182,4 @@ function renderFooter() {
     renderProgress(p2, pr2);
   });
 
-  // Офлайн-режим: страницы и игры открываются без интернета
-  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
-  }
 })();

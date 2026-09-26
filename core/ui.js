@@ -184,11 +184,22 @@ export function mountHeader(target, { role = 'student', active = '' } = {}) {
   return header;
 }
 
+/**
+ * Офлайн-кэш и свежие файлы (sw.js) — на каждой странице, а не только на главной:
+ * ученик может открыть каталог или игру по прямой ссылке.
+ * updateViaCache: 'none' — браузер проверяет новую версию sw.js в обход HTTP-кэша.
+ */
+function registerOffline() {
+  if (!('serviceWorker' in navigator) || !location.protocol.startsWith('http')) return;
+  navigator.serviceWorker.register(new URL('../sw.js', import.meta.url).href, { updateViaCache: 'none' }).catch(() => {});
+}
+
 /** Стартовая подготовка страницы: язык + тема. Вызывается первой. */
 export async function bootstrap() {
   await initTheme();
   await initI18n();
   document.body.classList.remove('boot');
+  registerOffline();
   // Облако подгружается, только если настроено, и не задерживает страницу
   if (SUPABASE.url && SUPABASE.anonKey) {
     import('./cloud.js').then((m) => m.initCloud()).catch((e) => console.warn('[cloud]', e));

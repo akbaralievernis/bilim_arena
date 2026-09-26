@@ -131,9 +131,11 @@ export async function getProgress() {
 
 /**
  * Записывает один ответ ученика. Это главный источник и XP, и аналитики.
+ * attemptXP: false — неверный ответ не даёт XP «за попытку» (нужно там,
+ * где ответ можно пропустить, например в «Айт!»).
  * @returns {Promise<{xp:number}>}
  */
-export async function recordAnswer({ topic, skill, correct, questionId, timeMs, gameId }) {
+export async function recordAnswer({ topic, skill, correct, questionId, timeMs, gameId, attemptXP = true }) {
   const d = await read();
   touchDay(d);
 
@@ -149,7 +151,7 @@ export async function recordAnswer({ topic, skill, correct, questionId, timeMs, 
   t.lastAt = Date.now();
 
   // XP только за учебную активность: верный ответ даёт больше, попытка — минимум
-  const xp = correct ? 10 : 2;
+  const xp = correct ? 10 : (attemptXP ? 2 : 0);
   d.xp += xp;
   d.dayXP += xp;
 

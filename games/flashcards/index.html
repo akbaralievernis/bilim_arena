@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
   <title>Сөз карточкалары — Билим Арена</title>
-  <link rel="stylesheet" href="../../shared/game.css?v=13" />
+  <link rel="stylesheet" href="../../shared/game.css?v=14" />
   <style>
     .gWrap { max-width: 620px; }
     .catGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 16px 0; }
@@ -43,6 +43,7 @@
     .boxes i { width: 14px; height: 6px; border-radius: 3px; background: var(--line); }
     .boxes i.on { background: var(--ok); }
   </style>
+  <script src="../../shared/sw-register.js?v=14"></script>
 </head>
 <body>
   <header class="gTop">
@@ -102,9 +103,9 @@
     </div>
   </div>
 
-  <script src="../../shared/vocab.js?v=13"></script>
-  <script src="../../shared/progress.js?v=13"></script>
-  <script src="../../shared/game-shell.js?v=13"></script>
+  <script src="../../shared/vocab.js?v=14"></script>
+  <script src="../../shared/progress.js?v=14"></script>
+  <script src="../../shared/game-shell.js?v=14"></script>
   <script>
   (function () {
     'use strict';
@@ -183,7 +184,8 @@
     }
 
     function rate(knew) {
-      if (!st) return;
+      // После финиша (Enter на кнопке в фокусе) урок не завершается повторно — XP один раз
+      if (!st || st.finished) return;
       const w = st.deck[st.i];
       BA.markWord(w.id, knew);
       if (knew) { st.knew++; BA.sfx.ok(); }
@@ -198,6 +200,7 @@
     }
 
     function finish() {
+      st.finished = true;
       $('deckBar').style.width = '100%';
       const xp = 10 + st.knew * 2;
       BA.addXP('flashcards', xp);
