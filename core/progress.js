@@ -281,18 +281,27 @@ export async function resetProgress() {
 
 /** Перенос прогресса из старой версии сайта (BA_PROGRESS_V1) */
 export async function migrateLegacy() {
-  const d = await read();
-  if (d.xp > 0) return false;
+  const FLAG = 'BA2_legacy_migrated';
   try {
+    if (localStorage.getItem(FLAG)) return false;
     const raw = localStorage.getItem('BA_PROGRESS_V1');
-    if (!raw) return false;
+    const d = await read();
+    // Прежняя версия уже переносила: тогда в профиле есть игры старого формата
+    const LEGACY = ['flashcards', 'word-match', 'wordle', 'word-rain', 'balloons'];
+    if (!raw || LEGACY.some((id) => d.games[id])) {
+      localStorage.setItem(FLAG, '1');
+      return false;
+    }
     const old = JSON.parse(raw);
-    d.xp = old.xp || 0;
-    d.streak = old.streak || 0;
-    d.lastDay = old.lastDay || null;
-    d.dayXP = old.dayXP || 0;
-    Object.entries(old.games || {}).forEach(([id, g]) => { d.games[id] = g; });
+    d.xp += old.xp || 0;
+    if (!d.lastDay) {
+      d.streak = old.streak || 0;
+      d.lastDay = old.lastDay || null;
+      d.dayXP = old.dayXP || 0;
+    }
+    Object.entries(old.games || {}).forEach(([id, g]) => { if (!d.games[id]) d.games[id] = g; });
     await write(d);
+    localStorage.setItem(FLAG, '1');
     return true;
   } catch {
     return false;

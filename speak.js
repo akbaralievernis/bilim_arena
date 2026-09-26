@@ -9,6 +9,7 @@
  */
 
 import { bootstrap, mountHeader, el, $, toast, sfx, confetti } from './core/ui.js';
+import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
 import { recordAnswer, recordGame } from './core/progress.js';
 import { canListen, canSpeak, speak, listen, bestMatch, normalize, PASS_SCORE } from './core/speech.js';
@@ -48,7 +49,7 @@ const shuffle = (arr) => {
 function renderPicker() {
   const lang = getLang();
 
-  $('#supportNote').textContent = canListen() ? t('sp_supported') : `⚠️ ${t('sp_unsupported')}`;
+  $('#supportNote').textContent = canListen() ? t('sp_supported') : `${t('sp_unsupported')}`;
 
   const modes = [['speak', t('sp_mode_speak')], ['type', t('sp_mode_type')]];
   $('#modeChips').replaceChildren(...modes.map(([id, label]) => el('button', {
@@ -93,17 +94,17 @@ function showItem() {
   $('#progressBar').style.width = `${(state.index / state.items.length) * 100}%`;
 
   // В режиме «Послушай и напиши» слово скрыто — его нужно расслышать
-  $('#target').textContent = typing ? '❓' : item.text;
+  $('#target').textContent = typing ? '?' : item.text;
   $('#target').setAttribute('lang', state.set.lang.slice(0, 2));
   $('#sound').textContent = typing ? '' : item.sound;
   $('#meaning').textContent = pick(item.hint, lang);
   // Подсказка может выдать написание — в режиме письма она появится после ответа
   $('#tip').classList.toggle('hidden', !item.tip || typing);
-  $('#tip').textContent = item.tip ? `💡 ${pick(item.tip, lang)}` : '';
+  $('#tip').textContent = item.tip ? `${pick(item.tip, lang)}` : '';
 
   $('#micBtn').classList.toggle('hidden', typing);
   $('#micBtn').disabled = false;
-  $('#micBtn').textContent = t('sp_speak_btn');
+  $('#micBtn').replaceChildren(icon('mic'), t('sp_speak_btn'));
   $('#typeForm').classList.toggle('hidden', !typing);
   $('#typeInput').value = '';
   $('#typeInput').disabled = false;
@@ -141,7 +142,7 @@ async function onMic() {
   if (canSpeak()) speechSynthesis.cancel();
   $('#micBtn').disabled = true;
   $('#micBtn').classList.add('listening');
-  $('#micBtn').textContent = t('sp_listening');
+  $('#micBtn').replaceChildren(icon('mic'), t('sp_listening'));
   setFeedback('', '');
 
   try {
@@ -163,7 +164,7 @@ async function onMic() {
     $('#micBtn').classList.remove('listening');
     if (!state.done) {
       $('#micBtn').disabled = false;
-      $('#micBtn').textContent = t('sp_speak_btn');
+      $('#micBtn').replaceChildren(icon('mic'), t('sp_speak_btn'));
     }
     state.busy = false;
   }
@@ -250,7 +251,7 @@ async function finishRound() {
   await recordGame({ gameId: 'speak', topic: state.set.topic, score, correct, total: r.length });
 
   $('#progressBar').style.width = '100%';
-  $('#resultIcon').textContent = acc >= 80 ? '🏆' : acc >= 50 ? '👍' : '💪';
+  $('#resultIcon').replaceChildren(icon(acc >= 80 ? 'trophy' : acc >= 50 ? 'star' : 'target', { size: 36 }));
   $('#resultStats').replaceChildren(
     stat(`${correct}/${r.length}`, t('results_correct')),
     stat(`${acc}%`, t('accuracy')),
@@ -268,7 +269,7 @@ async function finishRound() {
         class: 'btn ghost', type: 'button', 'aria-label': `${t('sp_listen')}: ${x.item.text}`,
         disabled: !canSpeak(),
         onclick: () => speak(x.item.text, state.set.lang, 0.8)
-      }, '🔊')
+      }, icon('sound'))
     ))
     : [el('p', { class: 'muted' }, t('results_nothing_wrong'))]));
 
@@ -299,6 +300,7 @@ async function finishRound() {
   $('#skipBtn').onclick = skip;
   $('#otherBtn').onclick = renderPicker;
   $('#typeInput').placeholder = t('sp_type_placeholder');
+  $('#listenBtn').replaceChildren(icon('sound'), t('sp_listen'));
 
   // Голоса синтеза в Chrome подгружаются асинхронно
   if (canSpeak()) speechSynthesis.getVoices();

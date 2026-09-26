@@ -11,6 +11,7 @@
 
 import { BaseGame } from '../../core/engine.js';
 import { el } from '../../core/ui.js';
+import { icon } from '../../core/icons.js';
 import { t, pick } from '../../core/i18n.js';
 
 /** Доля верных ответов, при которой шаг опыта считается выполненным */
@@ -19,7 +20,7 @@ const PASS_SHARE = 0.5;
 export default class LabGame extends BaseGame {
   static meta = {
     id: 'lab',
-    icon: '🧪',
+    icon: 'flask',
     title: { ky: 'Лаборатория', ru: 'Лаборатория', en: 'Science lab' },
     goal: {
       ky: 'Гипотеза коюп, аны тажрыйба менен текшерүү',
@@ -111,11 +112,11 @@ export default class LabGame extends BaseGame {
       const opened = i < this.stepIndex || (i === this.stepIndex && reveal);
       if (!opened) return el('li', { class: 'muted' }, `${i + 1}. …`);
       return el('li', { class: this.stepDone[i] ? 'ok' : 'miss' },
-        `${this.stepDone[i] ? '✅' : '⚠️'} ${pick(s.observation, lang)}`);
+        icon(this.stepDone[i] ? 'check' : 'warn', { size: 18 }), el('span', {}, pick(s.observation, lang)));
     });
 
     container.replaceChildren(el('div', { class: 'lab-box' },
-      el('div', { class: 'lab-title' }, `${this.lab.icon} ${pick(this.lab.title, lang)}`),
+      el('div', { class: 'lab-title' }, `${pick(this.lab.title, lang)}`),
       el('div', { class: 'lab-flask', role: 'img', 'aria-label': `${fill}%` },
         el('i', { style: `height:${fill}%` })
       ),

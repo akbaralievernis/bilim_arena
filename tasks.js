@@ -7,6 +7,7 @@
  */
 
 import { bootstrap, mountHeader, el, $, toast, sfx, confetti } from './core/ui.js';
+import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
 import { getTopic, getSubject, getQuestions, skillTitle } from './core/curriculum.js';
 import { BaseGame } from './core/engine.js';
@@ -18,7 +19,7 @@ import { studentAssignments, saveSubmission, STATUS } from './core/assignments.j
 class HomeworkGame extends BaseGame {
   static meta = {
     id: 'homework',
-    icon: '📝',
+    icon: 'tasks',
     title: { ky: 'Үй тапшырма', ru: 'Домашнее задание', en: 'Homework' },
     goal: { ky: '', ru: '', en: '' },
     how: {
@@ -65,12 +66,12 @@ async function renderList() {
         el('span', { class: `hw-status ${status}` }, t(`hw_status_${status}`))
       ),
       el('div', { class: 'hw-meta' },
-        el('span', {}, `${subject?.icon || '📘'} ${pick(subject?.title, lang)}`),
-        topic ? el('span', {}, `📚 ${pick(topic.title, lang)}`) : null,
-        el('span', {}, `👩‍🏫 ${a.teacherName || t('role_teacher')}`),
-        el('span', {}, `📅 ${t('hw_due_at')}: ${fmtDate(a.dueAt)}`),
-        el('span', {}, `❓ ${t('questions_n', { n: a.count })}`),
-        el('span', {}, `✨ ${a.xp} XP`)
+        el('span', {}, pick(subject?.title, lang)),
+        topic ? el('span', {}, `${pick(topic.title, lang)}`) : null,
+        el('span', {}, `${a.teacherName || t('role_teacher')}`),
+        el('span', {}, `${t('hw_due_at')}: ${fmtDate(a.dueAt)}`),
+        el('span', {}, `${t('questions_n', { n: a.count })}`),
+        el('span', {}, `${a.xp} XP`)
       ),
       el('div', { class: `bar ${percent >= 70 ? 'ok' : ''}` }, el('i', { style: `width:${percent}%` })),
       el('div', { class: 'row between small muted' },
@@ -83,7 +84,7 @@ async function renderList() {
         class: `btn ${done ? '' : 'primary'} block`, type: 'button',
         disabled: !canStart,
         onclick: () => openIntro(a.id)
-      }, done ? `🔁 ${t('retry')}` : `▶️ ${t('hw_start')}`)
+      }, done ? `${t('retry')}` : `▶️ ${t('hw_start')}`)
     );
   });
 
@@ -109,14 +110,15 @@ function openIntro(assignmentId) {
   $('#introMeta').textContent = `${subject?.icon || ''} ${pick(subject?.title, lang)} · ${t('grade', { n: a.grade })} · ${pick(topic?.title, lang)}`;
   $('#introHow').textContent = pick(HomeworkGame.meta.how, lang);
 
-  $('#introDetails').replaceChildren(
-    el('span', {}, `❓ ${t('questions_n', { n: a.count })}`),
-    el('span', {}, `📅 ${t('hw_due_at')}: ${fmtDate(a.dueAt)}`),
-    el('span', {}, `🔁 ${t('hw_attempts_left', { n: entry.attemptsLeft })}`),
-    el('span', {}, `✨ ${a.xp} XP`),
-    a.skill ? el('span', {}, `🎯 ${skillTitle(a.topic, a.skill, lang)}`) : null
-  );
+  $('#introDetails').replaceChildren(...[
+    el('span', {}, `${t('questions_n', { n: a.count })}`),
+    el('span', {}, `${t('hw_due_at')}: ${fmtDate(a.dueAt)}`),
+    el('span', {}, `${t('hw_attempts_left', { n: entry.attemptsLeft })}`),
+    el('span', {}, `${a.xp} XP`),
+    a.skill ? el('span', {}, `${skillTitle(a.topic, a.skill, lang)}`) : null
+  ].filter(Boolean));
 
+  $('#introIcon').replaceChildren(icon('tasks', { size: 36 }));
   show('introScreen');
 }
 
@@ -182,8 +184,8 @@ function renderGame(game, kind) {
   if (reveal) {
     explain.replaceChildren(
       el('b', {}, answered?.correct
-        ? `✅ ${t('game_correct')} `
-        : `❌ ${t('game_correct_answer')}: ${game.correctText()} `),
+        ? `${t('game_correct')} `
+        : `${t('game_correct_answer')}: ${game.correctText()} `),
       el('span', {}, game.current.explain || '')
     );
     if (answered?.correct) sfx.ok(); else sfx.bad();
@@ -203,7 +205,7 @@ async function showResults(game) {
   const lang = getLang();
   const good = r.accuracy >= 70;
 
-  $('#resultIcon').textContent = good ? '🎉' : '💪';
+  $('#resultIcon').replaceChildren(icon(good ? 'trophy' : 'target', { size: 36 }));
   if (good) { sfx.win(); confetti(); }
 
   // XP задания начисляется только при результате от 50%
@@ -224,7 +226,7 @@ async function showResults(game) {
     return el('div', { style: 'margin-bottom:12px' },
       el('div', { class: 'row between' },
         el('b', {}, skillTitle(a.topic, skill, lang)),
-        el('span', { class: `state ${weak ? 'review' : 'learned'}` }, `${weak ? '⚠️' : '✅'} ${s.ok}/${s.total}`)
+        el('span', { class: `state ${weak ? 'review' : 'learned'}` }, icon(weak ? 'warn' : 'check', { size: 16 }), `${s.ok}/${s.total}`)
       ),
       el('div', { class: `bar ${weak ? '' : 'ok'}`, style: 'margin-top:6px' }, el('i', { style: `width:${pct}%` }))
     );
@@ -237,7 +239,7 @@ async function showResults(game) {
       el('div', { class: 'label', style: 'margin-top:10px' }, t('results_review')),
       ...r.mistakes.map((m) => el('div', { class: 'card plain', style: 'margin-bottom:8px' },
         el('b', {}, m.prompt),
-        el('p', { class: 'small muted', style: 'margin:4px 0 0' }, `💡 ${m.explain || ''}`)
+        el('p', { class: 'small muted', style: 'margin:4px 0 0' }, `${m.explain || ''}`)
       ))
     ]
     : []));

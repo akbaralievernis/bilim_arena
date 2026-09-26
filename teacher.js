@@ -7,6 +7,7 @@
  */
 
 import { bootstrap, mountHeader, el, $, toast } from './core/ui.js';
+import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
 import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, skillTitle } from './core/curriculum.js';
 import { store, KEYS } from './core/store.js';
@@ -32,7 +33,7 @@ function renderLessonSetup() {
   $('#subjectChips').replaceChildren(...subjects.map((s) => el('button', {
     class: 'chip', type: 'button', 'aria-pressed': String(s.id === state.subject),
     onclick: () => { state.subject = s.id; state.topic = null; renderLessonSetup(); }
-  }, `${s.icon} ${pick(s.title, lang)}`)));
+  }, `${pick(s.title, lang)}`)));
 
   const topics = topicsOf(state.subject);
   if (!state.topic) state.topic = topics[0]?.id;
@@ -88,7 +89,7 @@ async function renderClasses() {
 
   const cards = state.classes.map((c) => el('div', { class: 'card stack' },
     el('div', { class: 'row between' },
-      el('h3', { style: 'margin:0' }, `${c.cloud ? '☁️ ' : ''}${c.name}`),
+      el('h3', { style: 'margin:0', class: 'class-title' }, c.cloud ? icon('cloud', { size: 18, label: t('acc_title') }) : null, c.name),
       el('button', {
         class: 'btn ghost', type: 'button', 'aria-label': t('close'),
         onclick: async () => {
@@ -101,7 +102,7 @@ async function renderClasses() {
           }
           renderClasses();
         }
-      }, '✕')
+      }, icon('trash'))
     ),
     el('div', { class: 'muted small' }, `${t('grade', { n: c.grade })} · ${c.students.length} ${t('role_student').toLowerCase()}`),
     // Облачный класс: ученики входят сами по коду
@@ -131,7 +132,7 @@ async function renderClasses() {
           await store.set(KEYS.classes, state.classes);
           renderClasses();
         }
-      }, `➕ ${t('role_student')}`),
+      }, `${t('role_student')}`),
       el('a', {
         class: 'btn primary',
         href: `./board.html?subject=${state.subject}&topic=${state.topic}&duration=${state.duration}&class=${c.id}`
@@ -199,7 +200,7 @@ async function renderResults() {
     const [topicId, skillId] = key.split('::');
     const topic = getTopic(topicId);
     return el('div', { class: 'row between lead-row', style: 'padding:.5em 0;border-bottom:1px solid var(--line)' },
-      el('span', {}, `⚠️ ${skillTitle(topicId, skillId, lang)}`),
+      el('span', {}, `${skillTitle(topicId, skillId, lang)}`),
       el('span', { class: 'muted small' }, topic ? pick(topic.title, lang) : ''),
       el('b', {}, `${n}`)
     );
@@ -235,6 +236,7 @@ const stat = (value, label) => el('div', { class: 'stat' }, el('b', {}, String(v
   await setRole('teacher');
   mountHeader($('#header'), { role: 'teacher', active: 'teacher.html' });
 
+  document.querySelectorAll('[data-icon]').forEach((n) => n.replaceChildren(icon(n.dataset.icon, { size: 26 })));
   renderLessonSetup();
   await renderClasses();
   await renderResults();

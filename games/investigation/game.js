@@ -25,7 +25,7 @@ export const PHASE = {
 export default class InvestigationGame extends BaseGame {
   static meta = {
     id: 'investigation',
-    icon: '🔍',
+    icon: 'lens',
     title: { ky: 'Тергөө', ru: 'Расследование', en: 'Investigation' },
     goal: {
       ky: 'Уликаларды ачып, көрсөтмөлөрдөгү карама-каршылыкты табуу жана күнөөлүүнү далилдөө',

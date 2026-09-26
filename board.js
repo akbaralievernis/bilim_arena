@@ -10,6 +10,10 @@
  */
 
 import { bootstrap, el, $, toast, sfx, confetti, fmtTime } from './core/ui.js';
+import { icon } from './core/icons.js';
+
+/** Иконка улики по её типу — вместо эмодзи из данных дела */
+const CLUE_ICON = { document: 'tasks', photo: 'camera', map: 'map', testimony: 'users', table: 'grid', date: 'clock', quote: 'sentence', object: 'cube' };
 import { t, pick, getLang } from './core/i18n.js';
 import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, getQuestions, skillTitle } from './core/curriculum.js';
 import { createRoom, joinUrl, renderQR } from './core/realtime.js';
@@ -117,7 +121,7 @@ function renderSetup() {
     class: 'chip', type: 'button',
     'aria-pressed': String(s.id === state.subject),
     onclick: () => { state.subject = s.id; state.topic = null; renderSetup(); }
-  }, `${s.icon} ${pick(s.title, lang)}`)));
+  }, `${pick(s.title, lang)}`)));
 
   const topics = topicsOf(state.subject);
   if (!state.topic) state.topic = topics[0]?.id;
@@ -169,22 +173,22 @@ function renderSetup() {
       el('button', {
         class: 'chip', type: 'button', 'aria-pressed': String(state.mode === 'lesson'),
         onclick: () => { state.mode = 'lesson'; renderSetup(); }
-      }, `📘 ${t('lesson_plan')}`),
+      }, `${t('lesson_plan')}`),
       // Отдельные игры — только если в теме есть задания их формата
       ...FORMAT_GAMES.filter((id) => counts?.[id] > 0).map((id) => el('button', {
         class: 'chip', type: 'button', 'aria-pressed': String(state.mode === id),
         onclick: () => { state.mode = id; renderSetup(); }
-      }, `${GAMES[id].meta.icon} ${pick(GAMES[id].meta.title, lang)}`)),
+      }, `${pick(GAMES[id].meta.title, lang)}`)),
       ...labsFor(state.subject).map((lab) => el('button', {
         class: 'chip', type: 'button',
         'aria-pressed': String(state.mode === 'lab' && state.labId === lab.id),
         onclick: () => { state.mode = 'lab'; state.labId = lab.id; state.topic = lab.topic; renderSetup(); }
-      }, `🧪 ${pick(lab.title, lang)}`)),
+      }, `${pick(lab.title, lang)}`)),
       ...CASES.map((c) => el('button', {
         class: 'chip', type: 'button',
         'aria-pressed': String(state.mode === 'investigation' && state.caseId === c.id),
         onclick: () => { state.mode = 'investigation'; state.caseId = c.id; renderSetup(); }
-      }, `🔍 ${t('inv_case_n', { n: c.number })}: ${pick(c.title, lang)}`))
+      }, `${t('inv_case_n', { n: c.number })}: ${pick(c.title, lang)}`))
     );
   }
 
@@ -198,7 +202,7 @@ function renderSetup() {
   if (state.mode === 'lab') {
     const lab = getLab(state.labId);
     $('#planPreview').replaceChildren(
-      el('div', { class: 'label' }, `${lab.icon} ${pick(LabGame.meta.title, lang)}`),
+      el('div', { class: 'label' }, `${pick(LabGame.meta.title, lang)}`),
       el('p', {}, el('b', {}, pick(lab.title, lang))),
       el('p', {}, pick(lab.question, lang)),
       el('p', { class: 'muted' }, pick(LabGame.meta.how, lang))
@@ -304,7 +308,7 @@ function renderPlayers() {
     const inGame = state.game?.players.get(p.id);
     const answered = state.game?.answers.has(p.id);
     return el('div', { class: `player-pill ${answered ? 'answered' : ''} ${inGame?.team ? 'team-' + inGame.team.toLowerCase() : ''}` },
-      answered ? '✅ ' : '', p.name);
+      answered ? icon('check', { size: 16, label: t('game_answered') }) : null, p.name);
   }));
   $('#startGameBtn').disabled = list.length === 0;
 }
@@ -374,7 +378,7 @@ async function startStage(stageIndex, customQuestions = null) {
     state.players.forEach((p) => { p.team = state.game.players.get(p.id)?.team || null; });
   }
 
-  $('#gameName').textContent = `${GameClass.meta.icon} ${pick(GameClass.meta.title, getLang())}`;
+  $('#gameName').textContent = `${pick(GameClass.meta.title, getLang())}`;
   renderStages();
   show('gameScreen');
   await state.game.start();
@@ -401,7 +405,7 @@ async function startLab() {
   });
   state.players.forEach((p) => state.game.addPlayer({ id: p.id, name: p.name }));
 
-  $('#gameName').textContent = `${lab.icon} ${pick(LabGame.meta.title, getLang())}`;
+  $('#gameName').textContent = `${pick(LabGame.meta.title, getLang())}`;
   $('#lessonTitle').textContent = pick(lab.title, getLang());
   show('gameScreen');
   await state.game.start();
@@ -429,7 +433,7 @@ async function startInvestigation() {
   state.game.splitTeams();
   state.players.forEach((p) => { p.team = state.game.players.get(p.id)?.team || null; });
 
-  $('#gameName').textContent = `🔍 ${t('inv_case_n', { n: data.number })}`;
+  $('#gameName').textContent = `${t('inv_case_n', { n: data.number })}`;
   $('#lessonTitle').textContent = pick(data.title, getLang());
   show('gameScreen');
   await state.game.start();
@@ -454,7 +458,7 @@ function renderInvestigation(game) {
     options.replaceChildren(el('button', {
       class: 'btn primary big', type: 'button',
       onclick: () => game.beginInvestigation()
-    }, `🔍 ${t('inv_start')}`));
+    }, `${t('inv_start')}`));
     return;
   }
 
@@ -477,7 +481,7 @@ function renderInvestigation(game) {
     const v = game.verdict;
     $('#prompt').textContent = v?.solved ? t('inv_solved') : t('inv_failed');
     explain.classList.remove('hidden');
-    explain.replaceChildren(el('b', {}, `💡 `), el('span', {}, pick(game.case.final.solution, lang)));
+    explain.replaceChildren(icon('logic', { size: 20 }), el('span', {}, pick(game.case.final.solution, lang)));
     options.replaceChildren();
     return;
   }
@@ -497,9 +501,9 @@ function renderInvestigation(game) {
   explain.classList.toggle('hidden', !reveal);
   if (reveal && clue) {
     explain.replaceChildren(
-      el('b', {}, `${clue.icon} ${pick(clue.title, lang)}: `),
+      el('b', {}, `${pick(clue.title, lang)}: `),
       el('span', {}, pick(clue.content, lang)),
-      el('div', { class: 'small muted', style: 'margin-top:6px' }, `🔎 ${pick(clue.insight, lang)}`)
+      el('div', { class: 'small muted', style: 'margin-top:6px' }, `${pick(clue.insight, lang)}`)
     );
   }
 }
@@ -509,7 +513,7 @@ function renderInvestigationBoard(game, container) {
   const lang = getLang();
   container.replaceChildren(
     el('div', { class: 'row between' },
-      el('b', {}, `🔍 ${t('inv_progress')}`),
+      el('b', {}, `${t('inv_progress')}`),
       el('span', { class: 'muted' }, `${game.unlocked.size}/${game.clues.length}`)
     ),
     el('div', { class: 'bar thick' }, el('i', { style: `width:${game.progress}%` })),
@@ -520,7 +524,7 @@ function renderInvestigationBoard(game, container) {
         class: `clue-cell ${open ? 'open' : ''} ${open && key ? 'key' : ''}`,
         title: open ? pick(c.title, lang) : '?'
       },
-        el('span', { class: 'clue-icon' }, open ? c.icon : '🔒'),
+        el('span', { class: 'clue-icon' }, icon(open ? (CLUE_ICON[c.type] || 'lens') : 'lock', { size: 24 })),
         el('span', { class: 'clue-name' }, open ? pick(c.title, lang) : '?')
       );
     })),
@@ -578,7 +582,6 @@ function renderGame(game, kind) {
   } else if (game.current && game.current.type !== 'choice') {
     // Ввод, сопоставление, сортировка — ученики отвечают на телефонах,
     // доска показывает задание, а после — правильный ответ
-    const hint = { input: '⌨️', match: '🔗', sort: '↕️', multiple: '☑️' }[game.current.type] || '📱';
     const preview = game.current.type === 'match'
       ? el('div', { class: 'match-box' },
         el('div', { class: 'match-col' }, game.current.pairs.left.map((x) => el('div', { class: 'option' }, x))),
@@ -595,7 +598,7 @@ function renderGame(game, kind) {
       preview,
       reveal
         ? el('div', { class: 'answer-big', style: 'font-size:clamp(1.2rem,3vw,2rem);margin-top:10px' }, `${t('game_correct_answer')}: ${game.correctText()}`)
-        : el('div', { class: 'muted center', style: 'margin-top:10px' }, `${hint} 📱`)
+        : el('div', { class: 'muted center phone-hint', style: 'margin-top:10px' }, icon('join', { size: 20 }), t('board_answer_on_phone'))
     ));
   } else {
     const lines = !!game.current?.errorHunt;
@@ -612,7 +615,7 @@ function renderGame(game, kind) {
   explain.classList.toggle('hidden', !reveal || !game.current?.explain);
   if (reveal && game.current?.explain) {
     explain.replaceChildren(
-      el('b', {}, `💡 ${t('game_explanation')}: `),
+      el('b', {}, `${t('game_explanation')}: `),
       el('span', {}, game.current.explain)
     );
   }
@@ -671,12 +674,12 @@ function showResults(game) {
       stat(fmtTime(r.durationSec), t('game_time'))
     ]
     : [
-      ...(r.lock ? [stat(`🔐 ${r.lock.opened}/${r.lock.total}`, t('cl_digits'))] : []),
-      ...(r.lab ? [stat(`🧪 ${r.lab.stepsDone}/${r.lab.stepsTotal}`, t('lab_steps'))] : []),
+      ...(r.lock ? [stat(`${r.lock.opened}/${r.lock.total}`, t('cl_digits'))] : []),
+      ...(r.lab ? [stat(`${r.lab.stepsDone}/${r.lab.stepsTotal}`, t('lab_steps'))] : []),
       ...(r.city ? [
-        stat(`😊 ${r.city.happiness}`, t('city_happiness')),
-        stat(`🌿 ${r.city.ecology}`, t('city_ecology')),
-        stat(`🪙 ${r.city.coins}`, t('city_coins'))
+        stat(`${r.city.happiness}`, t('city_happiness')),
+        stat(`${r.city.ecology}`, t('city_ecology')),
+        stat(`${r.city.coins}`, t('city_coins'))
       ] : []),
       stat(r.correctAnswers, t('results_correct')),
       stat(r.totalAnswers - r.correctAnswers, t('results_wrong')),
@@ -687,7 +690,7 @@ function showResults(game) {
   // Разбор дела: логическая цепочка доказательств
   if (isCase) {
     $('#leaderboard').replaceChildren(
-      el('p', {}, `💡 ${pick(r.solution, lang)}`),
+      el('p', {}, `${pick(r.solution, lang)}`),
       el('div', { class: 'small muted' },
         `${t('inv_evidence')}: ${r.verdict?.matchedClues?.length || 0}/${r.verdict?.clues?.length || 0}`)
     );
@@ -695,13 +698,13 @@ function showResults(game) {
 
   // Вывод опыта и сравнение с прогнозом класса
   if (r.lab) {
-    $('#leaderboard').replaceChildren(
-      el('p', {}, el('b', {}, `✅ ${r.lab.hypothesis}`)),
-      el('p', {}, `💡 ${r.lab.conclusion}`),
+    $('#leaderboard').replaceChildren(...[
+      el('p', {}, el('b', {}, `${r.lab.hypothesis}`)),
+      el('p', {}, `${r.lab.conclusion}`),
       r.lab.predictedPct !== null
         ? el('div', { class: 'small muted' }, t('lab_predicted', { pct: r.lab.predictedPct }))
         : null
-    );
+    ].filter(Boolean));
   }
 
   // Разбор по навыкам: видно, что именно не усвоено
@@ -712,7 +715,7 @@ function showResults(game) {
       el('div', { class: 'row between' },
         el('b', {}, skillTitle(state.topic, skill, getLang())),
         el('span', { class: `state ${weak ? 'review' : 'learned'}` },
-          weak ? '⚠️' : '✅', ` ${s.ok}/${s.total}`)
+          icon(weak ? 'warn' : 'check', { size: 16 }), ` ${s.ok}/${s.total}`)
       ),
       el('div', { class: `bar ${weak ? '' : 'ok'}` }, el('i', { style: `width:${pct}%` }))
     );
@@ -723,14 +726,14 @@ function showResults(game) {
   const top = r.players.slice(0, 5);
   if (!isCase && !r.lab) $('#leaderboard').replaceChildren(...(top.length
     ? top.map((p, i) => el('div', { class: 'row between lead-row' },
-      el('span', {}, `${['🥇', '🥈', '🥉'][i] || `${i + 1}.`} ${p.name}`),
+      el('span', { class: 'lead-name' }, el('span', { class: `place place-${i + 1}` }, String(i + 1)), p.name),
       el('b', {}, `${p.score}`)))
     : [el('p', { class: 'muted' }, t('board_waiting'))]));
 
 
   const wrongIds = game.wrongQuestionIds();
   $('#repeatBtn').disabled = wrongIds.length === 0;
-  $('#repeatBtn').textContent = isCase ? `🔁 ${t('inv_repeat_mistakes')}` : t('results_repeat_topic');
+  $('#repeatBtn').textContent = isCase ? `${t('inv_repeat_mistakes')}` : t('results_repeat_topic');
 
   if (r.lab) {
     $('#repeatBtn').onclick = () => {
@@ -817,7 +820,7 @@ function finishLesson() {
   $('#summaryReview').replaceChildren(
     el('h2', {}, weak.length ? t('analytics_need_review') : t('results_nothing_wrong')),
     ...weak.map((w) => el('div', { class: 'row between' },
-      el('span', {}, `⚠️ ${skillTitle(state.topic, w.skill, getLang())}`),
+      el('span', {}, `${skillTitle(state.topic, w.skill, getLang())}`),
       el('b', {}, `${w.pct}%`)
     ))
   );
@@ -858,6 +861,9 @@ function finishLesson() {
   renderSetup();
   show('setupScreen');
 
+  $('#pauseBtn').replaceChildren(icon('pause'));
+  $('#exitBtn').replaceChildren(icon('close'));
+  $('#summaryIcon').replaceChildren(icon('trophy', { size: 44 }));
   $('#startLessonBtn').onclick = () => { state.stageIndex = 0; openRoom(); };
   $('#startGameBtn').onclick = () => startStage(0);
   $('#skipBtn').onclick = () => {
@@ -869,8 +875,8 @@ function finishLesson() {
   $('#finishBtn').onclick = () => state.game?.finish('manual');
   $('#pauseBtn').onclick = (e) => {
     if (!state.game) return;
-    if (state.game.state === 'paused') { state.game.resume(); e.currentTarget.textContent = '⏸'; }
-    else { state.game.pause(); e.currentTarget.textContent = '▶'; }
+    if (state.game.state === 'paused') { state.game.resume(); e.currentTarget.replaceChildren(icon('pause')); }
+    else { state.game.pause(); e.currentTarget.replaceChildren(icon('play')); }
   };
   $('#exitBtn').onclick = () => {
     if (confirm(t('lesson_finish') + '?')) finishLesson();

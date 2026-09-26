@@ -1,64 +1,88 @@
 <!DOCTYPE html>
-<html lang="ky" data-theme="dark">
+<html lang="ky" data-theme="light">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b1020" />
-  <meta name="description" content="Билим Арена — менин прогрессим: билим картасы, каталар жана жетишкендиктер." />
-  <title>Прогресс — Билим Арена</title>
+  <meta name="theme-color" content="#F7F8FC" />
+  <meta name="description" content="Билим Арена — менин профилим: деңгээл, XP, күнүмдүк максат, жетишкендиктер жана кайталоо керек болгон темалар." />
+  <title>Профиль — Билим Арена</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./core/ui.css?v=11" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="stylesheet" href="./core/ui.css?v=12" />
+  <link rel="stylesheet" href="./home.css?v=12" />
 </head>
 
 <body>
-  <a class="skip-link" href="#main">Мазмунга өтүү</a>
+  <a class="skip-link" href="#main" data-i18n="skip_to_content">Мазмунга өтүү</a>
   <div id="header"></div>
 
-  <main id="main" class="wrap stack" style="padding-top:20px;padding-bottom:40px">
-
-    <!-- Профиль -->
-    <section class="card pad-lg stack" id="profileCard">
-      <div class="row">
-        <div class="avatar-big" id="avatar" role="img" aria-label="Аватар">🦊</div>
-        <div class="stack" style="gap:4px;flex:1;min-width:180px">
-          <input class="input" id="nameInput" maxlength="16" data-i18n-attr="placeholder:profile_name" />
-          <div class="muted small" id="levelLine"></div>
+  <main id="main" class="wrap page profile-page">
+    <!-- Кто я и мой уровень -->
+    <section class="card profile-card" aria-labelledby="profileName">
+      <div class="profile-avatar" id="avatar"></div>
+      <div class="profile-main">
+        <h1 class="profile-name" id="profileName"></h1>
+        <p class="muted profile-level" id="levelLine"></p>
+        <div class="xp-line">
+          <div class="bar thick"><i id="xpBar" style="width:0%"></i></div>
+          <span class="small muted" id="xpNote"></span>
         </div>
-        <button class="btn" id="saveProfileBtn" type="button" data-i18n="save">Сактоо</button>
+        <ul class="profile-facts" id="facts"></ul>
       </div>
-      <div class="bar thick"><i id="xpBar" style="width:0%"></i></div>
-      <div class="small muted" id="xpNote"></div>
-      <div class="chips" id="avatarPicker" aria-label="Аватар"></div>
-      <div class="stats" id="mainStats"></div>
+      <details class="profile-edit" id="editBox">
+        <summary class="btn soft" data-i18n="profile_edit">Профилди өзгөртүү</summary>
+        <div class="stack edit-body">
+          <label class="field">
+            <span class="label" data-i18n="profile_name">Атың</span>
+            <input class="input" id="nameInput" maxlength="16" autocomplete="given-name" />
+          </label>
+          <fieldset class="avatar-picker">
+            <legend class="label" data-i18n="profile_avatar">Сүрөт</legend>
+            <div class="avatar-options" id="avatarPicker"></div>
+          </fieldset>
+          <button class="btn primary" id="saveProfileBtn" type="button" data-i18n="save">Сактоо</button>
+        </div>
+      </details>
     </section>
 
-    <!-- Карта знаний -->
-    <section class="card stack">
-      <h2 style="margin:0" data-i18n="knowledge_map">Билим картасы</h2>
-      <div id="knowledgeMap"></div>
+    <!-- Прогресса ещё нет -->
+    <section class="card empty-profile hidden" id="emptyProfile">
+      <h2 data-i18n="profile_empty_title">Азырынча прогресс жок</h2>
+      <p class="muted" data-i18n="profile_empty_text"></p>
+      <a class="btn primary" href="./games.html" data-i18n="home_all_games">Бардык оюндар</a>
     </section>
 
-    <!-- Что повторить -->
-    <section class="card stack">
-      <h2 style="margin:0" data-i18n="results_review">Кайталоо керек</h2>
-      <div id="reviewList"></div>
-    </section>
+    <div class="profile-grid">
+      <!-- Карта знаний: только начатые предметы -->
+      <section class="card stack hidden" id="mapSection" aria-labelledby="mapTitle">
+        <h2 id="mapTitle" data-i18n="knowledge_map">Билим картасы</h2>
+        <div id="knowledgeMap" class="stack"></div>
+      </section>
 
-    <!-- Достижения -->
-    <section class="card stack">
-      <h2 style="margin:0" data-i18n="achievements">Жетишкендиктер</h2>
-      <div class="grid auto" id="badgeGrid"></div>
-    </section>
+      <!-- Что повторить: только если есть ошибки -->
+      <section class="card stack hidden" id="reviewSection" aria-labelledby="reviewTitle">
+        <h2 id="reviewTitle" data-i18n="results_review">Кайталоо керек</h2>
+        <div id="reviewList" class="stack"></div>
+      </section>
 
-    <!-- История -->
-    <section class="card stack">
-      <h2 style="margin:0" data-i18n="nav_games">Оюндар</h2>
-      <div id="historyList"></div>
-    </section>
+      <!-- Достижения -->
+      <section class="card stack" id="badgeSection" aria-labelledby="badgeTitle">
+        <div class="row between">
+          <h2 id="badgeTitle" style="margin:0" data-i18n="achievements">Жетишкендиктер</h2>
+          <span class="small muted" id="badgeCount"></span>
+        </div>
+        <div class="badge-grid" id="badgeGrid"></div>
+      </section>
 
+      <!-- Последние игры: только если были -->
+      <section class="card stack hidden" id="historySection" aria-labelledby="historyTitle">
+        <h2 id="historyTitle" data-i18n="profile_recent">Акыркы оюндар</h2>
+        <div id="historyList"></div>
+      </section>
+    </div>
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./progress.js?v=11"></script>
+  <script type="module" src="./progress.js?v=12"></script>
 </body>
 </html>

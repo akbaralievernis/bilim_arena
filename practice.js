@@ -7,6 +7,7 @@
  */
 
 import { bootstrap, mountHeader, el, $, toast, sfx, confetti, fmtTime } from './core/ui.js';
+import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
 import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, getQuestions, skillTitle } from './core/curriculum.js';
 import { BaseGame } from './core/engine.js';
@@ -18,7 +19,7 @@ import { getProfile } from './core/profile.js';
 class PracticeGame extends BaseGame {
   static meta = {
     id: 'practice',
-    icon: '🎯',
+    icon: 'target',
     title: { ky: 'Машыгуу', ru: 'Практика', en: 'Practice' },
     goal: {
       ky: 'Теманы бекемдөө жана кайсы жерде ката кетирериңди билүү',
@@ -40,7 +41,7 @@ const state = { subject: null, topic: null, game: null, player: 'me' };
 const screens = ['pickScreen', 'introScreen', 'playScreen', 'resultScreen'];
 const show = (id) => screens.forEach((s) => $('#' + s).classList.toggle('hidden', s !== id));
 
-const STATE_ICON = { learned: '✅', review: '⚠️', new: '○' };
+const STATE_ICON = { learned: 'check', review: 'warn', new: 'target' };
 const stat = (v, l) => el('div', { class: 'stat' }, el('b', {}, String(v)), el('span', {}, l));
 
 // ─── Выбор темы ───────────────────────────────────────────────────────────────
@@ -53,7 +54,7 @@ async function renderPicker() {
   $('#subjectChips').replaceChildren(...withTopics.map((s) => el('button', {
     class: 'chip', type: 'button', 'aria-pressed': String(s.id === state.subject),
     onclick: () => { state.subject = s.id; renderPicker(); }
-  }, `${s.icon} ${pick(s.title, lang)}`)));
+  }, `${pick(s.title, lang)}`)));
 
   const topics = topicsOf(state.subject);
   const cards = [];
@@ -65,7 +66,7 @@ async function renderPicker() {
     },
       el('div', { class: 'row between' },
         el('b', {}, pick(tp.title, lang)),
-        el('span', { class: `state ${st}` }, `${STATE_ICON[st]} ${t('mastery_' + (st === 'learned' ? 'learned' : st === 'review' ? 'review' : 'new'))}`)
+        el('span', { class: `state ${st}` }, icon(STATE_ICON[st], { size: 16 }), t('mastery_' + (st === 'learned' ? 'learned' : st === 'review' ? 'review' : 'new')))
       ),
       el('div', { class: 'small muted' }, `${t('grade', { n: tp.grade })} · ${pick(tp.section, lang)}`),
       el('div', { class: 'chips' }, tp.skills.slice(0, 3).map((sk) => el('span', { class: 'chip small' }, pick(sk.title, lang))))
@@ -83,9 +84,9 @@ async function openIntro(topicId) {
   const topic = getTopic(topicId);
   const subject = getSubject(topic.subject);
 
-  $('#introIcon').textContent = PracticeGame.meta.icon;
+  $('#introIcon').replaceChildren(icon(PracticeGame.meta.icon, { size: 36 }));
   $('#introTitle').textContent = pick(topic.title, lang);
-  $('#introSubject').textContent = `${subject.icon} ${pick(subject.title, lang)} · ${t('grade', { n: topic.grade })}`;
+  $('#introSubject').textContent = `${pick(subject.title, lang)} · ${t('grade', { n: topic.grade })}`;
   $('#introGoal').textContent = pick(PracticeGame.meta.goal, lang);
   $('#introHow').textContent = pick(PracticeGame.meta.how, lang);
 
@@ -155,7 +156,7 @@ function renderGame(game, kind) {
   if (reveal) {
     const correctText = game.correctText();
     explain.replaceChildren(
-      el('b', {}, answered?.correct ? `✅ ${t('game_correct')} ` : `❌ ${t('game_correct_answer')}: ${correctText} `),
+      el('b', {}, answered?.correct ? `${t('game_correct')} ` : `${t('game_correct_answer')}: ${correctText} `),
       el('span', {}, game.current.explain || '')
     );
     if (answered?.correct) sfx.ok(); else sfx.bad();
@@ -179,7 +180,7 @@ async function showResults(game) {
   show('resultScreen');
 
   const good = r.accuracy >= 70;
-  $('#resultIcon').textContent = good ? '🎉' : '💪';
+  $('#resultIcon').replaceChildren(icon(good ? 'trophy' : 'target', { size: 36 }));
   if (good) { sfx.win(); confetti(); }
 
   const player = r.players[0] || { score: 0 };
@@ -198,7 +199,7 @@ async function showResults(game) {
     return el('div', { class: 'skill-row', style: 'margin-bottom:12px' },
       el('div', { class: 'row between' },
         el('b', {}, skillTitle(state.topic, skill, lang)),
-        el('span', { class: `state ${weak ? 'review' : 'learned'}` }, `${weak ? '⚠️' : '✅'} ${s.ok}/${s.total}`)
+        el('span', { class: `state ${weak ? 'review' : 'learned'}` }, icon(weak ? 'warn' : 'check', { size: 16 }), `${s.ok}/${s.total}`)
       ),
       el('div', { class: `bar ${weak ? '' : 'ok'}`, style: 'margin-top:6px' }, el('i', { style: `width:${pct}%` }))
     );

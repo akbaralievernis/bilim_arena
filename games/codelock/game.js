@@ -12,6 +12,7 @@
 
 import { BaseGame } from '../../core/engine.js';
 import { el } from '../../core/ui.js';
+import { icon } from '../../core/icons.js';
 import { t } from '../../core/i18n.js';
 
 /** Доля класса, которая должна ответить верно, чтобы открыть цифру */
@@ -20,7 +21,7 @@ const PASS_SHARE = 0.5;
 export default class CodeLockGame extends BaseGame {
   static meta = {
     id: 'codelock',
-    icon: '🔐',
+    icon: 'lock',
     title: { ky: 'Коддуу кулпу', ru: 'Кодовый замок', en: 'Code lock' },
     goal: {
       ky: 'Бүт класс болуп тапшырмаларды чечип, кулпунун бардык сандарын ачуу',
@@ -106,7 +107,7 @@ export default class CodeLockGame extends BaseGame {
     }
 
     container.replaceChildren(el('div', { class: `lock-box ${this.isOpen ? 'unlocked' : ''}` },
-      el('div', { class: 'lock-icon', 'aria-hidden': 'true' }, this.isOpen ? '🔓' : '🔒'),
+      el('div', { class: 'lock-icon', 'aria-hidden': 'true' }, icon(this.isOpen ? 'unlock' : 'lock', { size: 48 })),
       el('div', { class: 'lock-digits' }, cells),
       el('p', { class: `lock-note ${reveal && this.outcome ? (this.outcome.opened ? 'ok' : 'bad') : ''}` }, note),
       el('div', { class: 'small muted' }, t('cl_progress', { n: this.openedCount, total: this.size }))

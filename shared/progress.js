@@ -174,6 +174,46 @@
   }
 
   // ---- Негизги API ----
+  /**
+   * Мост к прогрессу платформы (BA2_progress, core/progress.js).
+   * Раньше XP из этих игр попадал в профиль только один раз — при первом
+   * переносе. Теперь каждое начисление и каждая сыгранная игра отражаются
+   * в профиле: XP, дневная цель, серия дней, счётчик игр.
+   */
+  const PLATFORM = 'BA2_progress';
+  const MIGRATED = 'BA2_legacy_migrated';
+
+  function toPlatform(gameId, { xp = 0, play = false, score = 0, legacyXpBefore = 0 } = {}) {
+    try {
+      const p = JSON.parse(localStorage.getItem(PLATFORM) || 'null') || {
+        xp: 0, dayXP: 0, streak: 0, lastDay: null, skills: {}, topics: {}, games: {}, badges: [], dailyGoal: DAILY_GOAL
+      };
+      p.games = p.games || {};
+
+      // Первый раз: переносим XP, накопленный здесь до появления моста
+      if (!localStorage.getItem(MIGRATED)) {
+        p.xp = (p.xp || 0) + Math.max(0, legacyXpBefore);
+        localStorage.setItem(MIGRATED, '1');
+      }
+
+      const t = today();
+      if (p.lastDay !== t) {
+        p.streak = p.lastDay && daysBetween(p.lastDay, t) === 1 ? (p.streak || 0) + 1 : 1;
+        p.lastDay = t;
+        p.dayXP = 0;
+      }
+      const g = p.games[gameId] || (p.games[gameId] = { plays: 0, best: 0, xp: 0 });
+      if (xp) { p.xp = (p.xp || 0) + xp; p.dayXP = (p.dayXP || 0) + xp; g.xp += xp; }
+      if (play) { g.plays += 1; g.best = Math.max(g.best || 0, score || 0); }
+      localStorage.setItem(PLATFORM, JSON.stringify(p));
+
+      // Облачная синхронизация (если подключена) увидит, что прогресс изменился
+      const meta = JSON.parse(localStorage.getItem('BA2_sync_meta') || '{}');
+      meta.progress = Date.now();
+      localStorage.setItem('BA2_sync_meta', JSON.stringify(meta));
+    } catch (e) { /* хранилище недоступно — игра продолжает работать */ }
+  }
+
   const BA = {
     DAILY_GOAL,
     BADGES,
@@ -206,6 +246,7 @@
       g.xp += amount;
       const fresh = checkBadges(d);
       save(d);
+      toPlatform(gameId, { xp: amount, legacyXpBefore: d.xp - amount });
       const after = levelInfo(d.xp).level;
       toast(`✨ +${amount} XP`);
       if (after > before) { setTimeout(() => toast(`🎊 Жаңы деңгээл: <b>${after}</b> — ${titleFor(after)}`), 700); sfx.win(); }
@@ -221,6 +262,7 @@
       if (record) g.best = score;
       checkBadges(d);
       save(d);
+      toPlatform(gameId, { play: true, score, legacyXpBefore: d.xp });
       return record;
     },
     best(gameId) {

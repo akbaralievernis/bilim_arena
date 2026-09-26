@@ -4,8 +4,10 @@
  */
 
 import { t, LANGS, getLang, setLang, initI18n } from './i18n.js';
-import { store } from './store.js';
 import { SUPABASE } from './config.js';
+import { icon } from './icons.js';
+import { avatar } from './art.js';
+import { getProfile } from './profile.js';
 
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -30,13 +32,21 @@ export function el(tag, attrs = {}, ...children) {
 
 // ─── Уведомления ──────────────────────────────────────────────────────────────
 
-export function toast(message, { icon = '', ms = 2600 } = {}) {
+/** Страницы передают значок символом — показываем его иконкой из общего набора */
+const TOAST_ICONS = {
+  '⚠️': 'warn', '✅': 'check', '🔁': 'refresh', '☁️': 'cloud', '📧': 'info', '👋': 'logout',
+  '🎤': 'mic', '🎉': 'sparkle', '✨': 'sparkle', '🏆': 'trophy', '🔍': 'lens', '📝': 'tasks',
+  '📥': 'inbox', '🔌': 'wifiOff', '🗑️': 'trash', '📋': 'copy'
+};
+
+export function toast(message, { icon: mark = '', ms = 2600 } = {}) {
   let host = $('#toasts');
   if (!host) {
-    host = el('div', { id: 'toasts' });
+    host = el('div', { id: 'toasts', role: 'status', 'aria-live': 'polite' });
     document.body.append(host);
   }
-  const node = el('div', { class: 'toast' }, icon ? `${icon} ${message}` : message);
+  const name = mark ? (TOAST_ICONS[mark] || 'info') : null;
+  const node = el('div', { class: `toast ${name === 'warn' ? 'warn' : ''}` }, name ? icon(name, { size: 18 }) : null, el('span', {}, message));
   host.append(node);
   setTimeout(() => {
     node.style.transition = 'opacity .3s';
@@ -46,19 +56,15 @@ export function toast(message, { icon = '', ms = 2600 } = {}) {
 }
 
 // ─── Тема оформления ──────────────────────────────────────────────────────────
+// Платформа использует один светлый интерфейс. Функции оставлены для совместимости.
 
 export async function initTheme() {
-  const saved = await store.get('theme');
-  const theme = saved || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-  document.documentElement.dataset.theme = theme;
-  return theme;
+  document.documentElement.dataset.theme = 'light';
+  return 'light';
 }
 
 export async function toggleTheme() {
-  const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
-  document.documentElement.dataset.theme = next;
-  await store.set('theme', next);
-  return next;
+  return initTheme();
 }
 
 // ─── Звук (лёгкий, без файлов) ────────────────────────────────────────────────
@@ -87,84 +93,98 @@ export const sfx = {
 
 // ─── Шапка страницы ───────────────────────────────────────────────────────────
 
+/** Навигация ученика: главная, игры, задания, профиль, раздел для учителей */
 const STUDENT_NAV = [
-  { href: 'index.html', key: 'nav_home', icon: '🏠' },
-  { href: 'speak.html', key: 'nav_speak', icon: '🎤' },
-  { href: 'practice.html', key: 'nav_practice', icon: '🎯' },
-  { href: 'play.html', key: 'join_title', icon: '🎮' },
-  { href: 'tasks.html', key: 'nav_tasks', icon: '📝' },
-  { href: 'progress.html', key: 'nav_progress', icon: '📈' }
+  { href: 'index.html', key: 'nav_home', icon: 'home' },
+  { href: 'games.html', key: 'nav_games', icon: 'games' },
+  { href: 'tasks.html', key: 'nav_tasks', icon: 'tasks' },
+  { href: 'progress.html', key: 'nav_profile', icon: 'profile' },
+  { href: 'teacher.html', key: 'nav_for_teachers', icon: 'teacher' }
+];
+/** На телефоне — вход на урок вместо раздела учителей */
+const STUDENT_TABS = [
+  { href: 'index.html', key: 'tab_home', icon: 'home' },
+  { href: 'games.html', key: 'nav_games', icon: 'games' },
+  { href: 'play.html', key: 'tab_join', icon: 'join' },
+  { href: 'tasks.html', key: 'tab_tasks', icon: 'tasks' },
+  { href: 'progress.html', key: 'nav_profile', icon: 'profile' }
 ];
 
 const TEACHER_NAV = [
-  { href: 'teacher.html', key: 'nav_dashboard', icon: '🧭' },
-  { href: 'homework.html', key: 'nav_assignments', icon: '📝' },
-  { href: 'questions.html', key: 'nav_builder', icon: '🛠️' },
-  { href: 'teacher.html#classes', key: 'nav_classes', icon: '👥' },
-  { href: 'teacher.html#results', key: 'nav_results', icon: '📊' }
+  { href: 'teacher.html', key: 'nav_dashboard', icon: 'teacher' },
+  { href: 'homework.html', key: 'nav_assignments', icon: 'tasks' },
+  { href: 'questions.html', key: 'nav_builder', icon: 'pen' },
+  { href: 'board.html', key: 'board_mode', icon: 'board' },
+  { href: 'index.html', key: 'nav_student_view', icon: 'home' }
 ];
 
+/** Короткие подписи для нижней панели учителя */
+const TEACHER_TABS = [
+  { href: 'teacher.html', key: 'nav_dashboard', icon: 'teacher' },
+  { href: 'homework.html', key: 'tab_tasks', icon: 'tasks' },
+  { href: 'questions.html', key: 'tab_questions', icon: 'pen' },
+  { href: 'board.html', key: 'tab_board', icon: 'board' },
+  { href: 'index.html', key: 'tab_student', icon: 'home' }
+];
+
+const navLink = (it, active) => el('a', {
+  href: it.href,
+  ...(active === it.href ? { 'aria-current': 'page' } : {})
+}, icon(it.icon, { size: 20 }), el('span', { class: 'nav-label' }, t(it.key)));
+
 /**
- * Рисует шапку с навигацией и переключателями языка и темы.
+ * Рисует шапку с навигацией, выбором языка и профилем.
  * @param {object} opts { role:'student'|'teacher', active:'index.html' }
  */
 export function mountHeader(target, { role = 'student', active = '' } = {}) {
   const items = role === 'teacher' ? TEACHER_NAV : STUDENT_NAV;
+  const tabs = role === 'teacher' ? TEACHER_TABS : STUDENT_TABS;
 
-  // На планшете подписи прячутся, остаются иконки — меню помещается целиком
-  const nav = el('nav', { class: 'nav', 'aria-label': t('nav_home') },
-    items.map((it) => el('a', {
-      href: it.href,
-      title: t(it.key),
-      ...(active === it.href ? { 'aria-current': 'page' } : {})
-    },
-      el('span', { class: 'nav-icon', 'aria-hidden': 'true' }, it.icon),
-      el('span', { class: 'nav-label' }, t(it.key))
-    ))
+  const nav = el('nav', { class: 'nav', 'aria-label': t('nav_main') }, items.map((it) => navLink(it, active)));
+
+  // Язык — обычный список: понятен и с клавиатуры, и на телефоне
+  const langSelect = el('select', {
+    class: 'lang-select', 'aria-label': 'Тил / Язык / Language',
+    onchange: async (e) => { await setLang(e.target.value); location.reload(); }
+  }, LANGS.map((l) => el('option', { value: l.code, ...(l.code === getLang() ? { selected: true } : {}) }, l.code.toUpperCase())));
+
+  const actions = el('div', { class: 'topbar-actions' },
+    langSelect,
+    // Облако — только когда подключено
+    SUPABASE.url ? el('a', {
+      class: 'icon-link', href: 'account.html', id: 'cloudBtn',
+      title: t('acc_title'), 'aria-label': t('acc_title')
+    }, icon('cloud')) : null
   );
 
-  const langBtn = el('button', {
-    class: 'btn ghost', type: 'button', 'aria-label': 'Тил / Язык / Language',
-    onclick: async () => {
-      const codes = LANGS.map((l) => l.code);
-      const next = codes[(codes.indexOf(getLang()) + 1) % codes.length];
-      await setLang(next);
-      location.reload();
-    }
-  }, LANGS.find((l) => l.code === getLang())?.flag || '🌐');
-
-  const themeBtn = el('button', {
-    class: 'btn ghost', type: 'button', 'aria-label': 'Тема',
-    onclick: async (e) => {
-      const next = await toggleTheme();
-      e.currentTarget.textContent = next === 'light' ? '☀️' : '🌙';
-    }
-  }, document.documentElement.dataset.theme === 'light' ? '☀️' : '🌙');
+  // Профиль ученика: иллюстрация и имя (подгружаются из профиля)
+  if (role !== 'teacher') {
+    const link = el('a', {
+      class: 'profile-link', href: 'progress.html', 'aria-label': t('nav_profile'),
+      ...(active === 'progress.html' ? { 'aria-current': 'page' } : {})
+    }, avatar(null, { size: 34, animated: false }), el('span', { class: 'profile-name' }, t('nav_profile')));
+    actions.append(link);
+    getProfile().then((p) => {
+      link.replaceChildren(avatar(p.avatar, { size: 34, animated: false }), el('span', { class: 'profile-name' }, p.name || t('nav_profile')));
+    }).catch(() => {});
+  }
 
   const header = el('header', { class: 'topbar' },
-    el('a', { class: 'brand', href: 'index.html' },
-      el('span', { class: 'logo', 'aria-hidden': 'true' }, '🚀'),
-      el('span', {}, t('app_name'))
+    el('a', { class: 'brand', href: role === 'teacher' ? 'teacher.html' : 'index.html', 'aria-label': t('app_name') },
+      el('img', { class: 'logo', src: 'assets/logo.svg', alt: '', width: 36, height: 36 }),
+      el('span', { class: 'brand-name' }, t('app_name'))
     ),
     nav,
-    el('span', { class: 'spacer' }),
-    // Аккаунт появляется, только когда подключено облако
-    SUPABASE.url ? el('a', {
-      class: 'btn ghost cloud-btn', href: 'account.html', id: 'cloudBtn',
-      title: t('acc_title'), 'aria-label': t('acc_title')
-    }, '☁️') : null,
-    langBtn,
-    themeBtn
+    actions
   );
-
   target.replaceWith(header);
 
   // Нижняя панель для телефона
-  const tabbar = el('nav', { class: 'tabbar', 'aria-label': t('nav_home') },
-    items.slice(0, 5).map((it) => el('a', {
+  const tabbar = el('nav', { class: 'tabbar', 'aria-label': t('nav_main') },
+    tabs.slice(0, 5).map((it) => el('a', {
       href: it.href,
       ...(active === it.href ? { 'aria-current': 'page' } : {})
-    }, el('span', { 'aria-hidden': 'true' }, it.icon), t(it.key)))
+    }, icon(it.icon, { size: 22 }), el('span', {}, t(it.key))))
   );
   document.body.append(tabbar);
   document.body.classList.add('has-tabbar');
@@ -182,9 +202,11 @@ export async function bootstrap() {
     window.addEventListener('ba:cloud-status', (e) => {
       const btn = document.getElementById('cloudBtn');
       if (!btn) return;
-      const icon = { syncing: '🔄', ok: '☁️', error: '⚠️', offline: '📴' }[e.detail.state] || '☁️';
-      btn.textContent = icon;
-      btn.title = `${t('acc_title')}: ${t('acc_state_' + e.detail.state)}`;
+      const state = e.detail.state;
+      btn.dataset.state = state;
+      btn.replaceChildren(icon({ syncing: 'sync', error: 'warn', offline: 'offline' }[state] || 'cloud'));
+      btn.title = `${t('acc_title')}: ${t('acc_state_' + state)}`;
+      btn.setAttribute('aria-label', btn.title);
     });
   }
   return { lang: getLang() };

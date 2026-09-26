@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<html lang="ky" data-theme="dark">
+<html lang="ky" data-theme="light">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b1020" />
+  <meta name="theme-color" content="#F7F8FC" />
   <meta name="description" content="Билим Арена — үй тапшырмалар: мугалим берген тапшырмаларды аткарып, каталарыңызды талдаңыз." />
   <title>Үй тапшырмалар — Билим Арена</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./core/ui.css?v=11" />
-  <link rel="stylesheet" href="./home.css?v=11" />
+  <link rel="stylesheet" href="./core/ui.css?v=12" />
+  <link rel="stylesheet" href="./home.css?v=12" />
 </head>
 
 <body>
-  <a class="skip-link" href="#main">Мазмунга өтүү</a>
+  <a class="skip-link" href="#main" data-i18n="skip_to_content">Мазмунга өтүү</a>
   <div id="header"></div>
 
   <main id="main" class="wrap stack" style="padding-top:20px;padding-bottom:40px">
@@ -29,7 +29,7 @@
     <!-- Перед началом: цель, правила, срок -->
     <section class="card pad-lg stack hidden" id="introScreen">
       <div class="center stack">
-        <div class="entry-icon">📝</div>
+        <div class="entry-icon" id="introIcon" aria-hidden="true"></div>
         <h1 id="introTitle"></h1>
         <p class="muted" id="introMeta"></p>
       </div>
@@ -59,7 +59,7 @@
     <!-- Результат -->
     <section class="card pad-lg stack hidden" id="resultScreen">
       <div class="center stack">
-        <div class="entry-icon" id="resultIcon">🎉</div>
+        <div class="entry-icon" id="resultIcon" aria-hidden="true"></div>
         <h1 data-i18n="results_title">Жыйынтык</h1>
         <p class="muted" id="resultXP"></p>
       </div>
@@ -79,6 +79,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./tasks.js?v=11"></script>
+  <script type="module" src="./tasks.js?v=12"></script>
 </body>
 </html>

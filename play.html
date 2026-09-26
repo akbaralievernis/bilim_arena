@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="ky" data-theme="dark">
+<html lang="ky" data-theme="light">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-  <meta name="theme-color" content="#0b1020" />
+  <meta name="theme-color" content="#F7F8FC" />
   <meta name="description" content="Билим Арена — оюнга кирүү. Мугалим берген код менен кошулуңуз." />
   <title>Оюнга кирүү — Билим Арена</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./core/ui.css?v=11" />
-  <link rel="stylesheet" href="./core/board.css?v=11" />
+  <link rel="stylesheet" href="./core/ui.css?v=12" />
+  <link rel="stylesheet" href="./core/board.css?v=12" />
 </head>
 
 <body class="controller">
   <header class="ctrl-top">
     <a class="brand" href="./index.html" aria-label="Билим Арена">
-      <span class="logo" aria-hidden="true">🚀</span>
+      <img class="logo" src="./assets/logo.svg" alt="" width="36" height="36" />
     </a>
     <div class="stack" style="gap:2px">
       <b id="playerName">—</b>
@@ -28,7 +28,7 @@
   <!-- Вход в игру -->
   <main class="ctrl-main" id="joinScreen">
     <div class="center stack">
-      <div class="big-emoji">🎮</div>
+      <div class="big-icon" id="joinIcon" aria-hidden="true"></div>
       <h1 data-i18n="join_title">Оюнга кирүү</h1>
     </div>
 
@@ -62,6 +62,6 @@
   </footer>
 
   <div id="toasts"></div>
-  <script type="module" src="./play.js?v=11"></script>
+  <script type="module" src="./play.js?v=12"></script>
 </body>
 </html>

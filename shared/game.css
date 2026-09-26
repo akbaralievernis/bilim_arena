@@ -1,5 +1,5 @@
 /* Bilim Arena — тил оюндары үчүн жалпы стилдер */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
   --bg: #0b1020;
@@ -18,18 +18,24 @@
   --radius: 18px;
   --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
   --font: 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-title: 'Montserrat', system-ui, sans-serif;
+  --font-title: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
 body.light {
-  --bg: #f1f5f9;
-  --bg2: #e0e7ff;
-  --card: rgba(255, 255, 255, 0.85);
-  --card-strong: #ffffff;
-  --line: rgba(15, 23, 42, 0.1);
-  --text: #0f172a;
-  --soft: #475569;
-  --shadow: 0 12px 30px rgba(15, 23, 42, 0.1);
+  --bg: #F7F8FC;
+  --bg2: #EEEDFF;
+  --card: #FFFFFF;
+  --card-strong: #FFFFFF;
+  --line: #E3E6F0;
+  --text: #202B46;
+  --soft: #5B6583;
+  --primary: #635BFF;
+  --primary-2: #7C75FF;
+  --pink: #F0607E;
+  --ok: #16A36A;
+  --bad: #E5484D;
+  --warn: #D9860B;
+  --shadow: 0 1px 2px rgba(32, 43, 70, 0.05), 0 8px 24px rgba(32, 43, 70, 0.07);
 }
 
 * { box-sizing: border-box; }
@@ -140,3 +146,6 @@ h2.gH { font-family: var(--font-title); font-size: clamp(1.5rem, 4vw, 2.2rem); m
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* Скрытые элементы остаются скрытыми, даже если у класса задан display */
+[hidden] { display: none !important; }

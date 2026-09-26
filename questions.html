@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<html lang="ky" data-theme="dark">
+<html lang="ky" data-theme="light">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b1020" />
+  <meta name="theme-color" content="#F7F8FC" />
   <meta name="description" content="Билим Арена — суроолор китепканасы жана конструктору: суроо түзүү, өзгөртүү, тапшырма чыгаруу." />
   <title>Менин суроолорум — Билим Арена</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./core/ui.css?v=11" />
-  <link rel="stylesheet" href="./home.css?v=11" />
+  <link rel="stylesheet" href="./core/ui.css?v=12" />
+  <link rel="stylesheet" href="./home.css?v=12" />
 </head>
 
 <body>
-  <a class="skip-link" href="#main">Мазмунга өтүү</a>
+  <a class="skip-link" href="#main" data-i18n="skip_to_content">Мазмунга өтүү</a>
   <div id="header"></div>
 
   <main id="main" class="wrap stack" style="padding-top:20px;padding-bottom:40px">
@@ -23,7 +23,7 @@
         <h1 data-i18n="qb_title">Менин суроолорум</h1>
         <div class="row" style="gap:8px">
           <a class="btn ghost" href="./homework.html" data-i18n="hw_title">Үй тапшырмалар</a>
-          <button class="btn primary" id="createBtn" type="button">➕ <span data-i18n="qb_create">Суроо түзүү</span></button>
+          <button class="btn primary" id="createBtn" type="button"><span data-i18n="qb_create">Суроо түзүү</span></button>
         </div>
       </div>
 
@@ -67,7 +67,7 @@
           <button class="btn ghost" id="selectAllBtn" type="button" data-i18n="select_all">Баарын тандоо</button>
           <button class="btn ghost" id="clearSelBtn" type="button" data-i18n="clear_sel">Тазалоо</button>
           <button class="btn primary" id="makeAssignmentBtn" type="button" disabled>
-            📝 <span data-i18n="qb_make_assignment">Тандалгандан тапшырма түзүү</span>
+            <span data-i18n="qb_make_assignment">Тандалгандан тапшырма түзүү</span>
           </button>
         </div>
       </div>
@@ -136,6 +136,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./questions.js?v=11"></script>
+  <script type="module" src="./questions.js?v=12"></script>
 </body>
 </html>

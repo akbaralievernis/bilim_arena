@@ -1,23 +1,23 @@
 <!DOCTYPE html>
-<html lang="ky" data-theme="dark">
+<html lang="ky" data-theme="light">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b1020" />
+  <meta name="theme-color" content="#F7F8FC" />
   <meta name="description" content="Билим Арена — интерактивдүү доска режими: сабак, оюн жана окуучулардын телефондору." />
   <title>Доска режими — Билим Арена</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./core/ui.css?v=11" />
-  <link rel="stylesheet" href="./core/board.css?v=11" />
+  <link rel="stylesheet" href="./core/ui.css?v=12" />
+  <link rel="stylesheet" href="./core/board.css?v=12" />
 </head>
 
 <body class="board-mode">
-  <a class="skip-link" href="#main">Негизги мазмунга өтүү</a>
+  <a class="skip-link" href="#main" data-i18n="skip_to_content">Мазмунга өтүү</a>
 
   <!-- Верхняя строка урока: этапы + таймер + управление -->
   <header class="board-top" id="boardTop">
     <a class="brand" href="./index.html" title="Башкы бет">
-      <span class="logo" aria-hidden="true">🚀</span>
+      <img class="logo" src="./assets/logo.svg" alt="" width="36" height="36" />
     </a>
     <div class="lesson-meta">
       <div class="lesson-title" id="lessonTitle">—</div>
@@ -26,8 +26,8 @@
     <ol class="stages" id="stages" aria-label="Сабактын этаптары"></ol>
     <div class="spacer"></div>
     <div class="timer hidden" id="timer" aria-live="off"><span id="timerValue">0</span></div>
-    <button class="btn ghost" id="pauseBtn" type="button" aria-label="Тыным" hidden>⏸</button>
-    <button class="btn ghost" id="exitBtn" type="button" aria-label="Сабакты аяктоо">✕</button>
+    <button class="btn ghost icon-only" id="pauseBtn" type="button" aria-label="Тыным" hidden></button>
+    <button class="btn ghost icon-only" id="exitBtn" type="button" aria-label="Сабакты аяктоо"></button>
   </header>
 
   <main id="main">
@@ -108,8 +108,8 @@
       <aside class="game-side" id="gameExtra"></aside>
 
       <div class="game-foot">
-        <button class="btn" id="skipBtn" type="button">⏭ <span data-i18n="board_next_question"></span></button>
-        <button class="btn ghost" id="finishBtn" type="button">🏁 <span data-i18n="board_finish_game"></span></button>
+        <button class="btn" id="skipBtn" type="button"><span data-i18n="board_next_question"></span></button>
+        <button class="btn ghost" id="finishBtn" type="button"><span data-i18n="board_finish_game"></span></button>
       </div>
     </section>
 
@@ -144,7 +144,7 @@
     <!-- 5. Итог урока -->
     <section class="screen hidden" id="summaryScreen">
       <div class="wrap stack center">
-        <div class="big-emoji">🎓</div>
+        <div class="big-icon" id="summaryIcon" aria-hidden="true"></div>
         <h1 data-i18n="lesson_stage_summary">Жыйынтык</h1>
         <div class="stats" id="summaryStats"></div>
         <div class="card stack" id="summaryReview"></div>
@@ -157,6 +157,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./board.js?v=11"></script>
+  <script type="module" src="./board.js?v=12"></script>
 </body>
 </html>

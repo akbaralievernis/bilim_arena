@@ -1,50 +1,83 @@
-/* Главная страница платформы */
+/* Bilim Arena — главная страница и общие блоки страниц ученика */
 
-main { padding-bottom: 60px; }
-.wrap.stack, section.wrap { margin-bottom: 40px; }
-
-.hero { padding: 32px 0 24px; }
-.hero-text { max-width: 720px; margin: 0 auto 28px; }
-.hero h1 { font-size: clamp(1.8rem, 5vw, 3rem); margin: 0.3em 0; }
-
-.grid.three { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
-
-.entry {
-  display: flex; flex-direction: column; gap: 10px;
-  text-decoration: none; color: inherit;
-  transition: transform 0.2s var(--ease), border-color 0.2s;
+/* ─── Приветствие ─────────────────────────────────────────────────────────── */
+.hero { margin-top: 4px; }
+.hero-card {
+  display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 24px; align-items: center;
+  padding: clamp(22px, 4vw, 44px);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(600px 300px at 100% 0%, rgba(99, 91, 255, 0.10), transparent 70%),
+    radial-gradient(500px 260px at 0% 100%, rgba(33, 184, 166, 0.10), transparent 70%),
+    var(--surface);
   border: 1px solid var(--line);
+  box-shadow: var(--shadow);
 }
-.entry:active { transform: scale(0.99); }
-.entry h2 { margin: 0; font-size: 1.25rem; }
+.hero-kicker { margin: 0 0 6px; font-weight: 700; color: var(--primary-ink); }
+.hero h1 { font-size: clamp(1.7rem, 4.4vw, 2.7rem); margin: 0 0 10px; }
+.hero-sub { color: var(--text-soft); font-size: 1.05rem; max-width: 52ch; margin: 0 0 18px; }
+.hero-search { max-width: 520px; margin-bottom: 14px; }
+.hero-search .input { min-height: 54px; border-radius: 16px; font-size: 1rem; box-shadow: var(--shadow-sm); }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.hero-art { position: relative; height: 260px; }
+.hero-tile { position: absolute; width: 62%; aspect-ratio: 16 / 10; border-radius: 22px; overflow: hidden; box-shadow: var(--shadow-lg); border: 4px solid #fff; }
+.hero-tile-1 { left: 0; top: 6%; transform: rotate(-5deg); }
+.hero-tile-2 { right: 0; top: 0; transform: rotate(4deg); }
+.hero-tile-3 { left: 20%; bottom: 0; transform: rotate(-1deg); z-index: 2; }
+@media (prefers-reduced-motion: no-preference) {
+  .hero-tile { animation: tile-in 0.8s var(--ease) both; }
+  .hero-tile-2 { animation-delay: 0.1s; }
+  .hero-tile-3 { animation-delay: 0.2s; }
+}
+@keyframes tile-in { from { opacity: 0; translate: 0 16px; } }
+
+@media (max-width: 860px) {
+  .hero-card { grid-template-columns: 1fr; }
+  .hero-art { display: none; }
+}
+
+/* ─── Прогресс и рекомендации ─────────────────────────────────────────────── */
+.two-col { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } }
+
+.progress-card { display: flex; flex-direction: column; gap: 14px; }
+.prog-head { display: flex; align-items: center; gap: 14px; }
+.xp-line { display: flex; flex-direction: column; gap: 6px; }
+.prog-facts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; font-weight: 700; font-size: 0.92rem; }
+.prog-facts li { display: inline-flex; align-items: center; gap: 6px; }
+
+.rec-list { display: flex; flex-direction: column; gap: 10px; }
+.rec-item { display: flex; align-items: center; gap: 14px; padding: 10px 14px 10px 10px; }
+.rec-art { width: 84px; flex: none; aspect-ratio: 16 / 11; border-radius: 12px; overflow: hidden; }
+.rec-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.rec-body .small { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.rec-go { color: var(--text-soft); }
+
+/* ─── Блок для учителей ───────────────────────────────────────────────────── */
+.teacher-card { display: grid; grid-template-columns: 220px 1fr; gap: 24px; align-items: center; padding: clamp(18px, 3vw, 28px); }
+.teacher-art { border-radius: 18px; overflow: hidden; aspect-ratio: 16 / 11; }
+.teacher-points { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.teacher-points li { display: flex; gap: 8px; align-items: flex-start; }
+.teacher-points .icon { color: var(--secondary-ink); margin-top: 2px; }
+@media (max-width: 700px) {
+  .teacher-card { grid-template-columns: 1fr; }
+  .teacher-art { max-width: 260px; }
+}
+
+.footer { padding: 28px 0 8px; border-top: 1px solid var(--line); margin-top: 44px; }
+
+/* ─── Общие блоки других страниц ученика ──────────────────────────────────── */
+.entry-icon {
+  width: 72px; height: 72px; margin: 0 auto; border-radius: 20px;
+  display: grid; place-items: center; font-size: 2rem; line-height: 1;
+  background: var(--primary-soft); color: var(--primary);
+}
+.entry-icon .icon { width: 36px; height: 36px; }
+.entry { display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: inherit; }
+.entry h2 { margin: 0; font-size: 1.2rem; }
 .entry p { margin: 0; flex: 1; font-size: 0.92rem; }
-.entry-icon { font-size: 2.4rem; line-height: 1; }
-@media (hover: hover) {
-  .entry:hover { transform: translateY(-4px); border-color: var(--primary); }
-}
-
-.subject-card {
-  display: flex; flex-direction: column; gap: 8px;
-  text-decoration: none; color: inherit;
-}
-
-.game-card {
-  display: flex; flex-direction: column; gap: 12px;
-  text-decoration: none; color: inherit; overflow: hidden;
-  transition: transform 0.2s var(--ease), border-color 0.2s;
-}
-@media (hover: hover) {
-  .game-card:hover { transform: translateY(-4px); border-color: var(--primary); }
-}
-.game-cover {
-  height: 120px; margin: -1.25rem -1.25rem 0;
-  display: grid; place-items: center; font-size: 3.2rem;
-  position: relative; overflow: hidden;
-}
-.game-cover::after {
-  content: ''; position: absolute; inset: 0;
-  background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.3), transparent 60%);
-}
-.chip.small { padding: 0.25em 0.7em; font-size: 0.75rem; min-height: auto; }
-
-.footer { padding: 30px 0; border-top: 1px solid var(--line); }
+.entry .entry-icon { margin: 0; width: 52px; height: 52px; border-radius: 14px; }
+.subject-card { display: flex; flex-direction: column; gap: 10px; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.set-card { display: flex; flex-direction: column; gap: 8px; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.chip.small { min-height: auto; padding: 0.2em 0.7em; font-size: 0.78rem; cursor: default; }

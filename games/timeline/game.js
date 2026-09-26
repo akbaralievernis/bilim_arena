@@ -17,7 +17,7 @@ import { t } from '../../core/i18n.js';
 export default class TimelineGame extends BaseGame {
   static meta = {
     id: 'timeline',
-    icon: '⏳',
+    icon: 'hourglass',
     title: { ky: 'Тарых картасы', ru: 'Карта истории', en: 'History map' },
     goal: {
       ky: 'Окуяларды убакыт боюнча туура иреттөө',
@@ -70,7 +70,7 @@ export default class TimelineGame extends BaseGame {
       // Пока класс думает — перепутанные карточки событий
       container.replaceChildren(
         el('div', { class: 'sort-box' }, items.map((x) => el('div', { class: 'option' }, x.text))),
-        el('div', { class: 'muted center full', style: 'margin-top:10px' }, `↕️ 📱 ${t('tl_order_hint')}`)
+        el('div', { class: 'muted center full', style: 'margin-top:10px' }, `${t('tl_order_hint')}`)
       );
       return;
     }
@@ -85,7 +85,7 @@ export default class TimelineGame extends BaseGame {
       if (hits[hardest] === this.answers.size) hardest = -1; // все расставили верно
     }
 
-    container.replaceChildren(
+    container.replaceChildren(...[
       el('div', { class: 'timeline' }, ordered.map((x, i) => el('div', {
         class: `timeline-item ${hits[i] === this.answers.size && this.answers.size ? 'ok' : ''}`,
         'data-n': String(i + 1)
@@ -96,9 +96,9 @@ export default class TimelineGame extends BaseGame {
           : null
       ))),
       hardest >= 0
-        ? el('p', { class: 'center full', style: 'margin-top:10px' }, `⚠️ ${t('tl_hardest')}: `, el('b', {}, ordered[hardest].text))
+        ? el('p', { class: 'center full', style: 'margin-top:10px' }, `${t('tl_hardest')}: `, el('b', {}, ordered[hardest].text))
         : null
-    );
+    ].filter(Boolean));
   }
 
   statusText() {

@@ -20,7 +20,7 @@ const LIMIT = 4;
 export default class FormulaGame extends BaseGame {
   static meta = {
     id: 'formula',
-    icon: '⚔️',
+    icon: 'swords',
     title: { ky: 'Формула-беттеш', ru: 'Формула-бой', en: 'Formula battle' },
     goal: {
       ky: 'Тез жана так эсептеп, командаң менен арканды өз тарабыңа тартуу',
@@ -112,7 +112,7 @@ export default class FormulaGame extends BaseGame {
       el('div', { class: 'rope-track', role: 'img', 'aria-label': `${this.rope}` },
         el('i', { class: 'rope-line' }),
         el('i', { class: 'rope-center' }),
-        el('span', { class: 'rope-knot', style: `left:${pct}%` }, '🪢')
+        el('span', { class: 'rope-knot', style: `left:${pct}%`, 'aria-hidden': 'true' })
       ),
       el('p', { class: `rope-note ${reveal && this.pull ? `pull-${this.pull.team}` : ''}` }, note)
     ));

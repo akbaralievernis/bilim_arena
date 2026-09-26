@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<html lang="ky" data-theme="dark">
+<html lang="ky" data-theme="light">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b1020" />
+  <meta name="theme-color" content="#F7F8FC" />
   <meta name="description" content="Билим Арена — мугалим үчүн үй тапшырмалар: түзүү, жыйынтыктар жана каталардын анализи." />
   <title>Үй тапшырмалар — Билим Арена</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./core/ui.css?v=11" />
-  <link rel="stylesheet" href="./home.css?v=11" />
+  <link rel="stylesheet" href="./core/ui.css?v=12" />
+  <link rel="stylesheet" href="./home.css?v=12" />
 </head>
 
 <body>
-  <a class="skip-link" href="#main">Мазмунга өтүү</a>
+  <a class="skip-link" href="#main" data-i18n="skip_to_content">Мазмунга өтүү</a>
   <div id="header"></div>
 
   <main id="main" class="wrap stack" style="padding-top:20px;padding-bottom:40px">
@@ -23,7 +23,7 @@
         <h1 data-i18n="hw_title">Үй тапшырмалар</h1>
         <div class="row" style="gap:8px">
           <a class="btn ghost" href="./questions.html" data-i18n="qb_title">Менин суроолорум</a>
-          <button class="btn primary" id="createBtn" type="button">➕ <span data-i18n="hw_create">Тапшырма түзүү</span></button>
+          <button class="btn primary" id="createBtn" type="button"><span data-i18n="hw_create">Тапшырма түзүү</span></button>
         </div>
       </div>
       <p class="small muted" data-i18n="sync_hint"></p>
@@ -132,7 +132,7 @@
           <h2 data-i18n="analytics_common_mistakes">Көп кездешкен каталар</h2>
           <div id="statsSkills"></div>
           <button class="btn danger" id="reviewBtn" type="button">
-            🔁 <span data-i18n="results_repeat_topic">Теманы кайталоо</span>
+            <span data-i18n="results_repeat_topic">Теманы кайталоо</span>
           </button>
         </div>
         <div class="card plain stack">
@@ -145,6 +145,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./homework.js?v=11"></script>
+  <script type="module" src="./homework.js?v=12"></script>
 </body>
 </html>

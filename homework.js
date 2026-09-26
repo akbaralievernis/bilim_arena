@@ -7,6 +7,7 @@
  */
 
 import { bootstrap, mountHeader, el, $, toast } from './core/ui.js';
+import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
 import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, skillTitle, GRADES } from './core/curriculum.js';
 import { store, KEYS } from './core/store.js';
@@ -42,27 +43,27 @@ async function renderList() {
     cards.push(el('div', { class: 'card hw-card' },
       el('div', { class: 'row between' },
         el('b', {}, a.title || pick(topic?.title, lang)),
-        el('span', { class: 'chip small' }, `${a.count} ❓`)
+        el('span', { class: 'chip small' }, t('questions_n', { n: a.count }))
       ),
       el('div', { class: 'hw-meta' },
-        el('span', {}, `${subject?.icon || '📘'} ${pick(subject?.title, lang)}`),
-        el('span', {}, `🎓 ${t('grade', { n: a.grade })}`),
-        cls ? el('span', {}, `👥 ${cls.name}`) : null,
-        el('span', {}, `📅 ${fmtDate(a.dueAt)}`),
-        el('span', {}, `✨ ${a.xp} XP`)
+        el('span', {}, pick(subject?.title, lang)),
+        el('span', {}, `${t('grade', { n: a.grade })}`),
+        cls ? el('span', {}, `${cls.name}`) : null,
+        el('span', {}, `${fmtDate(a.dueAt)}`),
+        el('span', {}, `${a.xp} XP`)
       ),
       el('div', { class: 'row between small' },
-        el('span', { class: 'state learned' }, `✅ ${t('hw_completed_n', { n: stats.completed })}`),
-        el('span', { class: 'state review' }, `⏳ ${t('hw_not_completed_n', { n: stats.notCompleted })}`),
+        el('span', { class: 'state learned' }, `${t('hw_completed_n', { n: stats.completed })}`),
+        el('span', { class: 'state review' }, `${t('hw_not_completed_n', { n: stats.notCompleted })}`),
         el('b', {}, `${stats.average}%`)
       ),
       el('div', { class: `bar ${stats.average >= 70 ? 'ok' : ''}` }, el('i', { style: `width:${stats.average}%` })),
       stats.topMistake
-        ? el('div', { class: 'small muted' }, `⚠️ ${t('hw_top_mistake')}: ${skillTitle(a.topic, stats.topMistake.skill, lang)}`)
+        ? el('div', { class: 'small muted' }, `${t('hw_top_mistake')}: ${skillTitle(a.topic, stats.topMistake.skill, lang)}`)
         : null,
       el('div', { class: 'row', style: 'gap:8px' },
-        el('button', { class: 'btn primary', type: 'button', onclick: () => openStats(a.id) }, `📊 ${t('nav_results')}`),
-        el('button', { class: 'btn', type: 'button', onclick: () => openForm(a) }, `✏️ ${t('edit')}`),
+        el('button', { class: 'btn primary', type: 'button', onclick: () => openStats(a.id) }, `${t('nav_results')}`),
+        el('button', { class: 'btn', type: 'button', onclick: () => openForm(a) }, `${t('edit')}`),
         el('button', {
           class: 'btn ghost', type: 'button', 'aria-label': t('delete'),
           onclick: async () => {
@@ -71,7 +72,7 @@ async function renderList() {
             toast(t('delete'), { icon: '🗑️' });
             renderList();
           }
-        }, '🗑️')
+        }, icon('trash'))
       )
     ));
   }
@@ -105,7 +106,7 @@ async function openForm(assignment = null) {
   $('#formTitle').textContent = assignment ? t('hw_edit') : t('hw_create');
 
   fillSelect($('#fSubject'), subjectsWithTopics().map((s) => ({
-    value: s.id, label: `${s.icon} ${pick(s.title, lang)}`
+    value: s.id, label: `${pick(s.title, lang)}`
   })), assignment?.subject);
 
   fillSelect($('#fGrade'), GRADES.map((g) => ({ value: g, label: t('grade', { n: g }) })), assignment?.grade || 6);
@@ -271,7 +272,7 @@ async function openStats(assignmentId) {
     ? s.weakSkills.map((w) => el('div', { style: 'margin-bottom:12px' },
       el('div', { class: 'row between' },
         el('b', {}, skillTitle(a.topic, w.skill, lang)),
-        el('span', { class: 'state review' }, `⚠️ ${w.percent}%`)
+        el('span', { class: 'state review' }, `${w.percent}%`)
       ),
       el('div', { class: 'bar' }, el('i', { style: `width:${w.percent}%` })),
       el('div', { class: 'small muted' }, t('analytics_students_review', { n: w.students }))

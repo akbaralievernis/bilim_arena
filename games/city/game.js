@@ -12,16 +12,17 @@
 
 import { BaseGame } from '../../core/engine.js';
 import { el } from '../../core/ui.js';
+import { icon } from '../../core/icons.js';
 import { t, pick } from '../../core/i18n.js';
 
 const L = (ky, ru, en) => ({ ky, ru, en });
 
 /** Здания: стоимость и влияние на город */
 export const BUILDINGS = [
-  { id: 'school', icon: '🏫', cost: 120, title: L('Мектеп', 'Школа', 'School'), effect: { happiness: 10, education: 1 } },
-  { id: 'hospital', icon: '🏥', cost: 150, title: L('Оорукана', 'Больница', 'Hospital'), effect: { happiness: 15 } },
-  { id: 'park', icon: '🌳', cost: 80, title: L('Парк', 'Парк', 'Park'), effect: { happiness: 8, ecology: 12 } },
-  { id: 'factory', icon: '🏭', cost: 100, title: L('Завод', 'Завод', 'Factory'), effect: { income: 30, ecology: -15 } }
+  { id: 'school', icon: 'school', cost: 120, title: L('Мектеп', 'Школа', 'School'), effect: { happiness: 10, education: 1 } },
+  { id: 'hospital', icon: 'hospital', cost: 150, title: L('Оорукана', 'Больница', 'Hospital'), effect: { happiness: 15 } },
+  { id: 'park', icon: 'tree', cost: 80, title: L('Парк', 'Парк', 'Park'), effect: { happiness: 8, ecology: 12 } },
+  { id: 'factory', icon: 'factory', cost: 100, title: L('Завод', 'Завод', 'Factory'), effect: { income: 30, ecology: -15 } }
 ];
 
 /** Сколько заданий между голосованиями совета */
@@ -32,7 +33,7 @@ const BASE_INCOME = 100;
 export default class CityGame extends BaseGame {
   static meta = {
     id: 'city',
-    icon: '🏙️',
+    icon: 'city',
     title: { ky: 'Шаар экономикасы', ru: 'Экономика города', en: 'City economy' },
     goal: {
       ky: 'Бюджетти пландап, шаарды бүт класс болуп куруу',
@@ -69,9 +70,9 @@ export default class CityGame extends BaseGame {
       id: `city-vote-${n}`, type: 'choice', vote: true, skill: null,
       prompt: L('Шаардык кеңеш: эмне курабыз?', 'Городской совет: что строим?', 'City council: what do we build?'),
       options: BUILDINGS.map((b) => L(
-        `${b.icon} ${b.title.ky} — ${b.cost} 🪙`,
-        `${b.icon} ${b.title.ru} — ${b.cost} 🪙`,
-        `${b.icon} ${b.title.en} — ${b.cost} 🪙`
+        `${b.title.ky} — ${b.cost} тыйын`,
+        `${b.title.ru} — ${b.cost} монет`,
+        `${b.title.en} — ${b.cost} coins`
       ))
     };
   }
@@ -148,7 +149,7 @@ export default class CityGame extends BaseGame {
   renderBoardExtra(container) {
     const lang = this.ctx.lang;
     const reveal = this.state === 'reveal';
-    const title = (b) => `${b.icon} ${pick(b.title, lang)}`;
+    const title = (b) => `${pick(b.title, lang)}`;
 
     let note = this.current?.vote ? t('city_vote_hint') : t('city_earn_hint', { n: BASE_INCOME });
     if (reveal && this.event) {
@@ -161,17 +162,18 @@ export default class CityGame extends BaseGame {
       else note = t('city_no_votes');
     }
 
+    // Построенные здания — иконками; пусто — пустая площадка
     const skyline = this.city.built.length
-      ? this.city.built.map((id) => BUILDINGS.find((b) => b.id === id)?.icon).join(' ')
-      : '🏜️';
+      ? this.city.built.map((id) => icon(BUILDINGS.find((b) => b.id === id)?.icon, { size: 36, label: pick(BUILDINGS.find((b) => b.id === id)?.title, lang) }))
+      : [el('span', { class: 'muted small' }, t('city_empty'))];
 
     container.replaceChildren(el('div', { class: 'city-box' },
-      el('div', { class: 'city-skyline', 'aria-label': t('city_buildings') }, skyline),
+      el('div', { class: 'city-skyline', role: 'group', 'aria-label': t('city_buildings') }, skyline),
       el('div', { class: 'city-stats' },
-        el('span', {}, `🪙 ${this.coins}`),
-        el('span', { title: t('city_happiness') }, `😊 ${this.city.happiness}`),
-        el('span', { title: t('city_ecology') }, `🌿 ${this.city.ecology}`),
-        this.city.income ? el('span', {}, `🏭 +${this.city.income}`) : null
+        el('span', { title: t('city_coins') }, icon('coin', { size: 20, label: t('city_coins') }), `${this.coins}`),
+        el('span', { title: t('city_happiness') }, icon('smile', { size: 20, label: t('city_happiness') }), `${this.city.happiness}`),
+        el('span', { title: t('city_ecology') }, icon('leaf', { size: 20, label: t('city_ecology') }), `${this.city.ecology}`),
+        this.city.income ? el('span', { title: t('city_income') }, icon('factory', { size: 20, label: t('city_income') }), `+${this.city.income}`) : null
       ),
       el('p', { class: 'city-note' }, note)
     ));

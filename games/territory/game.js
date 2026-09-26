@@ -13,7 +13,7 @@ import { t } from '../../core/i18n.js';
 export default class TerritoryGame extends BaseGame {
   static meta = {
     id: 'territory',
-    icon: '🗺️',
+    icon: 'map',
     title: { ky: 'Аймакты басып алуу', ru: 'Захват территории', en: 'Capture the territory' },
     goal: {
       ky: 'Команда менен суроолорго жооп берип, картанын аймактарын ээлөө',
@@ -100,7 +100,7 @@ export default class TerritoryGame extends BaseGame {
     this.cells.forEach((owner, i) => {
       map.append(el('div', {
         class: `cell ${owner ? 'owned team-' + owner.toLowerCase() : ''} ${i === this.lastCapture ? 'just' : ''}`
-      }, owner ? (owner === 'A' ? '🔵' : '🔴') : String(i + 1)));
+      }, owner || String(i + 1)));
     });
 
     const aPct = Math.round((score.A / total) * 100);
@@ -108,8 +108,8 @@ export default class TerritoryGame extends BaseGame {
 
     container.append(
       el('div', { class: 'row between team-scores' },
-        el('div', { class: 'team-badge team-a' }, `🔵 ${t('board_team_a')}: ${score.A}`),
-        el('div', { class: 'team-badge team-b' }, `${t('board_team_b')}: ${score.B} 🔴`)
+        el('div', { class: 'team-badge team-a' }, `${t('board_team_a')}: ${score.A}`),
+        el('div', { class: 'team-badge team-b' }, `${t('board_team_b')}: ${score.B}`)
       ),
       el('div', { class: 'versus-bar' },
         el('i', { class: 'a', style: `width:${aPct}%` }),

@@ -8,12 +8,13 @@
 
 import { BaseGame } from '../../core/engine.js';
 import { el } from '../../core/ui.js';
+import { icon } from '../../core/icons.js';
 import { t } from '../../core/i18n.js';
 
 export default class QuickVoteGame extends BaseGame {
   static meta = {
     id: 'quickvote',
-    icon: '📊',
+    icon: 'quiz',
     title: { ky: 'Тез сурамжылоо', ru: 'Быстрый опрос', en: 'Quick poll' },
     goal: {
       ky: 'Класстын теманы канчалык түшүнгөнүн текшерүү',
@@ -64,7 +65,7 @@ export default class QuickVoteGame extends BaseGame {
         el('div', { class: 'vote-label' },
           el('span', { class: 'key' }, String.fromCharCode(65 + i)),
           el('span', {}, text),
-          isCorrect ? el('span', { class: 'vote-ok' }, '✓') : null
+          isCorrect ? icon('check', { size: 22, cls: 'vote-ok', label: t('game_correct') }) : null
         ),
         el('div', { class: `bar thick ${isCorrect ? 'ok' : ''}` },
           el('i', { style: `width:${reveal ? pct : 0}%` })

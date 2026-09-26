@@ -7,6 +7,7 @@
  */
 
 import { bootstrap, el, $, toast, sfx } from './core/ui.js';
+import { icon } from './core/icons.js';
 import { t } from './core/i18n.js';
 import { joinRoom } from './core/realtime.js';
 import { getProfile, quickJoinProfile } from './core/profile.js';
@@ -38,7 +39,7 @@ function render(spec) {
   switch (spec.screen) {
     case 'answer': {
       status.replaceChildren(...[
-        spec.clue ? el('div', { class: 'chip on' }, `${spec.clue.icon} ${spec.clue.title}`) : null,
+        spec.clue ? el('div', { class: 'chip on' }, `${spec.clue.title}`) : null,
         el('div', { class: 'small muted' }, `${spec.number} / ${spec.total}`),
         el('h2', {}, spec.prompt)
       ].filter(Boolean));
@@ -55,7 +56,7 @@ function render(spec) {
       // Перерисовываем только состояние кнопок, чтобы не терять прокрутку.
       if (spec.sent) {
         status.replaceChildren(
-          el('div', { class: 'big-emoji' }, '⏳'),
+          el('div', { class: 'big-icon' }, icon('hourglass', { size: 44 })),
           el('h2', {}, t('join_answer_sent'))
         );
         $('#footHint').textContent = t('inv_accuse');
@@ -65,7 +66,7 @@ function render(spec) {
       const chosen = { suspect: null, clues: new Set() };
 
       status.replaceChildren(
-        el('div', { class: 'big-emoji' }, '🔍'),
+        el('div', { class: 'big-icon' }, icon('lens', { size: 44 })),
         el('h2', {}, t('inv_accuse')),
         el('p', { class: 'small muted' }, t('inv_accuse_hint', { n: spec.required }))
       );
@@ -78,13 +79,13 @@ function render(spec) {
           sfx.tap();
           render({ screen: 'sent', score: spec.score });
         }
-      }, `✓ ${t('confirm_choice')}`);
+      }, `${t('confirm_choice')}`);
 
       const refresh = () => {
         sendBtn.disabled = !chosen.suspect || chosen.clues.size < spec.required;
         sendBtn.textContent = chosen.clues.size < spec.required
           ? `${chosen.clues.size}/${spec.required} · ${t('inv_evidence')}`
-          : `✓ ${t('confirm_choice')}`;
+          : `${t('confirm_choice')}`;
       };
 
       const suspectBtns = spec.suspects.map((s) => el('button', {
@@ -102,7 +103,7 @@ function render(spec) {
       ));
 
       const clueBtns = spec.clues.map((c) => {
-        const mark = el('span', { class: 'key', 'aria-hidden': 'true' }, '☐');
+        const mark = el('span', { class: 'key check-mark', 'aria-hidden': 'true' });
         return el('button', {
           class: 'option', type: 'button', 'aria-pressed': 'false',
           onclick: (e) => {
@@ -110,10 +111,10 @@ function render(spec) {
             if (on) chosen.clues.delete(c.id); else chosen.clues.add(c.id);
             e.currentTarget.classList.toggle('chosen', !on);
             e.currentTarget.setAttribute('aria-pressed', String(!on));
-            mark.textContent = on ? '☐' : '☑';
+            mark.replaceChildren(...(on ? [] : [icon('check', { size: 18 })]));
             refresh();
           }
-        }, mark, el('span', {}, `${c.icon} ${c.title}`));
+        }, mark, el('span', {}, `${c.title}`));
       });
 
       options.classList.remove('hidden');
@@ -131,7 +132,7 @@ function render(spec) {
 
     case 'sent':
       status.replaceChildren(
-        el('div', { class: 'big-emoji' }, '⏳'),
+        el('div', { class: 'big-icon' }, icon('hourglass', { size: 44 })),
         el('h2', {}, t('join_answer_sent')),
         el('p', { class: 'muted' }, t('join_look_at_board'))
       );
@@ -142,10 +143,10 @@ function render(spec) {
       const ok = spec.correct === true;
       const miss = spec.correct === false;
       status.replaceChildren(...[
-        el('div', { class: 'big-emoji' }, ok ? '✅' : miss ? '❌' : '👀'),
+        el('div', { class: `big-icon ${ok ? 'ok' : miss ? 'bad' : ''}` }, icon(ok ? 'check' : miss ? 'close' : 'eye', { size: 44 })),
         el('h2', {}, ok ? t('game_correct') : miss ? t('game_wrong') : ''),
         miss && spec.correctText ? el('p', {}, `${t('game_correct_answer')}: `, el('b', {}, spec.correctText)) : null,
-        spec.explain ? el('p', { class: 'small muted' }, `💡 ${spec.explain}`) : null
+        spec.explain ? el('p', { class: 'small muted' }, `${spec.explain}`) : null
       ].filter(Boolean));
       if (ok) sfx.ok(); else if (miss) sfx.bad();
       $('#footHint').textContent = t('join_look_at_board');
@@ -154,7 +155,7 @@ function render(spec) {
 
     case 'end':
       status.replaceChildren(
-        el('div', { class: 'big-emoji' }, '🏁'),
+        el('div', { class: 'big-icon' }, icon('flag', { size: 44 })),
         el('h2', {}, t('results_title')),
         el('div', { class: 'answer-big' }, `${spec.correct}/${spec.total}`),
         el('p', { class: 'muted' }, `${spec.score} ${t('points')}`)
@@ -164,7 +165,7 @@ function render(spec) {
 
     default:
       status.replaceChildren(
-        el('div', { class: 'big-emoji' }, '⏳'),
+        el('div', { class: 'big-icon' }, icon('hourglass', { size: 44 })),
         el('h2', {}, t('join_waiting')),
         el('p', { class: 'muted' }, t('join_look_at_board'))
       );
@@ -246,6 +247,7 @@ async function connect(code, name) {
 
 (async function init() {
   await bootstrap();
+  $('#joinIcon')?.replaceChildren(icon('join', { size: 44 }));
 
   const params = new URLSearchParams(location.search);
   const codeFromUrl = (params.get('room') || '').toUpperCase();

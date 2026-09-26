@@ -12,12 +12,13 @@
 
 import { BaseGame } from '../../core/engine.js';
 import { el } from '../../core/ui.js';
+import { icon } from '../../core/icons.js';
 import { t } from '../../core/i18n.js';
 
 export default class ErrorHuntGame extends BaseGame {
   static meta = {
     id: 'errorhunt',
-    icon: '🖍️',
+    icon: 'pen',
     title: { ky: 'Мугалимдин катасы', ru: 'Ошибка учителя', en: "Teacher's mistake" },
     goal: {
       ky: 'Чечимди текшерип, ката кеткен сапты табуу',
@@ -56,7 +57,7 @@ export default class ErrorHuntGame extends BaseGame {
         return el('div', { class: `option ${isError ? 'wrong-line' : ''}` },
           el('span', { class: 'key', 'aria-hidden': 'true' }, String(i + 1)),
           el('span', { class: 'line-text' }, text),
-          isError ? el('span', { 'aria-hidden': 'true' }, '🖍️') : null,
+          isError ? icon('pen', { size: 20, cls: 'err-mark' }) : null,
           votes ? el('span', { class: 'line-votes' }, t('eh_votes', { n: votes[i] })) : null
         );
       })

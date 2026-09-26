@@ -7,13 +7,12 @@
 
   // Тема (порталдагы тандоо менен бирдей ачкыч)
   function applyTheme() {
-    let t = null;
-    try { t = localStorage.getItem('BA_PORTAL_THEME'); } catch (e) { /* */ }
-    if (!t) t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    // Платформа использует один светлый интерфейс
+    const t = 'light';
     document.body.classList.toggle('light', t === 'light');
     document.body.classList.toggle('dark', t !== 'light');
     const b = document.getElementById('themeBtn');
-    if (b) b.textContent = t === 'light' ? '☀️' : '🌙';
+    if (b) b.hidden = true;
   }
 
   function soundLabel() {

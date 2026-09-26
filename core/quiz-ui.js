@@ -9,6 +9,7 @@
  */
 
 import { el } from './ui.js';
+import { icon } from './icons.js';
 import { t } from './i18n.js';
 
 /**
@@ -75,7 +76,7 @@ function renderMultiple(host, q, { onAnswer, reveal, given }) {
           redraw();
         }
       },
-        el('span', { class: 'key', 'aria-hidden': 'true' }, chosen.has(i) ? '☑' : '☐'),
+        el('span', { class: 'key check-mark', 'aria-hidden': 'true' }, chosen.has(i) ? icon('check', { size: 18 }) : null),
         el('span', {}, text)
       );
     }));
@@ -87,7 +88,7 @@ function renderMultiple(host, q, { onAnswer, reveal, given }) {
     host.append(el('button', {
       class: 'btn primary big block', type: 'button', style: 'margin-top:12px',
       onclick: () => onAnswer?.([...chosen])
-    }, `✓ ${t('confirm_choice')}`));
+    }, `${t('confirm_choice')}`));
   }
 }
 
@@ -95,11 +96,12 @@ function renderMultiple(host, q, { onAnswer, reveal, given }) {
 
 function renderInput(host, q, { onAnswer, reveal, given, correct }) {
   if (reveal) {
+    // Правильный ответ; ответ ученика — только если он неверный
     host.append(el('div', { class: 'answer-review' },
-      el('div', { class: 'small muted' }, t('results_correct')),
+      el('div', { class: 'small muted' }, t('game_correct_answer')),
       el('div', { class: 'answer-big', style: correct ? 'color:var(--ok)' : '' }, q.answer?.[0] ?? ''),
-      given !== null && given !== undefined
-        ? el('div', { class: 'small muted' }, `${t('game_wrong')}: ${given}`)
+      given !== null && given !== undefined && !correct
+        ? el('div', { class: 'small', style: 'color:var(--bad)' }, `${t('your_answer')}: ${given}`)
         : null
     ));
     return;
@@ -120,7 +122,7 @@ function renderInput(host, q, { onAnswer, reveal, given, correct }) {
 
   host.append(
     input,
-    el('button', { class: 'btn primary big block', type: 'button', style: 'margin-top:12px', onclick: send }, '✓')
+    el('button', { class: 'btn primary big block', type: 'button', style: 'margin-top:12px', onclick: send }, icon('check'), t('send_answer'))
   );
   setTimeout(() => input.focus(), 50);
 }
@@ -187,7 +189,7 @@ function renderMatch(host, q, { onAnswer, reveal, given }) {
       if (chosen.some((x) => x === null || x === undefined)) return;
       onAnswer?.(chosen);
     }
-  }, `✓ ${t('confirm_choice')}`));
+  }, `${t('confirm_choice')}`));
 }
 
 // ─── Сортировка и последовательность ──────────────────────────────────────────
@@ -240,5 +242,5 @@ function renderSort(host, q, { onAnswer, reveal, given }) {
   host.append(el('button', {
     class: 'btn primary big block', type: 'button', style: 'margin-top:12px',
     onclick: () => onAnswer?.(order)
-  }, `✓ ${t('confirm_choice')}`));
+  }, `${t('confirm_choice')}`));
 }

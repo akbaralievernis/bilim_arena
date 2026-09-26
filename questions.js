@@ -7,6 +7,7 @@
  */
 
 import { bootstrap, mountHeader, el, $, toast } from './core/ui.js';
+import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
 import { SUBJECTS, TOPICS, topicsOf, getTopic, skillTitle, GRADES } from './core/curriculum.js';
 import { setRole } from './core/profile.js';
@@ -36,7 +37,7 @@ function fillSelect(sel, items, value) {
 function renderFilters() {
   const lang = getLang();
   fillSelect($('#filterSubject'), [{ value: '', label: t('hw_all_skills') },
-    ...subjectsWithTopics().map((s) => ({ value: s.id, label: `${s.icon} ${pick(s.title, lang)}` }))], '');
+    ...subjectsWithTopics().map((s) => ({ value: s.id, label: `${pick(s.title, lang)}` }))], '');
   fillSelect($('#filterGrade'), [{ value: '', label: '—' },
     ...GRADES.map((g) => ({ value: g, label: t('grade', { n: g }) }))], '');
   fillSelect($('#filterTopic'), [{ value: '', label: '—' },
@@ -45,7 +46,7 @@ function renderFilters() {
   fillSelect($('#filterDifficulty'), [{ value: '', label: '—' },
     { value: 1, label: t('difficulty_1') }, { value: 2, label: t('difficulty_2') }, { value: 3, label: t('difficulty_3') }], '');
   fillSelect($('#filterType'), [{ value: '', label: '—' },
-    ...QUESTION_TYPES.map((x) => ({ value: x.id, label: `${x.icon} ${pick(x.title, lang)}` }))], '');
+    ...QUESTION_TYPES.map((x) => ({ value: x.id, label: `${pick(x.title, lang)}` }))], '');
 }
 
 function syncFilterSkills() {
@@ -85,13 +86,13 @@ async function renderList() {
       el('span', { class: 'q-text' },
         el('b', {}, textOf(q.question, lang)),
         el('span', { class: 'small muted' },
-          `${meta.icon} ${pick(meta.title, lang)} · ${skillTitle(q.topic, q.skill, lang)} · ${t('difficulty_' + (q.difficulty || 1))} · ${q.xp || 10} XP`)
+          `${pick(meta.title, lang)} · ${skillTitle(q.topic, q.skill, lang)} · ${t('difficulty_' + (q.difficulty || 1))} · ${q.xp || 10} XP`)
       ),
-      el('button', { class: 'btn ghost', type: 'button', 'aria-label': t('edit'), onclick: () => openForm(q.id) }, '✏️'),
+      el('button', { class: 'btn ghost', type: 'button', 'aria-label': t('edit'), onclick: () => openForm(q.id) }, icon('pen')),
       el('button', {
         class: 'btn ghost', type: 'button', 'aria-label': t('qb_duplicate'),
         onclick: async () => { await duplicateQuestion(q.id); toast(t('qb_duplicate'), { icon: '📋' }); renderList(); }
-      }, '📋'),
+      }, icon('copy')),
       el('button', {
         class: 'btn ghost', type: 'button', 'aria-label': t('delete'),
         onclick: async () => {
@@ -101,7 +102,7 @@ async function renderList() {
           toast(t('delete'), { icon: '🗑️' });
           renderList();
         }
-      }, '🗑️')
+      }, icon('trash'))
     );
   });
 
@@ -119,12 +120,12 @@ async function openForm(id = null) {
 
   $('#formTitle').textContent = q ? t('qb_edit') : t('qb_create');
 
-  fillSelect($('#fSubject'), subjectsWithTopics().map((s) => ({ value: s.id, label: `${s.icon} ${pick(s.title, lang)}` })), q?.subject);
+  fillSelect($('#fSubject'), subjectsWithTopics().map((s) => ({ value: s.id, label: `${pick(s.title, lang)}` })), q?.subject);
   fillSelect($('#fGrade'), GRADES.map((g) => ({ value: g, label: t('grade', { n: g }) })), q?.grade || 6);
   fillSelect($('#fDifficulty'), [
     { value: 1, label: t('difficulty_1') }, { value: 2, label: t('difficulty_2') }, { value: 3, label: t('difficulty_3') }
   ], q?.difficulty || 1);
-  fillSelect($('#fType'), QUESTION_TYPES.map((x) => ({ value: x.id, label: `${x.icon} ${pick(x.title, lang)}` })), q?.type || 'single');
+  fillSelect($('#fType'), QUESTION_TYPES.map((x) => ({ value: x.id, label: `${pick(x.title, lang)}` })), q?.type || 'single');
 
   $('#fQuestion').value = textOf(q?.question, lang);
   $('#fExplanation').value = textOf(q?.explanation, lang);
@@ -202,7 +203,7 @@ function renderAnswerFields() {
       el('button', {
         class: 'btn ghost', type: 'button',
         onclick: () => { d.options.push(''); renderAnswerFields(); }
-      }, `➕ ${t('qb_add_option')}`)
+      }, `${t('qb_add_option')}`)
     );
 
   } else if (type === 'truefalse') {
@@ -249,7 +250,7 @@ function renderAnswerFields() {
       el('button', {
         class: 'btn ghost', type: 'button',
         onclick: () => { d.correctAnswer.push(['', '']); renderAnswerFields(); }
-      }, `➕ ${t('qb_add_option')}`)
+      }, `${t('qb_add_option')}`)
     );
 
   } else if (type === 'sort' || type === 'sequence') {
@@ -267,7 +268,7 @@ function renderAnswerFields() {
       el('button', {
         class: 'btn ghost', type: 'button',
         onclick: () => { d.correctAnswer.push(''); renderAnswerFields(); }
-      }, `➕ ${t('qb_add_option')}`)
+      }, `${t('qb_add_option')}`)
     );
 
   } else if (type === 'error') {
@@ -279,7 +280,7 @@ function renderAnswerFields() {
       el('button', {
         class: 'btn ghost', type: 'button',
         onclick: () => { d.options.push(''); renderAnswerFields(); }
-      }, `➕ ${t('qb_add_option')}`)
+      }, `${t('qb_add_option')}`)
     );
   }
 }
