@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
   <title>Сөз табышмак — Билим Арена</title>
-  <link rel="stylesheet" href="../../shared/game.css" />
+  <link rel="stylesheet" href="../../shared/game.css?v=13" />
   <style>
     .gWrap { max-width: 560px; }
     .modeRow { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
@@ -42,18 +42,18 @@
 </head>
 <body>
   <header class="gTop">
-    <a class="iconBtn" href="../../games.html" aria-label="Башкы бетке">←</a>
-    <div class="title">🔤 Сөз табышмак <small>5 тамгалуу кыргыз сөзүн 6 аракетте тап</small></div>
+    <a class="iconBtn" href="../../games.html" aria-label="Оюндар"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <div class="title">Сөз табышмак <small>5 тамгалуу кыргыз сөзүн 6 аракетте тап</small></div>
     <button class="iconBtn" id="helpBtn" type="button" aria-label="Эреже">?</button>
-    <button class="iconBtn" id="soundBtn" type="button" aria-label="Үн">🔊</button>
-    <button class="iconBtn" id="themeBtn" type="button" aria-label="Тема">🌙</button>
+    <button class="iconBtn" id="soundBtn" type="button" aria-label="Үн"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></button>
+    <button class="iconBtn" id="themeBtn" type="button" aria-label="Тема" hidden></button>
   </header>
 
   <main class="gWrap">
     <div class="modeRow">
-      <button class="chipBtn on" id="dailyBtn" type="button">📅 Күндүн сөзү</button>
-      <button class="chipBtn" id="freeBtn" type="button">♾️ Эркин оюн</button>
-      <button class="chipBtn" id="hintBtn" type="button">💡 Кыйытма</button>
+      <button class="chipBtn on" id="dailyBtn" type="button">Күндүн сөзү</button>
+      <button class="chipBtn" id="freeBtn" type="button">Эркин оюн</button>
+      <button class="chipBtn" id="hintBtn" type="button">Кыйытма</button>
     </div>
     <div class="hintBox" id="msg" aria-live="polite"></div>
     <div class="grid" id="grid"></div>
@@ -78,20 +78,20 @@
 
   <div class="modal hidden" id="endModal">
     <div class="panel">
-      <div class="bigEmoji" id="endEmoji">🎉</div>
+      <div class="bigEmoji" id="endEmoji"></div>
       <h2 class="gH" id="endTitle"></h2>
       <p style="font-size:1.6rem;font-weight:900;letter-spacing:.15em" id="endWord"></p>
       <p class="muted" id="endMeaning"></p>
       <p id="endStats"></p>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-        <button class="btn" id="shareBtn" type="button">📋 Натыйжаны көчүрүү</button>
-        <button class="btn primary" id="nextBtn" type="button">➡️ Жаңы сөз</button>
+        <button class="btn" id="shareBtn" type="button">Натыйжаны көчүрүү</button>
+        <button class="btn primary" id="nextBtn" type="button">Жаңы сөз</button>
       </div>
     </div>
   </div>
 
-  <script src="../../shared/progress.js"></script>
-  <script src="../../shared/game-shell.js"></script>
+  <script src="../../shared/progress.js?v=13"></script>
+  <script src="../../shared/game-shell.js?v=13"></script>
   <script>
   (function () {
     'use strict';
@@ -178,7 +178,7 @@
       const [word, ru, en] = WORDS[idx];
       st = { word: [...word], ru, en, row: 0, cur: [], over: false, hint: false, results: [] };
       buildGrid(); buildKb();
-      $('msg').textContent = daily ? '📅 Бүгүнкү сөздү тап!' : '♾️ Кокус сөз. Ийгилик!';
+      $('msg').textContent = daily ? 'Бүгүнкү сөздү тап!' : 'Кокус сөз. Ийгилик!';
       $('endModal').classList.add('hidden');
 
       // Күндүн сөзү буга чейин чечилген болсо — кайра көрсөтөбүз
@@ -217,7 +217,7 @@
 
     function submit(replay) {
       if (st.cur.length < 5) {
-        $('msg').textContent = '✋ 5 тамга жазыңыз';
+        $('msg').textContent = '5 тамга жазыңыз';
         const row = $('grid').children[st.row];
         row.classList.remove('shake'); void row.offsetWidth; row.classList.add('shake');
         window.BA.sfx.bad();
@@ -260,10 +260,10 @@
 
     function end(won, replay) {
       const word = st.word.join('');
-      $('endEmoji').textContent = won ? '🎉' : '😅';
+      $('endEmoji').innerHTML = BAShell.endIcon(won ? 'trophy' : 'target');
       $('endTitle').textContent = won ? `Таптың! (${st.row}/6)` : 'Бул жолу болгон жок';
       $('endWord').textContent = word.toUpperCase();
-      $('endMeaning').textContent = `🇷🇺 ${st.ru} · 🇬🇧 ${st.en}`;
+      $('endMeaning').textContent = `RU: ${st.ru} · EN: ${st.en}`;
       if (!replay) {
         if (won) {
           const pts = (7 - st.row) * 20 * (st.hint ? 0.5 : 1);
@@ -278,7 +278,7 @@
         window.BA.speak(st.en, 'en');
       }
       $('endStats').textContent = daily ? 'Эртең жаңы күндүн сөзү чыгат! Азыр эркин оюн ойноп көр.' : '';
-      $('msg').textContent = won ? '✅ Азаматсың!' : `Сөз: ${word.toUpperCase()}`;
+      $('msg').textContent = won ? 'Азаматсың!' : `Сөз: ${word.toUpperCase()}`;
       $('endModal').classList.remove('hidden');
     }
 
@@ -286,7 +286,7 @@
       const map = { g: '🟩', y: '🟨', x: '⬛' };
       const txt = `Билим Арена — Сөз табышмак ${st.over && st.results[st.results.length - 1].every((r) => r === 'g') ? st.row : 'X'}/6\n` +
         st.results.map((r) => r.map((c) => map[c]).join('')).join('\n');
-      const done = () => window.BA.toast('📋 Көчүрүлдү!');
+      const done = () => window.BA.toast('Көчүрүлдү!');
       if (navigator.clipboard) navigator.clipboard.writeText(txt).then(done, () => window.BA.toast(txt.replace(/\n/g, '<br>')));
       else window.BA.toast(txt.replace(/\n/g, '<br>'));
     }
@@ -306,7 +306,7 @@
     $('hintBtn').addEventListener('click', () => {
       if (!st || st.over) return;
       st.hint = true;
-      $('msg').textContent = `💡 Мааниси: 🇷🇺 ${st.ru} · 🇬🇧 ${st.en}`;
+      $('msg').textContent = `Мааниси: RU: ${st.ru} · EN: ${st.en}`;
     });
     $('helpBtn').addEventListener('click', () => $('helpModal').classList.remove('hidden'));
     $('helpClose').addEventListener('click', () => $('helpModal').classList.add('hidden'));

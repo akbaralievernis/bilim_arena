@@ -249,9 +249,9 @@
       save(d);
       toPlatform(gameId, { xp: amount, legacyXpBefore: d.xp - amount });
       const after = levelInfo(d.xp).level;
-      toast(`✨ +${amount} XP`);
-      if (after > before) { setTimeout(() => toast(`🎊 Жаңы деңгээл: <b>${after}</b> — ${titleFor(after)}`), 700); sfx.win(); }
-      fresh.forEach((b, i) => setTimeout(() => toast(`${b.icon} Жаңы белги: <b>${b.title}</b>`), 1400 + i * 700));
+      toast(`+${amount} XP`);
+      if (after > before) { setTimeout(() => toast(`Жаңы деңгээл: <b>${after}</b> — ${titleFor(after)}`), 700); sfx.win(); }
+      fresh.forEach((b, i) => setTimeout(() => toast(`Жаңы белги: <b>${b.title}</b>`), 1400 + i * 700));
     },
 
     /** Оюн бүткөндө чакырылат. Жаңы рекорд болсо true кайтарат */

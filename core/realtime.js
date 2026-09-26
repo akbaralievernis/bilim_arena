@@ -170,8 +170,10 @@ export async function joinRoom({ code, name, playerId, onMessage, onStatus } = {
   const target = peerIdFor(code);
 
   let conn = null;
+  let lastOpen = null; // последнее соединение, которое действительно открылось
   let retry = null;
   let destroyed = false;
+  const live = () => (conn?.open ? conn : lastOpen?.open ? lastOpen : null);
 
   const peer = await new Promise((resolve, reject) => {
     const p = new Peer(undefined, PEER_OPTIONS);
@@ -196,20 +198,22 @@ export async function joinRoom({ code, name, playerId, onMessage, onStatus } = {
   function bind(c, onOpen) {
     conn = c;
     c.on('open', () => {
+      lastOpen = c;
       onStatus?.('online');
       if (retry) { clearInterval(retry); retry = null; }
       hello();
       onOpen?.();
     });
     c.on('data', (msg) => { if (msg && typeof msg === 'object') onMessage?.(msg); });
-    c.on('close', () => { onStatus?.('offline'); scheduleRetry(); });
+    // Закрылось старое соединение, а живое ещё есть — статус не трогаем
+    c.on('close', () => { if (live()) return; onStatus?.('offline'); scheduleRetry(); });
     c.on('error', (e) => console.warn('[join conn]', e?.type || e));
   }
 
   function scheduleRetry() {
     if (destroyed || retry) return;
     retry = setInterval(() => {
-      if (destroyed || conn?.open) return;
+      if (destroyed || live()) { if (live()) { clearInterval(retry); retry = null; onStatus?.('online'); } return; }
       try { bind(peer.connect(target, { reliable: true })); } catch (e) { console.warn('[join retry]', e); }
     }, 4000);
   }
@@ -222,8 +226,9 @@ export async function joinRoom({ code, name, playerId, onMessage, onStatus } = {
   return {
     playerId: id,
     send(msg) {
-      if (!conn?.open) return false;
-      return safeSend(conn, { ...msg, playerId: id });
+      const c = live();
+      if (!c) return false;
+      return safeSend(c, { ...msg, playerId: id });
     },
     close() {
       destroyed = true;

@@ -134,6 +134,8 @@ export class BaseGame {
 
   /** Следующий вопрос (или конец игры) */
   async nextQuestion() {
+    // Отложенный переход (после показа ответа) не должен «оживлять» уже завершённую игру
+    if (this.state === STATE.FINISHED) return this.results;
     this._stopTimer();
     this.index += 1;
     if (this.index >= this.questionCount) return this.finish('completed');

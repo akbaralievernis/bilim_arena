@@ -50,49 +50,49 @@
   /* ========= ИСПРАВЛЕННЫЙ I18N ========= */
   const I18N = {
     ru: {
-      subtitle: "🧩 Собери предложение • 👆 Нажимай слова снизу",
-      pause: "⏸ Пауза",
-      resume: "▶ Продолжить",
-      startBtn: "🚀 Старт",
-      timeUp: "⏰ Время вышло!",
-      winnerA: "👑 Победитель: Команда A",
-      winnerB: "👑 Победитель: Команда B",
-      draw: "🤝 Ничья!",
-      noteReady: (n) => `✅ Готово: ${n} раунд(ов). Жми «🚀 Старт».`,
-      notePlayText: "👆 Нажимай слова по порядку: 1 → 2 → 3…",
-      noteRoundsOver: "🏁 Раунды завершены.",
-      themeDark: "🌙 Темная",
-      themeLight: "☀️ Светлая"
+      subtitle: "Собери предложение · Нажимай слова снизу",
+      pause: "Пауза",
+      resume: "Продолжить",
+      startBtn: "Старт",
+      timeUp: "Время вышло!",
+      winnerA: "Победитель: Команда A",
+      winnerB: "Победитель: Команда B",
+      draw: "Ничья!",
+      noteReady: (n) => `Готово: ${n} раунд(ов). Жми «Старт».`,
+      notePlayText: "Нажимай слова по порядку: 1 → 2 → 3…",
+      noteRoundsOver: "Раунды завершены.",
+      themeDark: "Темная",
+      themeLight: "Светлая"
     },
     en: {
-      subtitle: "🧩 Build the sentence • 👆 Tap the words",
-      pause: "⏸ Pause",
-      resume: "▶ Resume",
-      startBtn: "🚀 Start",
-      timeUp: "⏰ Time is up!",
-      winnerA: "👑 Winner: Team A",
-      winnerB: "👑 Winner: Team B",
-      draw: "🤝 Draw!",
-      noteReady: (n) => `✅ Ready: ${n} rounds. Press «🚀 Start».`,
-      notePlayText: "👆 Tap words in order: 1 → 2 → 3…",
-      noteRoundsOver: "🏁 Rounds finished.",
-      themeDark: "🌙 Dark",
-      themeLight: "☀️ Light"
+      subtitle: "Build the sentence · Tap the words",
+      pause: "Pause",
+      resume: "Resume",
+      startBtn: "Start",
+      timeUp: "Time is up!",
+      winnerA: "Winner: Team A",
+      winnerB: "Winner: Team B",
+      draw: "Draw!",
+      noteReady: (n) => `Ready: ${n} rounds. Press «Start».`,
+      notePlayText: "Tap words in order: 1 → 2 → 3…",
+      noteRoundsOver: "Rounds finished.",
+      themeDark: "Dark",
+      themeLight: "Light"
     },
     ky: {
-      subtitle: "🧩 Сүйлөмдү түз • 👆 Сөздөрдү бас",
-      pause: "⏸ Тыным",
-      resume: "▶ Улантуу",
-      startBtn: "🚀 Башта",
-      timeUp: "⏰ Убакыт бүттү!",
-      winnerA: "👑 Жеңүүчү: Команда A",
-      winnerB: "👑 Жеңүүчү: Команда B",
-      draw: "🤝 Тең чыгышты!",
-      noteReady: (n) => `✅ Даяр: ${n} раунд. «🚀 Башта» бас.`,
-      notePlayText: "👆 Сөздөрдү тартип менен бас...",
-      noteRoundsOver: "🏁 Раунддар бүттү.",
-      themeDark: "🌙 Караңгы",
-      themeLight: "☀️ Жарык"
+      subtitle: "Сүйлөмдү түз · Сөздөрдү бас",
+      pause: "Тыным",
+      resume: "Улантуу",
+      startBtn: "Башта",
+      timeUp: "Убакыт бүттү!",
+      winnerA: "Жеңүүчү: Команда A",
+      winnerB: "Жеңүүчү: Команда B",
+      draw: "Тең чыгышты!",
+      noteReady: (n) => `Даяр: ${n} раунд. «Башта» бас.`,
+      notePlayText: "Сөздөрдү тартип менен бас...",
+      noteRoundsOver: "Раунддар бүттү.",
+      themeDark: "Караңгы",
+      themeLight: "Жарык"
     }
   };
 
@@ -108,9 +108,7 @@
   }
 
   function getTheme() {
-    const saved = localStorage.getItem("BA_PORTAL_THEME");
-    if (saved) return saved;
-    return "light"; // платформа по умолчанию светлая
+    return "light"; // платформа использует один светлый интерфейс
   }
   function setTheme(theme) {
     const t = (theme === "light") ? "light" : "dark";
@@ -127,7 +125,7 @@
     if (UI.pauseBtn) UI.pauseBtn.textContent = Game.paused ? T.resume : T.pause;
     if (UI.startBtn) UI.startBtn.textContent = T.startBtn;
     if (UI.themeBtn) UI.themeBtn.textContent = getTheme() === "dark" ? T.themeDark : T.themeLight;
-    if (UI.openSetupBtn) UI.openSetupBtn.textContent = `⚙️ ${lang === 'ky' ? 'Жөндөөлөр' : (lang === 'ru' ? 'Настройки' : 'Settings')}`;
+    if (UI.openSetupBtn) UI.openSetupBtn.textContent = `${lang === 'ky' ? 'Жөндөөлөр' : (lang === 'ru' ? 'Настройки' : 'Settings')}`;
   }
 
   /* ========= UI Elements ========= */
@@ -350,7 +348,7 @@
     
     // 3. Определяем текст победителя
     if(Game.config.soloMode) {
-      winnerLine.textContent = "👤 Соло-режим завершён";
+      winnerLine.textContent = "Соло-режим завершён";
     } else {
       winnerLine.textContent = (a > b) ? T.winnerA : (b > a) ? T.winnerB : T.draw;
     }
@@ -389,18 +387,18 @@
   function startSentence(k) {
     if (!Game.running) return;
     const t = Game.teams[k]; const round = getRoundAt(t.idx);
-    if (!round) { t.phase = "done"; clearZone(k); setNote(k, "🏁 Раунды завершены."); return; }
+    if (!round) { t.phase = "done"; clearZone(k); setNote(k, "Раунды завершены."); return; }
 
     stopTeamTimers(k); clearZone(k); t.phase = "flash"; t.flashIndex = 0; t.placed = [];
     t.sentenceStartAt = now(); t.lastActionAt = now(); setRound(k);
 
     if (isMathMode()) {
       t.words = round.expr.split(" ");
-      setNote(k, `Раунд ${t.idx + 1}: Выбери правильный ответ.`);
+      setNote(k, `Раунд ${t.idx + 1}: ${({ ky: 'Туура жоопту танда.', en: 'Pick the right answer.' })[getLang()] || 'Выбери правильный ответ.'}`);
     } else {
       t.words = tokenize(String(round));
       t.placed = new Array(t.words.length).fill(null);
-      setNote(k, `Раунд ${t.idx + 1}: Нажимай слова по порядку.`);
+      setNote(k, `Раунд ${t.idx + 1}: ${({ ky: 'Сөздөрдү ирети менен бас.', en: 'Tap the words in order.' })[getLang()] || 'Нажимай слова по порядку.'}`);
     }
     runFlash(k, t.words);
   }
@@ -560,7 +558,7 @@
 
     UI.presetSelect.addEventListener("change", () => { if (UI.presetSelect.value !== "custom") UI.textInput.value = PRESETS[UI.presetSelect.value]; });
 
-    UI.soloBtn.addEventListener("click", () => { Game.config.soloMode = !Game.config.soloMode; UI.soloBtn.textContent = Game.config.soloMode ? "✅ Вкл" : "❌ Выкл"; document.body.classList.toggle("solo", Game.config.soloMode); });
+    UI.soloBtn.addEventListener("click", () => { Game.config.soloMode = !Game.config.soloMode; UI.soloBtn.textContent = Game.config.soloMode ? "Күйүк" : "Өчүк"; document.body.classList.toggle("solo", Game.config.soloMode); });
     UI.modeSelect.addEventListener("change", () => { Game.config.mode = UI.modeSelect.value; document.body.classList.toggle("mode-math", isMathMode()); });
 
     UI.applyBtn.addEventListener("click", applySetup);

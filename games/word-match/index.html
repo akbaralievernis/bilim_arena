@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
   <title>Жупташтыр — Билим Арена</title>
-  <link rel="stylesheet" href="../../shared/game.css" />
+  <link rel="stylesheet" href="../../shared/game.css?v=13" />
   <style>
     .board { display: grid; gap: 10px; grid-template-columns: repeat(var(--cols, 4), 1fr); perspective: 1000px; }
     .mcard { position: relative; aspect-ratio: 3 / 4; border: 0; padding: 0; background: none; }
@@ -25,10 +25,10 @@
 </head>
 <body>
   <header class="gTop">
-    <a class="iconBtn" href="../../games.html" aria-label="Башкы бетке">←</a>
+    <a class="iconBtn" href="../../games.html" aria-label="Оюндар"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M15 5l-7 7 7 7"/></svg></a>
     <div class="title">🃏 Жупташтыр <small>Сөз менен анын котормосун тап</small></div>
-    <button class="iconBtn" id="soundBtn" type="button" aria-label="Үн">🔊</button>
-    <button class="iconBtn" id="themeBtn" type="button" aria-label="Тема">🌙</button>
+    <button class="iconBtn" id="soundBtn" type="button" aria-label="Үн"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></button>
+    <button class="iconBtn" id="themeBtn" type="button" aria-label="Тема" hidden></button>
   </header>
 
   <main class="gWrap">
@@ -41,7 +41,7 @@
         <div><div class="fieldLabel">Тема</div><div class="chips" id="catChips"></div></div>
         <div><div class="fieldLabel">Деңгээл</div><div class="chips" id="sizeChips"></div></div>
       </div>
-      <button class="btn primary big" id="startBtn" type="button">▶ Баштоо</button>
+      <button class="btn primary big" id="startBtn" type="button">Баштоо</button>
     </section>
 
     <section id="game" class="hidden">
@@ -61,15 +61,15 @@
       <p class="muted" id="endText"></p>
       <div class="learned" id="learnedList"></div>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-        <button class="btn" id="menuBtn" type="button">⚙️ Жөндөө</button>
-        <button class="btn primary" id="againBtn" type="button">🔄 Дагы ойноо</button>
+        <button class="btn" id="menuBtn" type="button">Жөндөө</button>
+        <button class="btn primary" id="againBtn" type="button">Дагы ойноо</button>
       </div>
     </div>
   </div>
 
-  <script src="../../shared/vocab.js"></script>
-  <script src="../../shared/progress.js"></script>
-  <script src="../../shared/game-shell.js"></script>
+  <script src="../../shared/vocab.js?v=13"></script>
+  <script src="../../shared/progress.js?v=13"></script>
+  <script src="../../shared/game-shell.js?v=13"></script>
   <script>
   (function () {
     'use strict';
@@ -77,9 +77,9 @@
     const V = window.BA_VOCAB;
     const S = window.BAShell;
     const SIZES = [
-      { value: '6', label: '🟢 6 жуп' },
-      { value: '8', label: '🟡 8 жуп' },
-      { value: '10', label: '🔴 10 жуп' }
+      { value: '6', label: '6 жуп' },
+      { value: '8', label: '8 жуп' },
+      { value: '10', label: '10 жуп' }
     ];
     const cfg = { pair: S.recall('wm_pair', 'ky-ru'), cat: S.recall('wm_cat', 'all'), size: S.recall('wm_size', '6') };
     let st = null, timerId = 0;
@@ -187,8 +187,9 @@
       window.BA.addXP('word-match', xp);
       window.BA.sfx.win();
       window.BA.confetti();
-      $('endStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
-      $('endText').innerHTML = `${st.moves} аракет · ${fmt(st.secs)} · <b>${score}</b> упай${record ? ' 🏆 Жаңы рекорд!' : ''}`;
+      $('endStars').innerHTML = [0, 1, 2].map((i) => { const f = i < stars ? '#FFB547' : 'none'; return '<svg width="28" height="28" viewBox="0 0 24 24" fill="' + f + '" stroke="#E0A100" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8-4.3-4.1 5.9-.9z"/></svg>'; }).join('');
+      $('endStars').setAttribute('aria-label', `${stars}/3`);
+      $('endText').innerHTML = `${st.moves} аракет · ${fmt(st.secs)} · <b>${score}</b> упай${record ? ' · Жаңы рекорд!' : ''}`;
       const [from, to] = cfg.pair.split('-');
       $('learnedList').innerHTML = st.words.map((w) =>
         `<span>${w.emoji} ${from === 'emoji' ? '' : w[from] + ' — '}${w[to]}</span>`).join('');

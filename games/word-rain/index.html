@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
   <title>Сөз жамгыры — Билим Арена</title>
-  <link rel="stylesheet" href="../../shared/game.css" />
+  <link rel="stylesheet" href="../../shared/game.css?v=13" />
   <style>
     .gWrap { max-width: 720px; padding-bottom: 20px; }
     .sky {
@@ -38,11 +38,11 @@
 </head>
 <body>
   <header class="gTop">
-    <a class="iconBtn" href="../../games.html" aria-label="Башкы бетке">←</a>
-    <div class="title">🌧️ Сөз жамгыры <small>Сөз жерге түшкөнчө котормосун тап</small></div>
-    <button class="iconBtn hidden" id="pauseBtn" type="button" aria-label="Тыным">⏸</button>
-    <button class="iconBtn" id="soundBtn" type="button" aria-label="Үн">🔊</button>
-    <button class="iconBtn" id="themeBtn" type="button" aria-label="Тема">🌙</button>
+    <a class="iconBtn" href="../../games.html" aria-label="Оюндар"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <div class="title">Сөз жамгыры <small>Сөз жерге түшкөнчө котормосун тап</small></div>
+    <button class="iconBtn hidden" id="pauseBtn" type="button" aria-label="Тыным"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg></button>
+    <button class="iconBtn" id="soundBtn" type="button" aria-label="Үн"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></button>
+    <button class="iconBtn" id="themeBtn" type="button" aria-label="Тема" hidden></button>
   </header>
 
   <main class="gWrap">
@@ -55,7 +55,7 @@
         <div><div class="fieldLabel">Тема</div><div class="chips" id="catChips"></div></div>
       </div>
       <p class="muted" id="bestLine"></p>
-      <button class="btn primary big" id="startBtn" type="button">▶ Баштоо</button>
+      <button class="btn primary big" id="startBtn" type="button">Баштоо</button>
       <p class="muted" style="font-size:.85rem">⌨️ Клавиатура: 1, 2, 3, 4 баскычтары</p>
     </section>
 
@@ -79,15 +79,15 @@
       <p class="muted" id="endText"></p>
       <div id="mistakes" style="text-align:left;margin:10px 0"></div>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-        <button class="btn" id="menuBtn" type="button">⚙️ Жөндөө</button>
-        <button class="btn primary" id="againBtn" type="button">🔄 Дагы ойноо</button>
+        <button class="btn" id="menuBtn" type="button">Жөндөө</button>
+        <button class="btn primary" id="againBtn" type="button">Дагы ойноо</button>
       </div>
     </div>
   </div>
 
-  <script src="../../shared/vocab.js"></script>
-  <script src="../../shared/progress.js"></script>
-  <script src="../../shared/game-shell.js"></script>
+  <script src="../../shared/vocab.js?v=13"></script>
+  <script src="../../shared/progress.js?v=13"></script>
+  <script src="../../shared/game-shell.js?v=13"></script>
   <script>
   (function () {
     'use strict';
@@ -96,7 +96,9 @@
     const cfg = { pair: S.recall('wr_pair', 'ky-en'), cat: S.recall('wr_cat', 'all') };
     S.chipGroup($('pairChips'), S.PAIRS, cfg.pair, (v) => { cfg.pair = v; S.remember('wr_pair', v); });
     S.chipGroup($('catChips'), S.categoryItems(), cfg.cat, (v) => { cfg.cat = v; S.remember('wr_cat', v); });
-    const showBest = () => { const b = BA.best('word-rain'); $('bestLine').textContent = b ? `🏆 Рекорд: ${b}` : ''; };
+    const ICON_PAUSE = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg>';
+    const ICON_PLAY = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.5v13l10-6.5z"/></svg>';
+    const showBest = () => { const b = BA.best('word-rain'); $('bestLine').textContent = b ? `Рекорд: ${b}` : ''; };
     showBest();
 
     let st = null, raf = 0;
@@ -112,7 +114,7 @@
       st = { from, to, pool, queue: V.shuffle(pool), score: 0, combo: 0, lives: 3, right: 0, level: 1,
              drop: null, paused: false, last: 0, mistakes: [], total: 0 };
       $('sky').querySelectorAll('.drop, .pauseCover').forEach((x) => x.remove());
-      $('pauseBtn').textContent = '⏸';
+      $('pauseBtn').innerHTML = ICON_PAUSE;
       $('setup').classList.add('hidden');
       $('endModal').classList.add('hidden');
       $('game').classList.remove('hidden');
@@ -204,7 +206,8 @@
       $('score').textContent = st.score;
       $('combo').textContent = 'x' + Math.min(5, 1 + Math.floor(st.combo / 3));
       $('level').textContent = st.level;
-      $('lives').textContent = '❤️'.repeat(Math.max(0, st.lives)) + '🤍'.repeat(3 - Math.max(0, st.lives));
+      $('lives').innerHTML = [0, 1, 2].map((i) => { const f = i < Math.max(0, st.lives) ? '#EF5350' : 'none'; return '<svg width="20" height="20" viewBox="0 0 24 24" fill="' + f + '" stroke="#EF5350" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>'; }).join('');
+      $('lives').setAttribute('aria-label', `${Math.max(0, st.lives)}/3`);
     }
 
     function loop(t) {
@@ -230,7 +233,7 @@
       BA.addXP('word-rain', Math.round(st.right * 3 + st.score / 20));
       if (record && st.score > 0) { BA.sfx.win(); BA.confetti(); } else BA.sfx.lose();
       $('endScore').textContent = st.score + ' упай';
-      $('endText').textContent = `${st.right} туура жооп · деңгээл ${st.level}${record && st.score > 0 ? ' · 🏆 Жаңы рекорд!' : ''}`;
+      $('endText').textContent = `${st.right} туура жооп · деңгээл ${st.level}${record && st.score > 0 ? ' · Жаңы рекорд!' : ''}`;
       $('mistakes').innerHTML = st.mistakes.length
         ? '<div class="fieldLabel">📌 Кайталап ал:</div>' + st.mistakes.map((w) =>
             `<div>${w.emoji} <b>${w.ky}</b> — ${w.ru} — ${w.en}</div>`).join('')
@@ -242,10 +245,10 @@
     function togglePause() {
       if (!st || st.ended) return;
       st.paused = !st.paused;
-      $('pauseBtn').textContent = st.paused ? '▶' : '⏸';
+      $('pauseBtn').innerHTML = st.paused ? ICON_PLAY : ICON_PAUSE;
       const sky = $('sky');
       const c = sky.querySelector('.pauseCover');
-      if (st.paused && !c) { const p = document.createElement('div'); p.className = 'pauseCover'; p.textContent = '⏸ Тыным'; sky.appendChild(p); }
+      if (st.paused && !c) { const p = document.createElement('div'); p.className = 'pauseCover'; p.textContent = 'Тыным'; sky.appendChild(p); }
       if (!st.paused && c) c.remove();
     }
 

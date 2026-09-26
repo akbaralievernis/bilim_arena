@@ -65,7 +65,7 @@ async function lastActivity(pr) {
     const game = getGame(h.gameId);
     if (game) return { game };
     const topic = getTopic(h.topic);
-    if (h.gameId === 'homework') return { title: t('nav_tasks'), sub: topic ? pick(topic.title, lang) : '', href: './tasks.html', art: ['tasks', 'amber'] };
+    if (h.gameId === 'homework') return { title: topic ? pick(topic.title, lang) : t('nav_tasks'), sub: t('nav_tasks'), href: './tasks.html', art: ['tasks', 'amber'] };
     return {
       title: topic ? pick(topic.title, lang) : t('home_practice_title'), sub: t('home_practice_title'),
       href: topic ? `./practice.html?topic=${topic.id}` : './practice.html', art: ['target', 'teal']

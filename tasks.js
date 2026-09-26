@@ -15,7 +15,7 @@ import { renderQuestion } from './core/quiz-ui.js';
 import { getProfile } from './core/profile.js';
 import { getProgress } from './core/progress.js';
 import { resultView } from './core/results.js';
-import { studentAssignments, saveSubmission, STATUS } from './core/assignments.js';
+import { studentAssignments, saveSubmission, submissionFor, attemptsLeft, STATUS } from './core/assignments.js';
 
 /** Домашнее задание — одиночная игра, прогресс пишется в профиль ученика */
 class HomeworkGame extends BaseGame {
@@ -204,8 +204,10 @@ async function showResults(game) {
   const a = state.current.assignment;
   const lang = getLang();
   const xp = Math.max(0, (await getProgress()).xp - (state.xpBefore ?? 0));
-  // Попытка засчитывается ниже; «Кайра ойноо» — только если попытки ещё остаются
-  const left = (state.current.attemptsLeft ?? 0) - 1;
+  // Эта попытка засчитывается ниже; «Кайра ойноо» — только если попытки ещё остаются.
+  // Считаем по актуальной записи: список мог загрузиться до прошлых попыток
+  const before = await submissionFor(a.id, state.profile.id || 'me');
+  const left = attemptsLeft(a, before) - 1;
 
   $('#resultScreen').replaceChildren(resultView({
     accuracy: r.accuracy, xp, correct: r.correctAnswers, total: r.totalAnswers, timeSec: r.durationSec,

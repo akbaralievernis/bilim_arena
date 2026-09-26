@@ -9,18 +9,18 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./style.css?v=13" />
 </head>
 
 <body class="light"> <div class="global-nav">
     <a href="../../games.html" class="nav-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><path d="M15 5l-7 7 7 7"/></svg> Оюндар</a>
-    <button id="themeBtn" class="nav-btn theme-toggle">🌙</button>
+    <button id="themeBtn" class="nav-btn theme-toggle" hidden></button>
   </div>
 
   <div id="setup" class="screen">
     <div class="panel">
       <div class="titleRow">
-        <h1>🏰 Цитаделди ээлөө</h1>
+        <h1>Цитаделди ээлөө</h1>
         <span class="chip" id="chipInfo">Тактика жана Билим</span>
       </div>
 
@@ -55,8 +55,8 @@
             <label class="kidLabel">
               Кыйынчылык деңгээли
               <select id="diffSelect" class="styled-select">
-                <option value="kyrgyz_lang_lit">🟢 Кыргыз тили жана адабияты</option>
-                <option value="kyrgyz_history_geo">🔴 Кыргызстан тарыхы жана географиясы</option>
+                <option value="kyrgyz_lang_lit">Кыргыз тили жана адабияты</option>
+                <option value="kyrgyz_history_geo">Кыргызстан тарыхы жана географиясы</option>
               </select>
             </label>
             <div class="diff-desc" id="diffDesc">
@@ -66,7 +66,7 @@
         </section>
 
         <section class="stepCard" style="background: transparent; border: none; padding: 0;">
-          <button id="btnStart" class="btn primary big w-100" type="button">▶ ОЮНДУ БАШТОО</button>
+          <button id="btnStart" class="btn primary big w-100" type="button">ОЮНДУ БАШТОО</button>
         </section>
       </div>
     </div>
@@ -85,7 +85,7 @@
 
           <div class="topCenter">
             <div class="brand2">
-              <span class="logo2">🏰</span>
+              <span class="logo2"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V9h3V6h2v3h2V6h2v3h2V6h2v3h3v12z"/><path d="M10 21v-4a2 2 0 0 1 4 0v4"/></svg></span>
             </div>
             <div class="hudTimer" id="hudTimerWrap">
               <b id="matchTimer">03:00</b>
@@ -105,7 +105,7 @@
         <aside class="side sideA" id="sideQA">
           <div class="sideHead">
             <b id="teamNameA">Команда A</b>
-            <span class="sideTimer" id="timerA">⏱ 15</span>
+            <span class="sideTimer" id="timerA">15 сек</span>
           </div>
           <div class="qPanel">
             <div class="qTextSmall" id="qTextA">Өзүңүздүн тараптан плитканы басыңыз</div>
@@ -126,7 +126,7 @@
         <aside class="side sideB" id="sideQB">
           <div class="sideHead">
             <b id="teamNameB">Команда B</b>
-            <span class="sideTimer" id="timerB">⏱ 15</span>
+            <span class="sideTimer" id="timerB">15 сек</span>
           </div>
           <div class="qPanel">
             <div class="qTextSmall" id="qTextB">Өзүңүздүн тараптан плитканы басыңыз</div>
@@ -142,7 +142,7 @@
       <div class="winTitle" id="winTitle">🏆 Жеңиш!</div>
       <div class="winSub" id="winSub">—</div>
       <div class="row center">
-        <button id="btnPlayAgain" class="btn primary" type="button">↻ Башкы меню</button>
+        <button id="btnPlayAgain" class="btn primary" type="button">Башкы меню</button>
       </div>
     </div>
   </div>
@@ -151,6 +151,6 @@
   <div id="toast" class="toast hidden"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@ import { recordAnswer } from './core/progress.js';
 import { renderQuestion } from './core/quiz-ui.js';
 import { mergeAssignments, packSubmissions } from './core/sync.js';
 
-const conn = { room: null, spec: null, topic: null };
+const conn = { room: null, joining: false, spec: null, topic: null };
 
 // ─── Отрисовка экрана, присланного доской ─────────────────────────────────────
 
@@ -197,6 +197,10 @@ async function syncWithTeacher(payload) {
 // ─── Подключение ──────────────────────────────────────────────────────────────
 
 async function connect(code, name) {
+  // Повторный вход (двойное нажатие, автоподключение по ссылке) игнорируем:
+  // два подключения одного игрока выбивали бы друг друга
+  if (conn.room || conn.joining) return;
+  conn.joining = true;
   const btn = $('#joinBtn');
   btn.disabled = true;
   btn.textContent = t('loading');
@@ -238,6 +242,7 @@ async function connect(code, name) {
     const key = e?.message === 'room-not-found' ? 'err_room_not_found' : 'err_no_connection';
     $('#joinError').textContent = t(key);
   } finally {
+    conn.joining = false;
     btn.disabled = false;
     btn.textContent = t('join_button');
   }

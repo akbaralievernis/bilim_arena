@@ -13,11 +13,11 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@700;800&display=swap"
     rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=13">
 </head>
 
 <body class="theme-auto light">
-  <a class="ba-back" href="../../games.html" style="position:fixed;top:12px;left:12px;z-index:9999;display:inline-flex;align-items:center;gap:6px;padding:10px 14px;min-height:44px;border-radius:14px;background:rgba(255,255,255,.94);color:#202B46;font:700 15px/1 'Inter',system-ui,sans-serif;text-decoration:none;box-shadow:0 4px 16px rgba(32,43,70,.18)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Оюндар</span></a>
+  <a class="ba-back" href="../../games.html" style="position:relative;margin:12px 0 0 12px;z-index:40;display:inline-flex;align-items:center;gap:6px;padding:10px 14px;min-height:44px;border-radius:14px;background:rgba(255,255,255,.94);color:#202B46;font:700 15px/1 'Inter',system-ui,sans-serif;text-decoration:none;box-shadow:0 4px 16px rgba(32,43,70,.18)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Оюндар</span></a>
   <div class="app" id="app">
     <header class="topbar" role="banner">
       <div class="brand">
@@ -51,15 +51,15 @@
           </div>
           <div class="teamMeta">
             <div class="pillSmall">
-              <span class="pillLabel" data-i18n="round">🎯 Раунд:</span>
+              <span class="pillLabel" data-i18n="round">Раунд:</span>
               <span id="roundA">—</span>
             </div>
             <div class="pillSmall comboPill" id="comboPillA">
-              <span class="pillLabel" data-i18n="combo">🔥 Комбо:</span>
+              <span class="pillLabel" data-i18n="combo">Комбо:</span>
               <span id="comboA">x1.0</span>
             </div>
             <div class="pillSmall">
-              <span class="pillLabel" data-i18n="score">🏆 Счёт:</span>
+              <span class="pillLabel" data-i18n="score">Упай:</span>
               <span class="score" id="scoreA">0</span>
             </div>
           </div>
@@ -70,7 +70,7 @@
           </div>
           <div class="infoRow">
             <div class="note" id="noteA"></div>
-            <button class="btn small disabled" id="hintA" type="button">💡 Кыйытма</button>
+            <button class="btn small disabled" id="hintA" type="button">Кыйытма</button>
           </div>
           <div class="workArea">
             <div class="slots" id="slotsA"></div>
@@ -112,15 +112,15 @@
           </div>
           <div class="teamMeta">
             <div class="pillSmall">
-              <span class="pillLabel" data-i18n="round">🎯 Раунд:</span>
+              <span class="pillLabel" data-i18n="round">Раунд:</span>
               <span id="roundB">—</span>
             </div>
             <div class="pillSmall comboPill" id="comboPillB">
-              <span class="pillLabel" data-i18n="combo">🔥 Комбо:</span>
+              <span class="pillLabel" data-i18n="combo">Комбо:</span>
               <span id="comboB">x1.0</span>
             </div>
             <div class="pillSmall">
-              <span class="pillLabel" data-i18n="score">🏆 Счёт:</span>
+              <span class="pillLabel" data-i18n="score">Упай:</span>
               <span class="score" id="scoreB">0</span>
             </div>
           </div>
@@ -131,7 +131,7 @@
           </div>
           <div class="infoRow">
             <div class="note" id="noteB"></div>
-            <button class="btn small disabled" id="hintB" type="button">💡 Кыйытма</button>
+            <button class="btn small disabled" id="hintB" type="button">Кыйытма</button>
           </div>
           <div class="workArea">
             <div class="slots" id="slotsB"></div>
@@ -148,10 +148,10 @@
       <div class="card" role="dialog" aria-modal="true">
         <div class="cardHeader">
           <div>
-            <h2 id="menuTitle">⚙️ Башкаруу панели</h2>
+            <h2 id="menuTitle">Башкаруу панели</h2>
             <p class="muted" id="menuDesc">Оюнду баштоодон мурун анын жөндөөлөрүн ырастаңыз</p>
           </div>
-          <button class="btn" id="closeSetupBtn" type="button">✖</button>
+          <button class="btn" id="closeSetupBtn" type="button" aria-label="Жабуу"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
 
         <div class="cardScroll">
@@ -159,27 +159,27 @@
             <div class="field">
               <label for="presetSelect" id="presetLabel">Раунддардын тексттери</label>
               <select id="presetSelect" class="select">
-                <option value="custom" data-i18n="presetCustom">✏️ Өз текстиңиз (төмөнгө жазыңыз)</option>
-                <option value="text_easy">🟢 Жөнөкөй деңгээл</option>
-                <option value="text_medium">🟡 Орто деңгээл</option>
-                <option value="text_expert">🔴 Татаал деңгээл</option>
+                <option value="custom" data-i18n="presetCustom">Өз текстиңиз (төмөнгө жазыңыз)</option>
+                <option value="text_easy">Жөнөкөй деңгээл</option>
+                <option value="text_medium">Орто деңгээл</option>
+                <option value="text_expert">Татаал деңгээл</option>
               </select>
 
               <label for="textInput" id="textLabel" style="margin-top: 15px;">Сиздин текстиңиз</label>
               <textarea id="textInput" placeholder="Текстти бул жерге жазыңыз..."></textarea>
 
               <div class="splitRow" style="margin-top: 20px;">
-                <button class="btn small" id="freezeBtn" type="button">❄️ Убакытты токтотуу</button>
-                <button class="btn small" id="skipA" type="button">⏭ Өткөрүп жиберүү A</button>
-                <button class="btn small" id="skipB" type="button">⏭ Өткөрүп жиберүү B</button>
-                <button class="btn small danger" id="resetBtn" type="button">🔄 Раундду кайра баштоо</button>
-                <button class="btn small danger" id="hardResetBtn" type="button" style="grid-column: 1/-1;">🗑 Оюнду толук тазалоо</button>
+                <button class="btn small" id="freezeBtn" type="button">Убакытты токтотуу</button>
+                <button class="btn small" id="skipA" type="button">Өткөрүп жиберүү A</button>
+                <button class="btn small" id="skipB" type="button">Өткөрүп жиберүү B</button>
+                <button class="btn small danger" id="resetBtn" type="button">Раундду кайра баштоо</button>
+                <button class="btn small danger" id="hardResetBtn" type="button" style="grid-column: 1/-1;">Оюнду толук тазалоо</button>
               </div>
             </div>
 
             <div class="settings-container">
               <div class="settings-group">
-                <div class="group-title">🌍 Тил жана Оюн режими</div>
+                <div class="group-title">Тил жана Оюн режими</div>
                 <div class="row">
                   <div>
                     <div class="labelBig" data-i18n="langLabel">Тил</div>
@@ -190,7 +190,7 @@
                     <option value="en">English</option>
                   </select>
                 </div>
-                <div class="row">
+                <div class="row" hidden>
                   <div>
                     <div class="labelBig" data-i18n="themeLabel">Тема</div>
                   </div>
@@ -201,14 +201,14 @@
                     <div class="labelBig" data-i18n="modeLabel">Оюн режими</div>
                   </div>
                   <select id="modeSelect" class="select selectSmall">
-                    <option value="text">🔤 Текст</option>
-                    <option value="math">🔢 Математика</option>
+                    <option value="text">Текст</option>
+                    <option value="math">Математика</option>
                   </select>
                 </div>
               </div>
 
               <div class="settings-group">
-                <div class="group-title">⏱ Убакыт көрсөткүчтөрү</div>
+                <div class="group-title">Убакыт көрсөткүчтөрү</div>
                 
                 <div class="setting-item">
                   <div class="setting-header">
@@ -228,7 +228,7 @@
               </div>
 
               <div class="settings-group">
-                <div class="group-title">⚖️ Эрежелер</div>
+                <div class="group-title">Эрежелер</div>
                 
                 <div class="setting-item">
                   <div class="setting-header">
@@ -240,23 +240,23 @@
 
                 <div class="row">
                   <div class="labelBig">Комбо-көбөйткүч</div>
-                  <button class="toggle on" id="comboBtn" type="button">✅ Вкл</button>
+                  <button class="toggle on" id="comboBtn" type="button">Күйүк</button>
                 </div>
                 <div class="row">
                   <div class="labelBig">Жашыруун режим</div>
-                  <button class="toggle" id="hiddenBtn" type="button">❌ Выкл</button>
+                  <button class="toggle" id="hiddenBtn" type="button">Өчүк</button>
                 </div>
                 <div class="row">
                   <div class="labelBig">Бир оюнчу (Соло)</div>
-                  <button class="toggle" id="soloBtn" type="button">❌ Выкл</button>
+                  <button class="toggle" id="soloBtn" type="button">Өчүк</button>
                 </div>
                 <div class="row">
                   <div class="labelBig">Үн</div>
-                  <button class="toggle on" id="soundBtn" type="button">✅ Вкл</button>
+                  <button class="toggle on" id="soundBtn" type="button">Күйүк</button>
                 </div>
               </div>
               <button class="btn primary" id="applyBtn" type="button"
-                style="width: 100%; margin-top: 10px; height: 50px;">💾 Ырастоо жана жабуу</button>
+                style="width: 100%; margin-top: 10px; height: 50px;">Ырастоо жана жабуу</button>
             </div>
           </div>
         </div>
@@ -277,14 +277,14 @@
         </div>
         <div class="endFooter">
           <div class="endBtns">
-            <button class="btn" id="closeEndBtn" type="button">✖ Жабуу</button>
-            <button class="btn primary" id="replayBtn" type="button">🔄 Кайра ойноо</button>
+            <button class="btn" id="closeEndBtn" type="button">Жабуу</button>
+            <button class="btn primary" id="replayBtn" type="button">Кайра ойноо</button>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <script src="app.js"></script>
+  <script src="app.js?v=13"></script>
 </body>
 
 </html>

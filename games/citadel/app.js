@@ -250,7 +250,7 @@
     
     timers[team].interval = setInterval(() => {
       timers[team].left--;
-      el.textContent = `⏱ ${timers[team].left}`;
+      el.textContent = `${timers[team].left} сек`;
       el.classList.toggle("danger", timers[team].left <= 5);
 
       if (timers[team].left <= 0) {
@@ -263,7 +263,7 @@
   function stopTeamTimer(team) {
     if (timers[team].interval) clearInterval(timers[team].interval);
     const el = team === "A" ? UI.timerA : UI.timerB;
-    el.textContent = `⏱ ${state.timerSec}`;
+    el.textContent = `${state.timerSec} сек`;
     el.classList.remove("danger");
   }
 
@@ -312,13 +312,13 @@
     });
 
     if (a > b) {
-        UI.winTitle.textContent = `🏆 ${state.teamA} жеңди!`;
+        UI.winTitle.textContent = `${state.teamA} жеңди!`;
         fireConfetti();
     } else if (b > a) {
-        UI.winTitle.textContent = `🏆 ${state.teamB} жеңди!`;
+        UI.winTitle.textContent = `${state.teamB} жеңди!`;
         fireConfetti();
     } else {
-        UI.winTitle.textContent = "🤝 Тең чыгуу!";
+        UI.winTitle.textContent = "Тең чыгуу!";
     }
 
     UI.winSub.textContent = `Жыйынтык эсеп: ${a} — ${b}`;

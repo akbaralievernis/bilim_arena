@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
   <title>Шарлар — Билим Арена</title>
-  <link rel="stylesheet" href="../../shared/game.css" />
+  <link rel="stylesheet" href="../../shared/game.css?v=13" />
   <style>
     .gWrap { max-width: 640px; }
     .balloons { display: flex; justify-content: center; gap: 6px; height: 110px; align-items: flex-end; margin-bottom: 6px; }
@@ -36,10 +36,10 @@
 </head>
 <body>
   <header class="gTop">
-    <a class="iconBtn" href="../../games.html" aria-label="Башкы бетке">←</a>
-    <div class="title">🎈 Шарлар <small>Сөздү тамга-тамга тап — шарларды сакта!</small></div>
-    <button class="iconBtn" id="soundBtn" type="button" aria-label="Үн">🔊</button>
-    <button class="iconBtn" id="themeBtn" type="button" aria-label="Тема">🌙</button>
+    <a class="iconBtn" href="../../games.html" aria-label="Оюндар"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <div class="title">Шарлар <small>Сөздү тамга-тамга тап — шарларды сакта!</small></div>
+    <button class="iconBtn" id="soundBtn" type="button" aria-label="Үн"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></button>
+    <button class="iconBtn" id="themeBtn" type="button" aria-label="Тема" hidden></button>
   </header>
 
   <main class="gWrap">
@@ -68,13 +68,13 @@
       <h2 class="gH" id="endTitle"></h2>
       <p style="font-size:1.8rem;font-weight:900;letter-spacing:.1em;margin:4px 0" id="endWord"></p>
       <p class="muted" id="endTr"></p>
-      <button class="btn primary" id="nextBtn" type="button">➡️ Кийинки сөз</button>
+      <button class="btn primary" id="nextBtn" type="button">Кийинки сөз</button>
     </div>
   </div>
 
-  <script src="../../shared/vocab.js"></script>
-  <script src="../../shared/progress.js"></script>
-  <script src="../../shared/game-shell.js"></script>
+  <script src="../../shared/vocab.js?v=13"></script>
+  <script src="../../shared/progress.js?v=13"></script>
+  <script src="../../shared/game-shell.js?v=13"></script>
   <script>
   (function () {
     'use strict';
@@ -105,7 +105,7 @@
       st = { w, letters: [...w.ky], guessed: new Set(), lives: LIVES, over: false };
       game.round++;
       $('clueEmoji').textContent = w.emoji;
-      $('clueTr').textContent = `🇷🇺 ${w.ru} · 🇬🇧 ${w.en}`;
+      $('clueTr').textContent = `RU: ${w.ru} · EN: ${w.en}`;
       $('balloons').innerHTML = Array.from({ length: LIVES }, (_, i) => `<div class="bl" style="--c:${COLORS[i]}"></div>`).join('');
       const kb = $('kb'); kb.innerHTML = '';
       LETTERS.forEach((l) => {
@@ -169,10 +169,10 @@
       }
       hud();
       BA.speak(st.w.en, 'en');
-      $('endEmoji').textContent = won ? (st.lives === LIVES ? '🌟' : '🎈') : '💥';
+      $('endEmoji').innerHTML = BAShell.endIcon(won ? (st.lives === LIVES ? 'trophy' : 'star') : 'target');
       $('endTitle').textContent = won ? (st.lives === LIVES ? 'Мыкты! Бир да ката жок!' : 'Таптың!') : 'Шарлар жарылды...';
       $('endWord').textContent = `${st.w.emoji} ${st.w.ky.toUpperCase()}`;
-      $('endTr').textContent = `🇷🇺 ${st.w.ru} · 🇬🇧 ${st.w.en}`;
+      $('endTr').textContent = `RU: ${st.w.ru} · EN: ${st.w.en}`;
       setTimeout(() => $('endModal').classList.remove('hidden'), won ? 500 : 900);
     }
 

@@ -1042,3 +1042,6 @@ body.mode-math .slots {
   .topActions .btn, .topActions .tbtn { flex: 1 1 auto; }
   .teamMeta { flex-wrap: wrap; }
 }
+
+/* Платформа: скрытые элементы (переключатель темы) */
+[hidden] { display: none !important; }

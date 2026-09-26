@@ -246,7 +246,7 @@
       let points = 10;
       if (responseTime < 2000) {
         points += 5; // Combo bonus
-        toast("⚡ КОМБО! +5 упай");
+        toast("КОМБО! +5 упай");
       }
       State.score += points;
       showPlaque(State.current.logic);
@@ -263,7 +263,7 @@
     if (State.teamStatus[team]) return;
     State.teamStatus[team] = true;
     
-    $(team === 'a' ? "statusA" : "statusB").textContent = isCorrect ? "✅ ТУУРА" : "❌ КАТА";
+    $(team === 'a' ? "statusA" : "statusB").textContent = isCorrect ? "ТУУРА" : "КАТА";
     btn.classList.add(isCorrect ? "good" : "bad");
     
     if (isCorrect) {

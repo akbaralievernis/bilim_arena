@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./style.css?v=13" />
 </head>
 
 <body data-theme="light">
@@ -25,9 +25,9 @@
 
       <div class="topActions">
         <button class="iconBtn" id="btnTheme" title="Теманы алмаштыруу" hidden>🌓</button>
-        <button class="iconBtn" id="btnReset" title="Матчты башынан баштоо">↺</button>
-        <button class="iconBtn" id="btnTeacher" title="Мугалим режими">🧑‍🏫</button>
-        <button class="iconBtn" id="btnOpenSetup" title="Орнотуулар">⚙️</button>
+        <button class="iconBtn" id="btnReset" title="Матчты башынан баштоо" aria-label="Матчты башынан баштоо"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
+        <button class="iconBtn" id="btnTeacher" title="Мугалим режими" aria-label="Мугалим режими"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2.5 9 2.5 12 0v-5"/><path d="M22 9v6"/></svg></button>
+        <button class="iconBtn" id="btnOpenSetup" title="Орнотуулар" aria-label="Орнотуулар"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M4.2 6.5l2.6 1.5M17.2 16l2.6 1.5M4.2 17.5L6.8 16M17.2 8l2.6-1.5"/><circle cx="12" cy="12" r="7"/></svg></button>
         <a class="btn small" href="../../games.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><path d="M15 5l-7 7 7 7"/></svg> Оюндар</a>
       </div>
     </header>
@@ -114,7 +114,7 @@
       <div class="modalCard">
         <div class="modalHead">
           <div class="modalTitle">Орнотуулар</div>
-          <button class="iconBtn" id="btnCloseSetup">✕</button>
+          <button class="iconBtn" id="btnCloseSetup" aria-label="Жабуу"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
         <div class="modalBody" id="setupBody">
           <div class="grid2">
@@ -185,7 +185,7 @@
     <aside class="drawer" id="drawer">
       <div class="drawerHead">
         <div class="drawerTitle">Суроолор редактору</div>
-        <button class="iconBtn" id="btnCloseEditor">✕</button>
+        <button class="iconBtn" id="btnCloseEditor" aria-label="Жабуу"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
       <div class="drawerBody">
         <div id="edList" class="edList"></div>
@@ -218,7 +218,7 @@
     <div class="toast hidden" id="toast"></div>
   </div>
 
-  <script src="data.js"></script>
-  <script src="focus-duel.js"></script>
+  <script src="data.js?v=13"></script>
+  <script src="focus-duel.js?v=13"></script>
 </body>
 </html>

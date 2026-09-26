@@ -139,6 +139,7 @@ h2.gH { font-family: var(--font-title); font-size: clamp(1.5rem, 4vw, 2.2rem); m
 }
 .modal .panel { max-width: 440px; width: 100%; text-align: center; animation: pop .35s cubic-bezier(.16, 1, .3, 1); }
 .bigEmoji { font-size: 4rem; line-height: 1; margin-bottom: 8px; }
+.bigEmoji:has(.end-icon) { width: 88px; height: 88px; margin: 0 auto 10px; border-radius: 26px; display: grid; place-items: center; background: #EEEDFF; color: #635BFF; }
 @keyframes pop { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-7px); } 40%, 80% { transform: translateX(7px); } }
 .shake { animation: shake .4s; }

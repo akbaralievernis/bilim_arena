@@ -282,11 +282,11 @@
     if (ok) {
       if (side === "A" || side === "solo") { State.scoreA++; State.streakA++; State.streakB = 0; }
       else { State.scoreB++; State.streakB++; State.streakA = 0; }
-      UI.status.textContent = "Туура! ✅";
+      UI.status.textContent = "Туура!";
     } else {
       if (side === "A" || side === "solo") State.streakA = 0;
       else State.streakB = 0;
-      UI.status.textContent = `Ката ❌ (Жооп: ${State.activeQ.correct})`;
+      UI.status.textContent = `Ката. Жооп: ${State.activeQ.correct}`;
     }
 
     // Next turn or round
@@ -342,7 +342,7 @@
   function onTimeUp() {
     if (State.locked) return;
     State.locked = true;
-    UI.status.textContent = "Убакыт бүттү! ⏱";
+    UI.status.textContent = "Убакыт бүттү!";
     markCorrect();
     setTimeout(() => {
       if (State.mode === "duel") State.turn = State.turn === "A" ? "B" : "A";

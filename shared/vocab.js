@@ -190,9 +190,9 @@
   };
 
   const LANGS = {
-    ky: { name: 'Кыргызча', flag: '🇰🇬', speech: 'ky-KG' },
-    ru: { name: 'Русский', flag: '🇷🇺', speech: 'ru-RU' },
-    en: { name: 'English', flag: '🇬🇧', speech: 'en-US' }
+    ky: { name: 'Кыргызча', flag: 'KY', speech: 'ky-KG' },
+    ru: { name: 'Русский', flag: 'RU', speech: 'ru-RU' },
+    en: { name: 'English', flag: 'EN', speech: 'en-US' }
   };
 
   const CATEGORIES = {};

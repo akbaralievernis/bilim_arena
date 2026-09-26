@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./style.css?v=13" />
 </head>
 
 <body class="theme-aura-light">
@@ -81,10 +81,10 @@
               <label class="field">
                 <span>Кыйынчылык</span>
                 <select id="selDifficulty">
-                  <option value="progressive">📈 Прогрессивдүү</option>
-                  <option value="easy">🐣 Жеңил (3 вариант)</option>
-                  <option value="medium">⚖️ Орто (4 вариант)</option>
-                  <option value="hard">🔥 Оор (6 вариант)</option>
+                  <option value="progressive">Прогрессивдүү</option>
+                  <option value="easy">Жеңил (3 вариант)</option>
+                  <option value="medium">Орто (4 вариант)</option>
+                  <option value="hard">Оор (6 вариант)</option>
                 </select>
               </label>
 
@@ -94,7 +94,7 @@
               </label>
             </div>
 
-            <button class="btn primary full" id="btnStartSingle" type="button">👤 БАШТОО</button>
+            <button class="btn primary full" id="btnStartSingle" type="button">БАШТОО</button>
           </div>
 
           <!-- Teams Mode -->
@@ -130,13 +130,13 @@
               </label>
             </div>
 
-            <button class="btn primary full" id="btnStartTeams" type="button">⚔️ БАШТОО</button>
+            <button class="btn primary full" id="btnStartTeams" type="button">БАШТОО</button>
           </div>
         </div>
 
         <!-- Teacher Editor -->
         <details class="panelDetails">
-          <summary>🧑‍🏫 Мугалим үчүн (тест редактору)</summary>
+          <summary>Мугалим үчүн (тест редактору)</summary>
           <div class="editor">
             <div class="editorTop">
               <label class="field">
@@ -150,7 +150,7 @@
                 <span>Тесттин аталышы</span>
                 <input id="editorTitle" type="text" placeholder="Мисалы: Жаныбарлар" />
               </label>
-              <button class="btn primary" id="btnSaveTest" type="button">💾 Сактоо</button>
+              <button class="btn primary" id="btnSaveTest" type="button">Сактоо</button>
             </div>
 
             <div class="editorHint" id="editorHint">Формат: 4 элементти үтүр менен бөлүңүз. Бирөөнүн алдына жылдызча *
@@ -169,7 +169,7 @@
             <div class="savedBox">
               <div class="savedHead">
                 <div class="savedTitle">Сакталган тесттер</div>
-                <button class="btn small danger" id="btnDeleteAll" type="button">🗑 Баарын өчүрүү</button>
+                <button class="btn small danger" id="btnDeleteAll" type="button">Баарын өчүрүү</button>
               </div>
               <div class="savedList" id="savedList"></div>
             </div>
@@ -237,7 +237,7 @@
         </div>
         <div class="statsGrid" id="endStats" style="margin: 2rem 0;"></div>
         <div class="rowBetween" style="justify-content: center; gap: 1rem;">
-          <button class="btn primary" id="btnPlayAgain" type="button">🔄 Кайра ойнотуу</button>
+          <button class="btn primary" id="btnPlayAgain" type="button">Кайра ойнотуу</button>
           <button class="btn" id="btnToStart" type="button">Оюндун башына</button>
         </div>
       </section>
@@ -246,7 +246,7 @@
     <div class="toast hidden" id="toast"></div>
   </div>
 
-  <script src="./app.js"></script>
+  <script src="./app.js?v=13"></script>
 </body>
 
 </html>
