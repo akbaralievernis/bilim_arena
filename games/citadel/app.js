@@ -103,12 +103,9 @@
 
   // --- Theme Logic ---
   const initTheme = () => {
-    const saved = localStorage.getItem('BA_PORTAL_THEME');
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const theme = saved || (systemDark ? 'dark' : 'light');
-    
-    document.body.className = theme;
-    $('themeBtn').textContent = theme === 'dark' ? '🌙' : '☀️';
+    // Платформа использует один светлый интерфейс
+    document.body.className = 'light';
+    $('themeBtn').hidden = true;
   };
 
   const toggleTheme = () => {

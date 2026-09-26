@@ -7,8 +7,8 @@
   <meta name="description" content="Билим Арена — өз алдынча машыгуу: теманы тандап, суроолорго жооп бериңиз." />
   <title>Машыгуу — Билим Арена</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./core/ui.css?v=12" />
-  <link rel="stylesheet" href="./home.css?v=12" />
+  <link rel="stylesheet" href="./core/ui.css?v=13" />
+  <link rel="stylesheet" href="./home.css?v=13" />
 </head>
 
 <body>
@@ -69,26 +69,11 @@
     </section>
 
     <!-- Результат -->
-    <section class="card pad-lg stack hidden" id="resultScreen">
-      <div class="center stack">
-        <div class="entry-icon" id="resultIcon" aria-hidden="true"></div>
-        <h1 data-i18n="results_title">Жыйынтык</h1>
-      </div>
-      <div class="stats" id="resultStats"></div>
-      <div>
-        <div class="label" data-i18n="results_mistakes">Каталар боюнча</div>
-        <div id="skillBreakdown"></div>
-      </div>
-      <div class="row">
-        <button class="btn danger" id="repeatBtn" type="button" data-i18n="results_repeat_topic">Теманы кайталоо</button>
-        <button class="btn primary" id="againBtn" type="button" data-i18n="retry">Кайра аракет</button>
-        <a class="btn ghost" href="./progress.html" data-i18n="nav_progress">Прогресс</a>
-      </div>
-    </section>
+    <section class="card pad-lg hidden result-screen" id="resultScreen" aria-live="polite"></section>
 
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./practice.js?v=12"></script>
+  <script type="module" src="./practice.js?v=13"></script>
 </body>
 </html>

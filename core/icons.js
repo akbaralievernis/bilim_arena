@@ -89,7 +89,10 @@ const P = {
   eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
   wifiOff: '<path d="M3 3l18 18M8.5 16.5a5 5 0 0 1 6.5-.4M5 12.5a10 10 0 0 1 4-2.2M12 20h.01"/>',
   inbox: '<path d="M3 13l2.5-8h13L21 13v6H3z"/><path d="M3 13h5l1 2.5h6l1-2.5h5"/>',
-  hourglassEnd: '<path d="M6 3h12M6 21h12M7 3c0 5 10 5 10 9s-10 4-10 9M17 3c0 5-10 5-10 9"/><path d="M9 19h6"/>'
+  hourglassEnd: '<path d="M6 3h12M6 21h12M7 3c0 5 10 5 10 9s-10 4-10 9M17 3c0 5-10 5-10 9"/><path d="M9 19h6"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M4.2 6.5l2.6 1.5M17.2 16l2.6 1.5M4.2 17.5L6.8 16M17.2 8l2.6-1.5"/><circle cx="12" cy="12" r="7"/>',
+  progress: '<path d="M4 20V13M10 20V8M16 20v-5M22 20H2"/><path d="M4 9l6-5 6 5 5-4"/>',
+  history: '<path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"/><path d="M3 4v4h4"/><path d="M12 8v4l3 2"/>'
 };
 
 export const ICON_NAMES = Object.keys(P);

@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="./style.css" />
 </head>
 
-<body class="theme-dark">
+<body class="theme-aura-light">
   <div class="app" id="app">
     <header class="topbar">
       <div class="brand">
@@ -25,7 +25,7 @@
       </div>
 
       <div class="topActions">
-        <a class="btn" href="../../games.html" title="Артка">← Башкы бет</a>
+        <a class="btn" href="../../games.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><path d="M15 5l-7 7 7 7"/></svg> Оюндар</a>
       </div>
     </header>
 
@@ -40,7 +40,7 @@
                 Ар бир раундда <b>бир "ашыкча"</b> бар. <b>Туура келбегенине</b> басыңыз.
               </p>
             </div>
-            <div class="themeSwitcher">
+            <div class="themeSwitcher" hidden>
               <div class="dot midnight active" onclick="setTheme('midnight')" title="Midnight Blue"></div>
               <div class="dot deepspace" onclick="setTheme('deepspace')" title="Deep Space"></div>
               <div class="dot auralight" onclick="setTheme('auralight')" title="Aura Light"></div>
@@ -238,7 +238,7 @@
         <div class="statsGrid" id="endStats" style="margin: 2rem 0;"></div>
         <div class="rowBetween" style="justify-content: center; gap: 1rem;">
           <button class="btn primary" id="btnPlayAgain" type="button">🔄 Кайра ойнотуу</button>
-          <button class="btn" id="btnToStart" type="button">🏠 Башкы бетке</button>
+          <button class="btn" id="btnToStart" type="button">Оюндун башына</button>
         </div>
       </section>
     </main>

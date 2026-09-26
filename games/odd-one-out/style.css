@@ -748,3 +748,5 @@ textarea {
 .dot.auralight { background: #3b82f6; border: 2px solid rgba(0,0,0,0.1); }
 .dot.active { border-color: white; transform: scale(1.2); }
 body.theme-aura-light .dot.active { border-color: #0f172a; }
+/* Платформа: скрытые элементы (например, переключатель темы) */
+[hidden] { display: none !important; }

@@ -732,7 +732,8 @@ function showResults(game) {
 
 
   const wrongIds = game.wrongQuestionIds();
-  $('#repeatBtn').disabled = wrongIds.length === 0;
+  // Ошибок не было — кнопки повтора нет совсем (а не серая неактивная)
+  $('#repeatBtn').hidden = wrongIds.length === 0;
   $('#repeatBtn').textContent = isCase ? `${t('inv_repeat_mistakes')}` : t('results_repeat_topic');
 
   if (r.lab) {

@@ -6,7 +6,7 @@
  * Перед игрой всегда показывается цель и правила, после — разбор ошибок.
  */
 
-import { bootstrap, mountHeader, el, $, toast, sfx, confetti, fmtTime } from './core/ui.js';
+import { bootstrap, mountHeader, el, $, sfx, confetti } from './core/ui.js';
 import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
 import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, getQuestions, skillTitle } from './core/curriculum.js';
@@ -14,6 +14,7 @@ import { BaseGame } from './core/engine.js';
 import { renderQuestion } from './core/quiz-ui.js';
 import { topicState, getProgress } from './core/progress.js';
 import { getProfile } from './core/profile.js';
+import { resultView } from './core/results.js';
 
 /** Практика — одиночная игра-викторина по теме */
 class PracticeGame extends BaseGame {
@@ -116,6 +117,7 @@ async function startGame(onlyWrong = false) {
     questions = await getQuestions({ topic: state.topic, count: 10 });
   }
 
+  state.xpBefore = (await getProgress()).xp;
   state.game?.destroy();
   state.game = new PracticeGame({
     questions, topic: state.topic, lang, perQuestionSec: 30, solo: true,
@@ -177,37 +179,19 @@ function answer(value) {
 async function showResults(game) {
   const r = game.results;
   if (!r) return;
-  show('resultScreen');
-
-  const good = r.accuracy >= 70;
-  $('#resultIcon').replaceChildren(icon(good ? 'trophy' : 'target', { size: 36 }));
-  if (good) { sfx.win(); confetti(); }
-
-  const player = r.players[0] || { score: 0 };
-  $('#resultStats').replaceChildren(
-    stat(r.correctAnswers, t('results_correct')),
-    stat(r.totalAnswers - r.correctAnswers, t('results_wrong')),
-    stat(`${r.accuracy}%`, t('accuracy')),
-    stat(player.score, t('points')),
-    stat(fmtTime(r.durationSec), t('game_time'))
-  );
-
   const lang = getLang();
-  const rows = Object.entries(r.bySkill).map(([skill, s]) => {
-    const pct = Math.round((s.ok / s.total) * 100);
-    const weak = pct < 70;
-    return el('div', { class: 'skill-row', style: 'margin-bottom:12px' },
-      el('div', { class: 'row between' },
-        el('b', {}, skillTitle(state.topic, skill, lang)),
-        el('span', { class: `state ${weak ? 'review' : 'learned'}` }, icon(weak ? 'warn' : 'check', { size: 16 }), `${s.ok}/${s.total}`)
-      ),
-      el('div', { class: `bar ${weak ? '' : 'ok'}`, style: 'margin-top:6px' }, el('i', { style: `width:${pct}%` }))
-    );
-  });
-  $('#skillBreakdown').replaceChildren(...(rows.length ? rows : [el('p', { class: 'muted' }, t('results_nothing_wrong'))]));
+  const xp = Math.max(0, (await getProgress()).xp - (state.xpBefore ?? 0));
 
-  $('#repeatBtn').disabled = game.wrongQuestionIds().length === 0;
-  toast(`+${r.correctAnswers * 10} XP`, { icon: '✨' });
+  $('#resultScreen').replaceChildren(resultView({
+    accuracy: r.accuracy, xp, correct: r.correctAnswers, total: r.totalAnswers, timeSec: r.durationSec,
+    skills: Object.entries(r.bySkill).map(([skill, s]) => ({ title: skillTitle(state.topic, skill, lang), ...s })),
+    mistakes: r.mistakes,
+    onRepeatMistakes: () => startGame(true),
+    onAgain: () => startGame(false)
+  }));
+  show('resultScreen');
+  $('#resultScreen h1').focus();
+  if (r.accuracy >= 70) { sfx.win(); confetti(); }
 }
 
 // ─── Запуск ───────────────────────────────────────────────────────────────────
@@ -225,8 +209,6 @@ async function showResults(game) {
   if (topicParam && getTopic(topicParam)) openIntro(topicParam);
 
   $('#startBtn').addEventListener('click', () => startGame(false));
-  $('#againBtn').addEventListener('click', () => startGame(false));
-  $('#repeatBtn').addEventListener('click', () => startGame(true));
   $('#backBtn').addEventListener('click', () => renderPicker());
   $('#sendBtn').addEventListener('click', () => {
     const v = $('#answerInput').value.trim();

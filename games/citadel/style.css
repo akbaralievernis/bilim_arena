@@ -228,3 +228,6 @@ canvas#confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-inde
 /* Мобилдик оңдоо: узун тандоо тексти экрандан чыгып кетпеши үчүн */
 .grid2 > *, .kidLabel { min-width: 0; }
 select, input { max-width: 100%; width: 100%; box-sizing: border-box; }
+
+/* Платформа: скрытые элементы (например, переключатель темы) */
+[hidden] { display: none !important; }

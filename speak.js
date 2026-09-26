@@ -11,7 +11,8 @@
 import { bootstrap, mountHeader, el, $, toast, sfx, confetti } from './core/ui.js';
 import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
-import { recordAnswer, recordGame } from './core/progress.js';
+import { recordAnswer, recordGame, getProgress } from './core/progress.js';
+import { resultView } from './core/results.js';
 import { canListen, canSpeak, speak, listen, bestMatch, normalize, PASS_SCORE } from './core/speech.js';
 import { SPEAK_SETS, getSet } from './data/speaking/index.js';
 
@@ -33,7 +34,6 @@ const state = {
 
 const screens = ['pickScreen', 'playScreen', 'resultScreen'];
 const show = (id) => screens.forEach((s) => $('#' + s).classList.toggle('hidden', s !== id));
-const stat = (v, l) => el('div', { class: 'stat' }, el('b', {}, String(v)), el('span', {}, l));
 
 const shuffle = (arr) => {
   const a = arr.slice();
@@ -60,10 +60,10 @@ function renderPicker() {
   }, label)));
 
   $('#setGrid').replaceChildren(...SPEAK_SETS.map((set) => el('button', {
-    class: 'card game-card', type: 'button', style: 'text-align:left;cursor:pointer',
+    class: 'card card-link set-card', type: 'button',
     onclick: () => startRound(set.id)
   },
-    el('div', { style: 'font-size:2rem' }, set.icon),
+    el('span', { class: 'link-icon' }, icon(set.id.includes('phrase') ? 'sentence' : 'mic', { size: 22 })),
     el('b', {}, pick(set.title, lang)),
     el('div', { class: 'small muted' }, t('sp_items', { n: set.items.length }))
   )));
@@ -72,7 +72,9 @@ function renderPicker() {
 
 // ─── Тренировка ───────────────────────────────────────────────────────────────
 
-function startRound(setId, items = null) {
+async function startRound(setId, items = null) {
+  state.startedAt = Date.now();
+  state.xpBefore = (await getProgress()).xp;
   state.set = getSet(setId);
   state.items = items || shuffle(state.set.items).slice(0, ROUND);
   state.index = 0;
@@ -251,36 +253,40 @@ async function finishRound() {
   await recordGame({ gameId: 'speak', topic: state.set.topic, score, correct, total: r.length });
 
   $('#progressBar').style.width = '100%';
-  $('#resultIcon').replaceChildren(icon(acc >= 80 ? 'trophy' : acc >= 50 ? 'star' : 'target', { size: 36 }));
-  $('#resultStats').replaceChildren(
-    stat(`${correct}/${r.length}`, t('results_correct')),
-    stat(`${acc}%`, t('accuracy')),
-    stat(score, t('sp_points'))
-  );
 
+  // Что не получилось с первого раза — в разбор ошибок
   const weak = r.filter((x) => !x.ok || x.attempts > 1);
-  $('#practiseList').replaceChildren(...(weak.length
-    ? weak.map((x) => el('div', { class: 'row between speak-review' },
-      el('div', {},
-        el('b', { lang: state.set.lang.slice(0, 2) }, x.item.text), ' ',
-        el('span', { class: 'muted' }, `${x.item.sound} · ${pick(x.item.hint, lang)}`)
-      ),
-      el('button', {
-        class: 'btn ghost', type: 'button', 'aria-label': `${t('sp_listen')}: ${x.item.text}`,
-        disabled: !canSpeak(),
-        onclick: () => speak(x.item.text, state.set.lang, 0.8)
-      }, icon('sound'))
-    ))
-    : [el('p', { class: 'muted' }, t('results_nothing_wrong'))]));
+  const mistakes = weak.map((x) => el('div', { class: 'row between speak-review' },
+    el('div', {},
+      el('b', { lang: state.set.lang.slice(0, 2) }, x.item.text), ' ',
+      el('span', { class: 'muted' }, `${x.item.sound} · ${pick(x.item.hint, lang)}`)
+    ),
+    el('button', {
+      class: 'btn ghost', type: 'button', 'aria-label': `${t('sp_listen')}: ${x.item.text}`,
+      disabled: !canSpeak(),
+      onclick: () => speak(x.item.text, state.set.lang, 0.8)
+    }, icon('sound'))
+  ));
+  const xp = Math.max(0, (await getProgress()).xp - (state.xpBefore ?? 0));
 
-  // «Ещё раз» — сначала то, что не получилось
-  $('#againBtn').onclick = () => {
+  // «Кайра ойноо» — сначала то, что не получилось
+  const again = () => {
     const retry = weak.map((x) => x.item);
     const rest = shuffle(state.set.items.filter((x) => !retry.includes(x)));
     startRound(state.set.id, [...retry, ...rest].slice(0, ROUND));
   };
 
+  $('#resultScreen').replaceChildren(resultView({
+    accuracy: acc, xp, correct, total: r.length,
+    timeSec: Math.round((Date.now() - (state.startedAt || Date.now())) / 1000),
+    mistakes,
+    onAgain: again,
+    extra: el('p', { class: 'center' }, el('button', { class: 'btn ghost', type: 'button', onclick: renderPicker },
+      icon('mic', { size: 18 }), el('span', {}, t('sp_other_set'))))
+  }));
+
   show('resultScreen');
+  $('#resultScreen h1').focus();
   if (acc >= 80) { sfx.win(); confetti(); }
 }
 
@@ -298,7 +304,6 @@ async function finishRound() {
   $('#typeForm').onsubmit = onType;
   $('#nextBtn').onclick = next;
   $('#skipBtn').onclick = skip;
-  $('#otherBtn').onclick = renderPicker;
   $('#typeInput').placeholder = t('sp_type_placeholder');
   $('#listenBtn').replaceChildren(icon('sound'), t('sp_listen'));
 

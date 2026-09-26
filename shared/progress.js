@@ -205,6 +205,7 @@
       const g = p.games[gameId] || (p.games[gameId] = { plays: 0, best: 0, xp: 0 });
       if (xp) { p.xp = (p.xp || 0) + xp; p.dayXP = (p.dayXP || 0) + xp; g.xp += xp; }
       if (play) { g.plays += 1; g.best = Math.max(g.best || 0, score || 0); }
+      g.lastAt = Date.now(); // для блока «Продолжить» на главной
       localStorage.setItem(PLATFORM, JSON.stringify(p));
 
       // Облачная синхронизация (если подключена) увидит, что прогресс изменился

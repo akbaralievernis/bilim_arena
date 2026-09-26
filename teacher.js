@@ -220,7 +220,7 @@ async function renderResults() {
     ? lessons.slice(-6).reverse().map((l) => {
       const topic = getTopic(l.topic);
       return el('div', { class: 'row between', style: 'padding:.4em 0' },
-        el('span', {}, topic ? `${getSubject(topic.subject)?.icon || ''} ${pick(topic.title, lang)}` : l.topic),
+        el('span', {}, topic ? pick(topic.title, lang) : l.topic),
         el('span', { class: 'muted small' }, new Date(l.at).toLocaleDateString())
       );
     })

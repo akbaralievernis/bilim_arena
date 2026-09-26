@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ky" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F7F8FC" />
+  <meta name="description" content="Билим Арена — менин профилим: аты, сүрөтү, тил, үй тапшырмалар жана сабакка кирүү." />
+  <title>Профиль — Билим Арена</title>
+  <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="stylesheet" href="./core/ui.css?v=13" />
+  <link rel="stylesheet" href="./home.css?v=13" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main" data-i18n="skip_to_content">Мазмунга өтүү</a>
+  <div id="header"></div>
+
+  <main id="main" class="wrap page profile-page">
+    <!-- Кто я -->
+    <section class="card profile-card" aria-labelledby="profileName">
+      <div class="profile-avatar" id="avatar"></div>
+      <div class="profile-main">
+        <h1 class="profile-name" id="profileName"></h1>
+        <p class="muted profile-level" id="levelLine"></p>
+        <div class="xp-line">
+          <div class="bar thick" role="progressbar" id="xpBarWrap" aria-valuemin="0" aria-valuemax="100"><i id="xpBar" style="width:0%"></i></div>
+          <span class="small muted" id="xpNote"></span>
+        </div>
+      </div>
+      <a class="btn soft profile-edit-link" href="./progress.html" id="progressLink"></a>
+    </section>
+
+    <div class="profile-grid">
+      <!-- Имя и иллюстрация -->
+      <section class="card stack" aria-labelledby="editTitle">
+        <h2 id="editTitle" data-i18n="profile_edit">Профилди өзгөртүү</h2>
+        <label class="field">
+          <span class="label" data-i18n="profile_name">Атың</span>
+          <input class="input" id="nameInput" maxlength="16" autocomplete="given-name" />
+        </label>
+        <fieldset class="avatar-picker">
+          <legend class="label" data-i18n="profile_avatar">Сүрөт</legend>
+          <div class="avatar-options" id="avatarPicker"></div>
+        </fieldset>
+        <div><button class="btn primary" id="saveProfileBtn" type="button" data-i18n="save">Сактоо</button></div>
+      </section>
+
+      <!-- Окуу: задания, урок, тренировка -->
+      <section class="card stack" aria-labelledby="linksTitle">
+        <h2 id="linksTitle" data-i18n="profile_study">Окуу</h2>
+        <div class="link-list" id="studyLinks"></div>
+      </section>
+
+      <!-- Настройки -->
+      <section class="card stack" aria-labelledby="settingsTitle">
+        <h2 id="settingsTitle" data-i18n="profile_settings">Жөндөөлөр</h2>
+        <fieldset class="filter-group">
+          <legend data-i18n="language">Тил</legend>
+          <div class="pill-options" id="langOptions"></div>
+        </fieldset>
+        <div class="link-list" id="settingsLinks"></div>
+      </section>
+    </div>
+  </main>
+
+  <div id="toasts"></div>
+  <script type="module" src="./profile.js?v=13"></script>
+</body>
+</html>

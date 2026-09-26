@@ -1,71 +1,143 @@
-/* Bilim Arena — главная страница и общие блоки страниц ученика */
+/* Bilim Arena — главная страница, профиль и общие блоки страниц ученика */
 
-/* ─── Приветствие ─────────────────────────────────────────────────────────── */
+/* ─── 1. Приветствие ──────────────────────────────────────────────────────── */
 .hero { margin-top: 4px; }
 .hero-card {
-  display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 24px; align-items: center;
-  padding: clamp(22px, 4vw, 44px);
-  border-radius: var(--radius-lg);
-  background:
-    radial-gradient(600px 300px at 100% 0%, rgba(99, 91, 255, 0.10), transparent 70%),
-    radial-gradient(500px 260px at 0% 100%, rgba(33, 184, 166, 0.10), transparent 70%),
-    var(--surface);
-  border: 1px solid var(--line);
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 32px; align-items: center;
+  padding: clamp(24px, 4.5vw, 52px);
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow);
 }
-.hero-kicker { margin: 0 0 6px; font-weight: 700; color: var(--primary-ink); }
-.hero h1 { font-size: clamp(1.7rem, 4.4vw, 2.7rem); margin: 0 0 10px; }
-.hero-sub { color: var(--text-soft); font-size: 1.05rem; max-width: 52ch; margin: 0 0 18px; }
-.hero-search { max-width: 520px; margin-bottom: 14px; }
-.hero-search .input { min-height: 54px; border-radius: 16px; font-size: 1rem; box-shadow: var(--shadow-sm); }
-.hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.hero-kicker { margin: 0 0 8px; font-weight: 600; font-size: 0.9375rem; color: var(--primary-ink); }
+.hero h1 { font-size: clamp(1.75rem, 4.2vw, 2.75rem); line-height: 1.15; margin: 0 0 12px; max-width: 18ch; }
+.hero-sub { color: var(--text-secondary); font-size: clamp(1rem, 1.6vw, 1.125rem); max-width: 46ch; margin: 0 0 24px; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.hero-actions .btn.big { font-size: 1rem; padding: 0.8em 1.4em; min-height: 52px; }
 
-.hero-art { position: relative; height: 260px; }
-.hero-tile { position: absolute; width: 62%; aspect-ratio: 16 / 10; border-radius: 22px; overflow: hidden; box-shadow: var(--shadow-lg); border: 4px solid #fff; }
-.hero-tile-1 { left: 0; top: 6%; transform: rotate(-5deg); }
-.hero-tile-2 { right: 0; top: 0; transform: rotate(4deg); }
-.hero-tile-3 { left: 20%; bottom: 0; transform: rotate(-1deg); z-index: 2; }
+.hero-art { position: relative; height: 280px; }
+.hero-tile { position: absolute; width: 60%; aspect-ratio: 16 / 10; border-radius: 20px; overflow: hidden; box-shadow: var(--shadow-lg); border: 4px solid #fff; }
+.hero-tile-1 { left: 0; top: 8%; transform: rotate(-4deg); }
+.hero-tile-2 { right: 0; top: 0; transform: rotate(3deg); }
+.hero-tile-3 { left: 20%; bottom: 0; z-index: 2; }
 @media (prefers-reduced-motion: no-preference) {
-  .hero-tile { animation: tile-in 0.8s var(--ease) both; }
-  .hero-tile-2 { animation-delay: 0.1s; }
-  .hero-tile-3 { animation-delay: 0.2s; }
+  .hero-tile { animation: tile-in 0.6s var(--ease) both; }
+  .hero-tile-2 { animation-delay: 0.08s; }
+  .hero-tile-3 { animation-delay: 0.16s; }
 }
-@keyframes tile-in { from { opacity: 0; translate: 0 16px; } }
+@keyframes tile-in { from { opacity: 0; translate: 0 12px; } }
 
 @media (max-width: 860px) {
-  .hero-card { grid-template-columns: 1fr; }
+  .hero-card { grid-template-columns: 1fr; gap: 0; }
   .hero-art { display: none; }
 }
-
-/* ─── Прогресс и рекомендации ─────────────────────────────────────────────── */
-.two-col { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 20px; align-items: start; }
-@media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } }
-
-.progress-card { display: flex; flex-direction: column; gap: 14px; }
-.prog-head { display: flex; align-items: center; gap: 14px; }
-.xp-line { display: flex; flex-direction: column; gap: 6px; }
-.prog-facts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; font-weight: 700; font-size: 0.92rem; }
-.prog-facts li { display: inline-flex; align-items: center; gap: 6px; }
-
-.rec-list { display: flex; flex-direction: column; gap: 10px; }
-.rec-item { display: flex; align-items: center; gap: 14px; padding: 10px 14px 10px 10px; }
-.rec-art { width: 84px; flex: none; aspect-ratio: 16 / 11; border-radius: 12px; overflow: hidden; }
-.rec-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-.rec-body .small { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.rec-go { color: var(--text-soft); }
-
-/* ─── Блок для учителей ───────────────────────────────────────────────────── */
-.teacher-card { display: grid; grid-template-columns: 220px 1fr; gap: 24px; align-items: center; padding: clamp(18px, 3vw, 28px); }
-.teacher-art { border-radius: 18px; overflow: hidden; aspect-ratio: 16 / 11; }
-.teacher-points { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.teacher-points li { display: flex; gap: 8px; align-items: flex-start; }
-.teacher-points .icon { color: var(--secondary-ink); margin-top: 2px; }
-@media (max-width: 700px) {
-  .teacher-card { grid-template-columns: 1fr; }
-  .teacher-art { max-width: 260px; }
+@media (max-width: 480px) {
+  .hero-actions .btn { flex: 1 1 100%; }
 }
 
-.footer { padding: 28px 0 8px; border-top: 1px solid var(--line); margin-top: 44px; }
+/* ─── 2. Поиск ────────────────────────────────────────────────────────────── */
+.home-search { margin-top: 20px; }
+.big-search { display: flex; gap: 10px; }
+.big-search .icon { left: 18px; }
+.big-search .input { min-height: 60px; padding-left: 52px; font-size: 1.0625rem; border-radius: 16px; box-shadow: var(--shadow-sm); }
+.big-search .btn { min-height: 60px; padding: 0 1.6em; border-radius: 16px; flex: none; }
+@media (max-width: 480px) {
+  .big-search .btn { display: none; }
+}
+
+/* ─── 4. Популярные: ровно одна строка из 4 карточек на компьютере ────────── */
+.popular-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 1100px) { .popular-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 599px) { .popular-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* ─── 5–6. Продолжить и прогресс ──────────────────────────────────────────── */
+.two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: stretch; }
+@media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+.two-col > .card { display: flex; flex-direction: column; gap: 14px; padding: clamp(18px, 2.6vw, 24px); }
+.two-col h2 { margin: 0; }
+
+.continue-card .cont-game {
+  display: flex; gap: 16px; align-items: center; text-decoration: none; color: inherit;
+  padding: 10px; margin: -10px; border-radius: 16px; transition: background 0.2s;
+}
+.continue-card .cont-game:hover { background: var(--surface-2); }
+.continue-card .cont-game:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.cont-art { width: 144px; flex: none; aspect-ratio: 16 / 10; border-radius: 14px; overflow: hidden; }
+.cont-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.cont-title { font-size: 1.125rem; line-height: 1.3; }
+.cont-body .gc-meta { margin-top: 2px; }
+.continue-card > .btn { align-self: flex-start; margin-top: auto; }
+.continue-card.is-empty { flex-direction: row; align-items: center; gap: 20px; }
+.continue-card.is-empty .cont-body { gap: 8px; }
+.continue-card.is-empty .cont-body p { margin: 0 0 6px; }
+.continue-card.is-empty .cont-body .btn { align-self: flex-start; }
+@media (max-width: 480px) {
+  .cont-art { width: 104px; }
+  .continue-card.is-empty { flex-direction: column; align-items: stretch; }
+  .continue-card.is-empty .cont-art { width: 100%; aspect-ratio: 16 / 7; }
+}
+
+.progress-card .prog-head { display: flex; align-items: center; gap: 14px; }
+.prog-head > div { display: flex; flex-direction: column; }
+.prog-level { font-size: 1.125rem; }
+.xp-line { display: flex; flex-direction: column; gap: 6px; }
+.prog-facts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 0.9375rem; }
+.prog-facts li { display: inline-flex; align-items: center; gap: 6px; }
+.progress-card > .btn { align-self: flex-start; margin-top: auto; }
+.ic-primary { color: var(--primary); }
+
+/* ─── 7. Учителям ─────────────────────────────────────────────────────────── */
+.teacher-card { display: grid; grid-template-columns: 220px 1fr; gap: 28px; align-items: center; padding: clamp(18px, 3vw, 28px); }
+.teacher-art { border-radius: 16px; overflow: hidden; aspect-ratio: 16 / 10; }
+.teacher-card h2 { margin: 0; }
+@media (max-width: 700px) {
+  .teacher-card { grid-template-columns: 1fr; gap: 16px; }
+  .teacher-art { max-width: 100%; aspect-ratio: 16 / 7; }
+}
+
+/* ─── 8. Подвал ───────────────────────────────────────────────────────────── */
+.footer { padding-top: 28px; padding-bottom: 8px; border-top: 1px solid var(--line); margin-top: 48px; display: flex; flex-direction: column; gap: 12px; }
+.footer-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; }
+.footer-brand { font-size: 1rem; }
+.footer-brand .logo { width: 28px; height: 28px; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.footer-links a { color: var(--text-secondary); text-decoration: none; font-weight: 500; font-size: 0.9375rem; min-height: 44px; display: inline-flex; align-items: center; }
+.footer-links a:hover { color: var(--primary-ink); }
+.footer p { margin: 0; }
+
+/* ─── Прогресс и профиль ──────────────────────────────────────────────────── */
+.section-title { margin: 0 0 12px; }
+.stat-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); }
+.stat-card { display: flex; align-items: center; gap: 12px; padding: 16px; flex-wrap: wrap; }
+.stat-icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; flex: none; background: var(--primary-soft); color: var(--primary); }
+.stat-card.teal .stat-icon { background: var(--secondary-soft); color: var(--secondary-ink); }
+.stat-card.amber .stat-icon { background: var(--reward-soft); color: var(--reward-ink); }
+.stat-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.stat-text b { font-size: 1.375rem; line-height: 1.2; }
+.stat-text span { font-size: 0.875rem; color: var(--text-secondary); }
+.stat-card .bar.mini { width: 100%; }
+.profile-edit-link { align-self: start; }
+.onboarding { display: grid; grid-template-columns: 220px 1fr; gap: 24px; align-items: center; padding: clamp(18px, 3vw, 28px); }
+.onboarding-art { border-radius: 16px; overflow: hidden; aspect-ratio: 16 / 10; }
+.onboarding h2 { margin: 0; }
+@media (max-width: 600px) {
+  .onboarding { grid-template-columns: 1fr; }
+  .onboarding-art { aspect-ratio: 16 / 7; }
+}
+.link-list { display: flex; flex-direction: column; }
+.link-row {
+  display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 8px 6px;
+  color: inherit; text-decoration: none; border-radius: 12px; border-bottom: 1px solid var(--line);
+  transition: background 0.2s;
+}
+.link-row:last-child { border-bottom: 0; }
+.link-row:hover { background: var(--surface-2); }
+.link-row:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.link-icon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex: none; background: var(--primary-soft); color: var(--primary); }
+.link-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.link-go { color: var(--text-secondary); }
+.history-ratio { color: var(--text-secondary); white-space: nowrap; }
 
 /* ─── Общие блоки других страниц ученика ──────────────────────────────────── */
 .entry-icon {
@@ -80,4 +152,4 @@
 .entry .entry-icon { margin: 0; width: 52px; height: 52px; border-radius: 14px; }
 .subject-card { display: flex; flex-direction: column; gap: 10px; text-align: left; font: inherit; color: inherit; cursor: pointer; }
 .set-card { display: flex; flex-direction: column; gap: 8px; text-align: left; font: inherit; color: inherit; cursor: pointer; }
-.chip.small { min-height: auto; padding: 0.2em 0.7em; font-size: 0.78rem; cursor: default; }
+.chip.small { min-height: auto; padding: 0.2em 0.7em; font-size: 0.875rem; cursor: default; }

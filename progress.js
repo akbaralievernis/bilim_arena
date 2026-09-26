@@ -1,16 +1,17 @@
 /**
- * Bilim Arena — профиль ученика.
+ * Bilim Arena — прогресс ученика.
  *
- * Компактно: кто я, уровень и XP, дневная цель, серия дней.
- * Ниже — только то, в чём уже есть данные: начатые предметы,
- * ошибки с объяснениями, достижения и последние игры.
- * Пустые и нулевые показатели отдельными блоками не выводятся.
+ * Сверху: иллюстрация, имя, уровень, XP и полоса уровня.
+ * Ниже — только то, в чём уже есть данные: статистика, достижения,
+ * история игр, начатые предметы и ошибки с объяснениями.
+ * Нулевые показатели не выводятся; новому ученику — одна карточка «Начни».
+ * Имя, иллюстрация и язык меняются на странице профиля (profile.html).
  */
 
-import { bootstrap, mountHeader, el, $, toast } from './core/ui.js';
+import { bootstrap, mountHeader, el, $ } from './core/ui.js';
 import { t, pick, getLang } from './core/i18n.js';
 import { icon } from './core/icons.js';
-import { avatar, AVATAR_VARIANTS, avatarVariant } from './core/art.js';
+import { avatar, cover } from './core/art.js';
 import { SUBJECTS, TOPICS, getTopic, skillTitle, findQuestion } from './core/curriculum.js';
 import { store, KEYS } from './core/store.js';
 import { loadCase, CASES } from './data/investigations/index.js';
@@ -18,7 +19,7 @@ import { findSpeakItem } from './data/speaking/index.js';
 import { findLabStep } from './data/labs/index.js';
 import { getGame } from './data/games.js';
 import { getProgress, knowledgeMap, weakSkills, reviewSuggestions, history, BADGES, migrateLegacy } from './core/progress.js';
-import { getProfile, saveProfile } from './core/profile.js';
+import { getProfile } from './core/profile.js';
 
 /** Иконки достижений — из общего набора, а не эмодзи */
 const BADGE_ICON = {
@@ -27,39 +28,45 @@ const BADGE_ICON = {
   'history-expert': 'map', 'logic-master': 'logic', 'english-starter': 'language'
 };
 
-let draftAvatar = null;
-
 // ─── Профиль и уровень ────────────────────────────────────────────────────────
 
-async function renderProfile(p, pr) {
+function renderProfile(p, pr) {
   const lang = getLang();
   $('#avatar').replaceChildren(avatar(p.avatar, { size: 104 }));
   $('#profileName').textContent = p.name || t('role_student');
   $('#levelLine').textContent = `${t('home_level', { n: pr.level })} · ${pick(pr.title, lang)} · ${pr.xp} XP`;
   $('#xpBar').style.width = `${pr.levelPct}%`;
+  $('#xpBarWrap').setAttribute('aria-valuenow', String(pr.levelPct));
+  $('#xpBarWrap').setAttribute('aria-label', t('home_level', { n: pr.level }));
   $('#xpNote').textContent = t('home_xp_next', { n: pr.levelNeed - pr.levelInto });
+  $('#settingsLink').replaceChildren(icon('settings', { size: 18 }), el('span', {}, t('profile_settings')));
+}
 
-  // Только реальные показатели: нули не показываем
+// ─── Статистика: только реальные ненулевые показатели ─────────────────────────
+
+function renderStats(pr) {
+  const plays = Object.values(pr.games || {}).reduce((n, g) => n + (g.plays || 0), 0);
+  const skills = Object.values(pr.skills || {});
+  const answered = skills.reduce((n, s) => n + (s.total || 0), 0);
+  const correct = skills.reduce((n, s) => n + (s.ok || 0), 0);
   const dayPct = Math.min(100, Math.round((pr.dayXP / pr.dailyGoal) * 100));
-  const facts = [
-    el('li', { class: 'fact goal' },
-      icon('target', { size: 20 }),
-      el('span', {}, el('b', {}, `${pr.dayXP}/${pr.dailyGoal} XP`), ' ', t('home_daily_goal').toLowerCase()),
-      el('span', { class: 'bar reward mini' }, el('i', { style: `width:${dayPct}%` }))),
-    pr.streak > 0 ? el('li', { class: 'fact' }, icon('flame', { size: 20, cls: 'ic-reward' }), el('span', {}, t('home_streak', { n: pr.streak }))) : null,
-    Object.keys(pr.topics).length ? el('li', { class: 'fact' }, icon('book', { size: 20 }), el('span', {}, t('profile_topics_n', { n: Object.keys(pr.topics).length }))) : null
-  ].filter(Boolean);
-  $('#facts').replaceChildren(...facts);
 
-  // Редактирование: имя и цвет иллюстрации
-  $('#nameInput').value = p.name || '';
-  draftAvatar = avatarVariant(p.avatar);
-  const drawPicker = () => $('#avatarPicker').replaceChildren(...AVATAR_VARIANTS.map((v) => el('button', {
-    class: 'avatar-option', type: 'button', 'aria-pressed': String(v === draftAvatar),
-    'aria-label': `${t('profile_avatar')} ${AVATAR_VARIANTS.indexOf(v) + 1}`,
-    onclick: () => { draftAvatar = v; drawPicker(); $('#avatar').replaceChildren(avatar(v, { size: 104 })); }
-  }, avatar(v, { size: 52, animated: false }))));
-  drawPicker();
+  const stat = (ic, value, label, extra = null, tone = '') => el('li', { class: `stat-card card ${tone}` },
+    el('span', { class: 'stat-icon' }, icon(ic, { size: 22 })),
+    el('span', { class: 'stat-text' }, el('b', {}, value), el('span', {}, label)),
+    extra);
+
+  const items = [
+    stat('star', `${pr.xp}`, t('profile_stat_xp'), null, 'violet'),
+    plays ? stat('games', `${plays}`, t('profile_stat_games'), null, 'teal') : null,
+    answered ? stat('check', `${Math.round((correct / answered) * 100)}%`, t('profile_stat_accuracy', { n: answered }), null, 'teal') : null,
+    pr.streak > 0 ? stat('flame', `${pr.streak}`, t('profile_stat_streak'), null, 'amber') : null,
+    stat('target', `${pr.dayXP}/${pr.dailyGoal}`, t('home_daily_goal'),
+      el('span', { class: 'bar reward mini', role: 'progressbar', 'aria-valuenow': String(dayPct), 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-label': t('home_daily_goal') },
+        el('i', { style: `width:${dayPct}%` })), 'amber'),
+    Object.keys(pr.topics).length ? stat('book', `${Object.keys(pr.topics).length}`, t('profile_stat_topics'), null, 'violet') : null
+  ].filter(Boolean);
+  $('#statGrid').replaceChildren(...items);
 }
 
 // ─── Карта знаний: только начатые предметы ────────────────────────────────────
@@ -156,6 +163,7 @@ async function recentMistakes(limit) {
 
 function renderBadges(pr) {
   const lang = getLang();
+  $('#badgeSection').classList.remove('hidden');
   const owned = BADGES.filter((b) => pr.badges.includes(b.id));
   const next = BADGES.filter((b) => !pr.badges.includes(b.id));
   $('#badgeCount').textContent = `${owned.length}/${BADGES.length}`;
@@ -179,9 +187,11 @@ async function renderHistory() {
     const topic = getTopic(h.topic);
     const game = getGame(h.gameId);
     const title = game ? pick(game.title, lang) : topic ? pick(topic.title, lang) : h.gameId;
+    const when = new Date(h.at).toLocaleDateString(lang === 'en' ? 'en-GB' : lang === 'ru' ? 'ru-RU' : 'ky-KG', { day: 'numeric', month: 'short' });
     return el('div', { class: 'history-row' },
-      el('div', {}, el('b', {}, title), topic && game ? el('div', { class: 'small muted' }, pick(topic.title, lang)) : null),
-      el('span', { class: 'muted small' }, `${h.correct}/${h.total}`),
+      el('div', {}, el('b', {}, title),
+        el('div', { class: 'small muted' }, [topic && game ? pick(topic.title, lang) : null, when].filter(Boolean).join(' · '))),
+      h.total ? el('span', { class: 'small history-ratio' }, t('profile_correct_of', { n: h.correct, total: h.total })) : el('span'),
       el('b', { class: 'history-score' }, `${h.score}`)
     );
   }));
@@ -195,25 +205,24 @@ async function renderHistory() {
   mountHeader($('#header'), { role: 'student', active: 'progress.html' });
   await migrateLegacy(); // XP старых языковых игр — в общий профиль
 
+  $('#emptyArt').replaceChildren(cover(icon('play', { size: 48 }), 'violet'));
+  $('#firstGameBtn').replaceChildren(icon('play', { size: 18 }), el('span', {}, t('profile_first_game')));
+
   const renderAll = async () => {
     const [p, pr] = await Promise.all([getProfile(), getProgress()]);
-    await renderProfile(p, pr);
-    const hasMap = await renderKnowledgeMap();
-    const hasReview = await renderReview();
-    renderBadges(pr);
-    const hasHistory = await renderHistory();
+    renderProfile(p, pr);
+    const played = Object.keys(pr.games || {}).length > 0 || (await history(1)).length > 0;
+    const fresh = !pr.xp && !played;
     // Совсем новый ученик — одна понятная карточка вместо пустых блоков
-    $('#emptyProfile').classList.toggle('hidden', !!(pr.xp || hasMap || hasReview || hasHistory));
+    $('#emptyProfile').classList.toggle('hidden', !fresh);
+    $('#statsSection').classList.toggle('hidden', fresh);
+    if (fresh) return;
+    renderStats(pr);
+    renderBadges(pr);
+    await renderHistory();
+    await renderKnowledgeMap();
+    await renderReview();
   };
   await renderAll();
   window.addEventListener('ba:synced', renderAll); // данные пришли из облака
-
-  $('#saveProfileBtn').addEventListener('click', async () => {
-    const name = $('#nameInput').value.trim();
-    if (!name) return toast(t('err_enter_name'), { icon: '⚠️' });
-    await saveProfile({ name, avatar: draftAvatar });
-    toast(t('save'), { icon: '✅' });
-    $('#editBox').open = false;
-    await renderAll();
-  });
 })();

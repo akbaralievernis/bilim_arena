@@ -465,8 +465,8 @@
   /* ---------- Init ---------- */
   function init() {
     State.db = loadDB();
-    const savedTheme = localStorage.getItem(LS_THEME) || "dark";
-    applyTheme(savedTheme === "dark");
+    // Платформа использует один светлый интерфейс
+    applyTheme(false);
     
     renderPills();
     resetMatch();

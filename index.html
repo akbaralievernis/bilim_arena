@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#F7F8FC" />
-  <meta name="description" content="Билим Арена — мектеп окуучулары үчүн билим берүүчү оюн платформасы: тил үйрөнүү, логика, командалык оюндар жана интерактивдүү доска." />
+  <meta name="description" content="Билим Арена — мектеп окуучулары үчүн билим берүүчү оюн платформасы: тил үйрөнүү, логика, командалык жана интерактивдүү оюндар." />
   <title>Билим Арена — ойноп үйрөн</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
   <link rel="manifest" href="./manifest.webmanifest" />
@@ -13,85 +13,90 @@
   <meta property="og:description" content="Мектеп окуучулары үчүн билим берүүчү оюн платформасы" />
   <meta property="og:image" content="./assets/suilom.webp" />
 
-  <link rel="stylesheet" href="./core/ui.css?v=12" />
-  <link rel="stylesheet" href="./home.css?v=12" />
+  <link rel="stylesheet" href="./core/ui.css?v=13" />
+  <link rel="stylesheet" href="./home.css?v=13" />
 </head>
 
 <body>
   <a class="skip-link" href="#main" data-i18n="skip_to_content">Мазмунга өтүү</a>
   <div id="header"></div>
 
-  <main id="main" class="page">
-    <!-- Приветствие и поиск -->
+  <main id="main" class="page home">
+    <!-- 1. Приветствие -->
     <section class="hero wrap" aria-labelledby="heroTitle">
       <div class="hero-card">
         <div class="hero-text">
           <p class="hero-kicker" id="heroKicker"></p>
-          <h1 id="heroTitle" data-i18n="home_title">Ойноп үйрөн — сабакта да, үйдө да</h1>
-          <p class="hero-sub" data-i18n="home_intro"></p>
-          <form class="search-box hero-search" id="heroSearch" role="search" action="./games.html">
-            <label class="sr-only" for="heroSearchInput" data-i18n="cat_search">Издөө</label>
-            <input class="input" id="heroSearchInput" name="q" type="search" autocomplete="off" />
-          </form>
+          <h1 id="heroTitle" data-i18n="home_title">Билимиңди оюн менен текшер</h1>
+          <p class="hero-sub" data-i18n="home_intro">Ойно, үйрөн жана өз прогрессиңди көр.</p>
           <div class="hero-actions">
-            <a class="btn primary" href="./play.html" id="joinBtn"></a>
-            <a class="btn soft" href="./games.html" id="allGamesBtn"></a>
+            <a class="btn primary big" href="./games.html" id="heroGames"></a>
+            <a class="btn big" href="./progress.html" id="heroProgress"></a>
           </div>
         </div>
         <div class="hero-art" id="heroArt" aria-hidden="true"></div>
       </div>
     </section>
 
-    <!-- Категории -->
+    <!-- 2. Поиск игры -->
+    <section class="wrap home-search" aria-labelledby="searchTitle">
+      <h2 id="searchTitle" class="sr-only" data-i18n="cat_search">Оюн издөө</h2>
+      <form class="search-box big-search" id="homeSearch" role="search" action="./games.html">
+        <label class="sr-only" for="homeSearchInput" data-i18n="cat_search">Оюн издөө</label>
+        <input class="input" id="homeSearchInput" name="q" type="search" autocomplete="off" enterkeyhint="search" />
+        <button class="btn primary" type="submit" id="homeSearchBtn"></button>
+      </form>
+    </section>
+
+    <!-- 3. Категории -->
     <section class="wrap section" aria-labelledby="catTitle">
       <div class="section-head">
-        <h2 id="catTitle" data-i18n="home_categories">Оюндардын түрлөрү</h2>
+        <h2 id="catTitle" data-i18n="home_categories">Оюнду танда</h2>
       </div>
       <div class="cat-grid" id="catGrid"></div>
     </section>
 
-    <!-- Популярные -->
+    <!-- 4. Популярные -->
     <section class="wrap section" aria-labelledby="popTitle">
       <div class="section-head">
-        <h2 id="popTitle" data-i18n="home_popular">Танымал оюндар</h2>
+        <h2 id="popTitle" data-i18n="home_popular">Популярдуу оюндар</h2>
         <a class="section-link" href="./games.html" id="popAll"></a>
       </div>
-      <div class="game-grid" id="popularGrid"></div>
+      <div class="game-grid popular-grid" id="popularGrid"></div>
     </section>
 
-    <!-- Прогресс и рекомендации -->
-    <section class="wrap section two-col">
-      <div class="progress-card card" id="progressCard" aria-labelledby="progTitle"></div>
-      <div class="stack" style="gap:12px">
-        <div class="section-head">
-          <h2 id="recTitle" data-i18n="home_recommended">Сага сунушталат</h2>
-        </div>
-        <div class="rec-list" id="recList"></div>
-      </div>
+    <!-- 5. Продолжить  ·  6. Прогресс -->
+    <section class="wrap section two-col" aria-label="">
+      <div class="card continue-card" id="continueCard" aria-labelledby="contTitle"></div>
+      <div class="card progress-card" id="progressCard" aria-labelledby="progTitle"></div>
     </section>
 
-    <!-- Учителям -->
+    <!-- 7. Учителям -->
     <section class="wrap section" aria-labelledby="teachTitle">
       <div class="teacher-card card">
         <div class="teacher-art" id="teacherArt" aria-hidden="true"></div>
         <div class="stack" style="gap:10px">
-          <h2 id="teachTitle" data-i18n="home_teacher_title">Мугалимдер үчүн</h2>
-          <p class="muted" style="margin:0" data-i18n="home_teacher_text"></p>
-          <ul class="teacher-points" id="teacherPoints"></ul>
-          <div class="row" style="gap:10px">
-            <a class="btn primary" href="./teacher.html" data-i18n="home_teacher_btn">Мугалимдин панели</a>
-            <a class="btn" href="./board.html" data-i18n="home_board_btn">Сабакты доскада баштоо</a>
-          </div>
+          <h2 id="teachTitle" data-i18n="home_teacher_title">Мугалимсизби?</h2>
+          <p class="muted" style="margin:0" data-i18n="home_teacher_text">Сабак үчүн оюндарды тандап, окуучулар менен ойно.</p>
+          <div><a class="btn primary" href="./teacher.html" id="teacherBtn"></a></div>
         </div>
       </div>
     </section>
 
+    <!-- 8. Подвал -->
     <footer class="wrap footer">
-      <span class="muted small" data-i18n="home_footer"></span>
+      <div class="footer-row">
+        <a class="brand footer-brand" href="./index.html">
+          <img class="logo" src="./assets/logo.svg" alt="" width="28" height="28" />
+          <span data-i18n="app_name">Билим Арена</span>
+        </a>
+        <nav class="footer-links" id="footerLinks" aria-label=""></nav>
+      </div>
+      <p class="muted small" data-i18n="home_footer"></p>
     </footer>
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./home.js?v=12"></script>
+  <script type="module" src="./home.js?v=13"></script>
 </body>
 </html>

@@ -44,7 +44,7 @@
     deck: [],
     current: null,
     highScores: [],
-    theme: 'midnight',
+    theme: 'auralight',
     difficulty: 'progressive',
     teamStatus: { a: false, b: false }
   };
@@ -343,7 +343,7 @@
   /* ---------- Events ---------- */
   function init() {
     loadHighScores();
-    setTheme('midnight');
+    setTheme('auralight'); // платформа использует один светлый интерфейс
 
     $("btnStartSingle").onclick = () => {
       State.mode = "single";

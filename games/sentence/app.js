@@ -110,8 +110,7 @@
   function getTheme() {
     const saved = localStorage.getItem("BA_PORTAL_THEME");
     if (saved) return saved;
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    return systemDark ? "dark" : "light";
+    return "light"; // платформа по умолчанию светлая
   }
   function setTheme(theme) {
     const t = (theme === "light") ? "light" : "dark";

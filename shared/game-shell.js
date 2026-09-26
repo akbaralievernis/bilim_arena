@@ -15,14 +15,32 @@
     if (b) b.hidden = true;
   }
 
+  // Иконки в стиле платформы (core/icons.js) — вместо эмодзи
+  const SVG = (d) => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+  const ICON_SOUND = SVG('<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>');
+  const ICON_MUTE = SVG('<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/>');
+  const ICON_BACK = SVG('<path d="M15 5l-7 7 7 7"/>');
+
   function soundLabel() {
     const b = document.getElementById('soundBtn');
-    if (b) b.textContent = localStorage.getItem('BA_SOUND') === 'off' ? '🔇' : '🔊';
+    if (!b) return;
+    const off = localStorage.getItem('BA_SOUND') === 'off';
+    b.innerHTML = off ? ICON_MUTE : ICON_SOUND;
+    b.setAttribute('aria-pressed', String(!off));
+  }
+
+  /** Кнопка «назад» ведёт в каталог игр: иконка вместо стрелки-символа */
+  function backButtons() {
+    document.querySelectorAll('a.iconBtn[href$="games.html"]').forEach((a) => {
+      a.innerHTML = ICON_BACK;
+      a.setAttribute('aria-label', 'Оюндар');
+    });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     applyTheme();
     soundLabel();
+    backButtons();
     const tb = document.getElementById('themeBtn');
     if (tb) tb.addEventListener('click', () => {
       const light = document.body.classList.contains('light');

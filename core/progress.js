@@ -93,7 +93,7 @@ export const BADGES = [
   { id: 'fractions-master', icon: '🧮', title: { ky: 'Бөлчөктөрдүн устасы', ru: 'Мастер дробей', en: 'Fractions master' }, test: (d) => topicMastery(d, 'math-6-fractions') >= 0.8 },
   { id: 'history-expert', icon: '🏔️', title: { ky: 'Тарыхты билгич', ru: 'Знаток истории', en: 'History expert' }, test: (d) => topicMastery(d, 'kg-history-8-independence') >= 0.8 },
   { id: 'logic-master', icon: '🧠', title: { ky: 'Логиканын устасы', ru: 'Logic Master', en: 'Logic Master' }, test: (d) => topicMastery(d, 'informatics-7-algorithms') >= 0.8 },
-  { id: 'english-starter', icon: '🇬🇧', title: { ky: 'English Starter', ru: 'English Starter', en: 'English Starter' }, test: (d) => topicMastery(d, 'english-5-basics') >= 0.6 }
+  { id: 'english-starter', icon: '🇬🇧', title: { ky: 'Англисче: баштоо', ru: 'Английский: старт', en: 'English Starter' }, test: (d) => topicMastery(d, 'english-5-basics') >= 0.6 }
 ];
 
 const totalCorrect = (d) => Object.values(d.topics).reduce((sum, t) => sum + (t.correct || 0), 0);
@@ -175,6 +175,7 @@ export async function recordGame({ gameId, topic, score, correct = 0, total = 0 
   touchDay(d);
   const g = d.games[gameId] || (d.games[gameId] = { plays: 0, best: 0, xp: 0 });
   g.plays += 1;
+  g.lastAt = Date.now(); // для блока «Продолжить» на главной
   const record = score > g.best;
   if (record) g.best = score;
 

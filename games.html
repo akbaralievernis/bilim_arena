@@ -8,29 +8,26 @@
   <title>Оюндар — Билим Арена</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
   <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="stylesheet" href="./core/ui.css?v=12" />
-  <link rel="stylesheet" href="./home.css?v=12" />
+  <link rel="stylesheet" href="./core/ui.css?v=13" />
+  <link rel="stylesheet" href="./home.css?v=13" />
 </head>
 
 <body>
   <a class="skip-link" href="#main" data-i18n="skip_to_content">Мазмунга өтүү</a>
   <div id="header"></div>
 
-  <main id="main" class="wrap page">
+  <main id="main" class="wrap page catalog-page">
     <header class="page-head">
       <h1 id="pageTitle" data-i18n="cat_all_games">Бардык оюндар</h1>
-      <p class="muted" id="pageDesc"></p>
+      <p class="muted" id="pageDesc" data-i18n="cat_all_desc">Өзүңө жаккан оюнду танда.</p>
     </header>
 
-    <!-- Разделы каталога -->
-    <nav class="cat-tabs" id="catTabs"></nav>
-
-    <!-- Поиск, сортировка, фильтры -->
+    <!-- Поиск, сортировка, кнопка фильтров -->
     <div class="toolbar">
-      <label class="search-box toolbar-search">
-        <span class="sr-only" data-i18n="cat_search">Издөө</span>
-        <input class="input" id="searchInput" type="search" autocomplete="off" />
-      </label>
+      <form class="search-box toolbar-search" id="searchForm" role="search">
+        <label class="sr-only" for="searchInput" data-i18n="cat_search">Оюн издөө</label>
+        <input class="input" id="searchInput" type="search" autocomplete="off" enterkeyhint="search" />
+      </form>
       <label class="toolbar-sort">
         <span class="sr-only" data-i18n="cat_sort">Иреттөө</span>
         <select class="input" id="sortSelect"></select>
@@ -38,13 +35,21 @@
       <button class="btn filter-toggle" id="filterToggle" type="button" aria-expanded="false" aria-controls="filterPanel"></button>
     </div>
 
+    <!-- Разделы каталога -->
+    <nav class="cat-tabs" id="catTabs"></nav>
+
     <div class="catalog">
-      <aside class="filter-panel card" id="filterPanel">
-        <div class="row between filter-head">
-          <b data-i18n="cat_filters">Чыпкалар</b>
+      <div class="drawer-overlay" id="drawerOverlay" hidden></div>
+      <aside class="filter-panel" id="filterPanel" aria-labelledby="filterTitle">
+        <div class="filter-head">
+          <h2 id="filterTitle" data-i18n="cat_filters">Чыпкалар</h2>
           <button class="btn ghost small-btn" id="resetBtn" type="button" data-i18n="cat_reset">Тазалоо</button>
+          <button class="icon-btn drawer-close" id="drawerClose" type="button"></button>
         </div>
-        <div id="filterGroups" class="stack"></div>
+        <div id="filterGroups" class="filter-groups"></div>
+        <div class="drawer-foot">
+          <button class="btn primary block" id="drawerApply" type="button"></button>
+        </div>
       </aside>
 
       <section class="catalog-results" aria-labelledby="resultCount">
@@ -52,15 +57,15 @@
         <div class="game-grid" id="gameGrid"></div>
         <div class="empty-state card hidden" id="emptyState">
           <div class="empty-art" aria-hidden="true"></div>
-          <h2 data-i18n="cat_empty_title">Эч нерсе табылган жок</h2>
-          <p class="muted" data-i18n="cat_empty_text">Чыпкаларды өзгөртүп же издөөнү тазалап көрүңүз</p>
-          <button class="btn primary" id="emptyResetBtn" type="button" data-i18n="cat_reset_all">Бардык чыпкаларды тазалоо</button>
+          <h2 data-i18n="cat_empty_title">Оюн табылган жок</h2>
+          <p class="muted" data-i18n="cat_empty_text">Башка фильтрлерди тандап көр.</p>
+          <button class="btn primary" id="emptyResetBtn" type="button" data-i18n="cat_reset_all">Фильтрлерди тазалоо</button>
         </div>
       </section>
     </div>
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./games.js?v=12"></script>
+  <script type="module" src="./games.js?v=13"></script>
 </body>
 </html>

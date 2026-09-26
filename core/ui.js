@@ -93,52 +93,44 @@ export const sfx = {
 
 // ─── Шапка страницы ───────────────────────────────────────────────────────────
 
-/** Навигация ученика: главная, игры, задания, профиль, раздел для учителей */
+/** Навигация ученика: четыре раздела и на компьютере, и на телефоне */
 const STUDENT_NAV = [
-  { href: 'index.html', key: 'nav_home', icon: 'home' },
+  { href: 'index.html', key: 'nav_home', tab: 'tab_home', icon: 'home' },
   { href: 'games.html', key: 'nav_games', icon: 'games' },
-  { href: 'tasks.html', key: 'nav_tasks', icon: 'tasks' },
-  { href: 'progress.html', key: 'nav_profile', icon: 'profile' },
-  { href: 'teacher.html', key: 'nav_for_teachers', icon: 'teacher' }
+  { href: 'progress.html', key: 'nav_progress', icon: 'progress' },
+  { href: 'profile.html', key: 'nav_profile', icon: 'profile' }
 ];
-/** На телефоне — вход на урок вместо раздела учителей */
-const STUDENT_TABS = [
-  { href: 'index.html', key: 'tab_home', icon: 'home' },
-  { href: 'games.html', key: 'nav_games', icon: 'games' },
-  { href: 'play.html', key: 'tab_join', icon: 'join' },
-  { href: 'tasks.html', key: 'tab_tasks', icon: 'tasks' },
-  { href: 'progress.html', key: 'nav_profile', icon: 'profile' }
-];
+/** Страницы, которые относятся к одному из разделов меню */
+const SECTION = {
+  'practice.html': 'games.html', 'speak.html': 'games.html',
+  'tasks.html': 'profile.html', 'account.html': 'profile.html'
+};
 
 const TEACHER_NAV = [
   { href: 'teacher.html', key: 'nav_dashboard', icon: 'teacher' },
-  { href: 'homework.html', key: 'nav_assignments', icon: 'tasks' },
-  { href: 'questions.html', key: 'nav_builder', icon: 'pen' },
-  { href: 'board.html', key: 'board_mode', icon: 'board' },
-  { href: 'index.html', key: 'nav_student_view', icon: 'home' }
+  { href: 'homework.html', key: 'nav_assignments', tab: 'tab_tasks', icon: 'tasks' },
+  { href: 'questions.html', key: 'nav_builder', tab: 'tab_questions', icon: 'pen' },
+  { href: 'board.html', key: 'board_mode', tab: 'tab_board', icon: 'board' },
+  { href: 'index.html', key: 'nav_student_view', tab: 'tab_student', icon: 'home' }
 ];
 
-/** Короткие подписи для нижней панели учителя */
-const TEACHER_TABS = [
-  { href: 'teacher.html', key: 'nav_dashboard', icon: 'teacher' },
-  { href: 'homework.html', key: 'tab_tasks', icon: 'tasks' },
-  { href: 'questions.html', key: 'tab_questions', icon: 'pen' },
-  { href: 'board.html', key: 'tab_board', icon: 'board' },
-  { href: 'index.html', key: 'tab_student', icon: 'home' }
-];
-
-const navLink = (it, active) => el('a', {
+/** Ссылка меню: текущая страница — aria-current, страница раздела — подсветка */
+const navLink = (it, active, { tab = false } = {}) => el('a', {
   href: it.href,
-  ...(active === it.href ? { 'aria-current': 'page' } : {})
-}, icon(it.icon, { size: 20 }), el('span', { class: 'nav-label' }, t(it.key)));
+  ...(tab ? {} : { title: t(it.key) }),
+  ...(active === it.href ? { 'aria-current': 'page' } : {}),
+  ...(SECTION[active] === it.href ? { class: 'active' } : {})
+}, icon(it.icon, { size: tab ? 24 : 20 }), el('span', { class: 'nav-label' }, t(tab ? it.tab || it.key : it.key)));
 
 /**
  * Рисует шапку с навигацией, выбором языка и профилем.
+ * Компьютер: логотип · Башкы бет / Оюндар / Прогресс / Профиль · язык, «Мугалим», профиль.
+ * Телефон: логотип слева, профиль справа, меню из четырёх пунктов внизу экрана.
  * @param {object} opts { role:'student'|'teacher', active:'index.html' }
  */
 export function mountHeader(target, { role = 'student', active = '' } = {}) {
-  const items = role === 'teacher' ? TEACHER_NAV : STUDENT_NAV;
-  const tabs = role === 'teacher' ? TEACHER_TABS : STUDENT_TABS;
+  const teacher = role === 'teacher';
+  const items = teacher ? TEACHER_NAV : STUDENT_NAV;
 
   const nav = el('nav', { class: 'nav', 'aria-label': t('nav_main') }, items.map((it) => navLink(it, active)));
 
@@ -157,20 +149,24 @@ export function mountHeader(target, { role = 'student', active = '' } = {}) {
     }, icon('cloud')) : null
   );
 
-  // Профиль ученика: иллюстрация и имя (подгружаются из профиля)
-  if (role !== 'teacher') {
+  if (!teacher) {
+    // Режим учителя — отдельной кнопкой, не среди разделов ученика
+    actions.append(el('a', { class: 'teacher-link', href: 'teacher.html', title: t('home_teacher_cta') }, icon('teacher', { size: 18 }), el('span', {}, t('nav_teacher'))));
+
+    // Профиль ученика: иллюстрация и имя (подгружаются из профиля)
     const link = el('a', {
-      class: 'profile-link', href: 'progress.html', 'aria-label': t('nav_profile'),
-      ...(active === 'progress.html' ? { 'aria-current': 'page' } : {})
+      class: 'profile-link', href: 'profile.html', 'aria-label': t('nav_profile'),
+      ...(active === 'profile.html' ? { 'aria-current': 'page' } : {})
     }, avatar(null, { size: 34, animated: false }), el('span', { class: 'profile-name' }, t('nav_profile')));
     actions.append(link);
     getProfile().then((p) => {
       link.replaceChildren(avatar(p.avatar, { size: 34, animated: false }), el('span', { class: 'profile-name' }, p.name || t('nav_profile')));
+      link.setAttribute('aria-label', `${t('nav_profile')}: ${p.name || t('role_student')}`);
     }).catch(() => {});
   }
 
   const header = el('header', { class: 'topbar' },
-    el('a', { class: 'brand', href: role === 'teacher' ? 'teacher.html' : 'index.html', 'aria-label': t('app_name') },
+    el('a', { class: 'brand', href: teacher ? 'teacher.html' : 'index.html', 'aria-label': t('app_name') },
       el('img', { class: 'logo', src: 'assets/logo.svg', alt: '', width: 36, height: 36 }),
       el('span', { class: 'brand-name' }, t('app_name'))
     ),
@@ -180,14 +176,11 @@ export function mountHeader(target, { role = 'student', active = '' } = {}) {
   target.replaceWith(header);
 
   // Нижняя панель для телефона
-  const tabbar = el('nav', { class: 'tabbar', 'aria-label': t('nav_main') },
-    tabs.slice(0, 5).map((it) => el('a', {
-      href: it.href,
-      ...(active === it.href ? { 'aria-current': 'page' } : {})
-    }, icon(it.icon, { size: 22 }), el('span', {}, t(it.key))))
-  );
+  const tabbar = el('nav', { class: `tabbar ${teacher ? 'tabbar-5' : ''}`, 'aria-label': t('nav_main') },
+    items.map((it) => navLink(it, active, { tab: true })));
   document.body.append(tabbar);
   document.body.classList.add('has-tabbar');
+  document.body.classList.toggle('teacher-mode', teacher);
   return header;
 }
 

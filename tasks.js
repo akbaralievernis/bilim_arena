@@ -13,6 +13,8 @@ import { getTopic, getSubject, getQuestions, skillTitle } from './core/curriculu
 import { BaseGame } from './core/engine.js';
 import { renderQuestion } from './core/quiz-ui.js';
 import { getProfile } from './core/profile.js';
+import { getProgress } from './core/progress.js';
+import { resultView } from './core/results.js';
 import { studentAssignments, saveSubmission, STATUS } from './core/assignments.js';
 
 /** Домашнее задание — одиночная игра, прогресс пишется в профиль ученика */
@@ -37,7 +39,6 @@ const state = { list: [], current: null, game: null, me: 'me', profile: null };
 const screens = ['listScreen', 'introScreen', 'playScreen', 'resultScreen'];
 const show = (id) => screens.forEach((s) => $('#' + s).classList.toggle('hidden', s !== id));
 
-const stat = (v, l) => el('div', { class: 'stat' }, el('b', {}, String(v)), el('span', {}, l));
 const fmtDate = (ts) => new Date(ts).toLocaleDateString();
 
 // ─── Список заданий ───────────────────────────────────────────────────────────
@@ -107,7 +108,7 @@ function openIntro(assignmentId) {
   const subject = getSubject(a.subject);
 
   $('#introTitle').textContent = a.title || pick(topic?.title, lang);
-  $('#introMeta').textContent = `${subject?.icon || ''} ${pick(subject?.title, lang)} · ${t('grade', { n: a.grade })} · ${pick(topic?.title, lang)}`;
+  $('#introMeta').textContent = `${pick(subject?.title, lang)} · ${t('grade', { n: a.grade })} · ${pick(topic?.title, lang)}`;
   $('#introHow').textContent = pick(HomeworkGame.meta.how, lang);
 
   $('#introDetails').replaceChildren(...[
@@ -145,6 +146,7 @@ async function startAssignment(onlyWrong = false) {
 
   if (!questions.length) return toast(t('empty_none'), { icon: '⚠️' });
 
+  state.xpBefore = (await getProgress()).xp;
   state.game?.destroy();
   state.game = new HomeworkGame({
     questions, topic: a.topic, lang, perQuestionSec: 45, solo: true,
@@ -199,52 +201,23 @@ function renderGame(game, kind) {
 async function showResults(game) {
   const r = game.results;
   if (!r) return;
-  show('resultScreen');
-
   const a = state.current.assignment;
   const lang = getLang();
-  const good = r.accuracy >= 70;
+  const xp = Math.max(0, (await getProgress()).xp - (state.xpBefore ?? 0));
+  // Попытка засчитывается ниже; «Кайра ойноо» — только если попытки ещё остаются
+  const left = (state.current.attemptsLeft ?? 0) - 1;
 
-  $('#resultIcon').replaceChildren(icon(good ? 'trophy' : 'target', { size: 36 }));
-  if (good) { sfx.win(); confetti(); }
-
-  // XP задания начисляется только при результате от 50%
-  const earned = r.accuracy >= 50 ? Math.round(a.xp * (r.accuracy / 100)) : 0;
-  $('#resultXP').textContent = `+${earned} XP`;
-
-  $('#resultStats').replaceChildren(
-    stat(r.correctAnswers, t('results_correct')),
-    stat(r.totalAnswers - r.correctAnswers, t('results_wrong')),
-    stat(`${r.accuracy}%`, t('accuracy')),
-    stat(earned, 'XP')
-  );
-
-  // Разбор по навыкам
-  const rows = Object.entries(r.bySkill).map(([skill, s]) => {
-    const pct = Math.round((s.ok / s.total) * 100);
-    const weak = pct < 70;
-    return el('div', { style: 'margin-bottom:12px' },
-      el('div', { class: 'row between' },
-        el('b', {}, skillTitle(a.topic, skill, lang)),
-        el('span', { class: `state ${weak ? 'review' : 'learned'}` }, icon(weak ? 'warn' : 'check', { size: 16 }), `${s.ok}/${s.total}`)
-      ),
-      el('div', { class: `bar ${weak ? '' : 'ok'}`, style: 'margin-top:6px' }, el('i', { style: `width:${pct}%` }))
-    );
-  });
-  $('#skillBreakdown').replaceChildren(...(rows.length ? rows : [el('p', { class: 'muted' }, t('results_nothing_wrong'))]));
-
-  // Разбор ошибок: обязательно с объяснением, а не просто «неверно»
-  $('#mistakeList').replaceChildren(...(r.mistakes.length
-    ? [
-      el('div', { class: 'label', style: 'margin-top:10px' }, t('results_review')),
-      ...r.mistakes.map((m) => el('div', { class: 'card plain', style: 'margin-bottom:8px' },
-        el('b', {}, m.prompt),
-        el('p', { class: 'small muted', style: 'margin:4px 0 0' }, `${m.explain || ''}`)
-      ))
-    ]
-    : []));
-
-  $('#repeatBtn').disabled = r.mistakes.length === 0;
+  $('#resultScreen').replaceChildren(resultView({
+    accuracy: r.accuracy, xp, correct: r.correctAnswers, total: r.totalAnswers, timeSec: r.durationSec,
+    skills: Object.entries(r.bySkill).map(([skill, s]) => ({ title: skillTitle(a.topic, skill, lang), ...s })),
+    mistakes: r.mistakes,
+    onRepeatMistakes: () => startAssignment(true),
+    onAgain: left > 0 ? () => startAssignment(false) : null,
+    other: { label: t('res_other_task'), onClick: renderList }
+  }));
+  show('resultScreen');
+  $('#resultScreen h1').focus();
+  if (r.accuracy >= 70) { sfx.win(); confetti(); }
 
   // Сохраняем попытку для учителя (ошибки по навыкам уже в аналитике)
   await saveSubmission({
@@ -273,9 +246,7 @@ async function showResults(game) {
   if (params.get('id')) openIntro(params.get('id'));
 
   $('#startBtn').addEventListener('click', () => startAssignment(false));
-  $('#repeatBtn').addEventListener('click', () => startAssignment(true));
   $('#backBtn').addEventListener('click', renderList);
-  $('#toListBtn').addEventListener('click', renderList);
 
   document.addEventListener('keydown', (e) => {
     if ($('#playScreen').classList.contains('hidden')) return;

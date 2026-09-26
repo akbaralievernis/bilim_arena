@@ -502,3 +502,6 @@ body.teacher-on .teacherOnly { display: block; }
   .grid2 { grid-template-columns: 1fr; }
   .drawer { width: 100%; }
 }
+
+/* Платформа: скрытые элементы (например, переключатель темы) */
+[hidden] { display: none !important; }
