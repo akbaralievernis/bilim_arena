@@ -12,6 +12,6 @@
  * он обходит все правила.
  */
 export const SUPABASE = {
-  url: 'https://jednsvhglrbxvvtlwsyp.supabase.co',
-  anonKey: 'sb_publishable_QUB8TZWyDmTTEi0lfQTryg_MhxQF73w'
+  url: 'https://udkxmgflbxetfzziftla.supabase.co',
+  anonKey: 'sb_publishable_0CFwdxcFafATApELLa7DhA_OGYRjgGG'
 };
