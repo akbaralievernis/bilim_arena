@@ -87,9 +87,13 @@
     return value[lang] ?? value.ky ?? '';
   }
 
+  // Как в HTML: решает ближайший предок с атрибутом translate
   const skipped = (el) => {
     for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
-      if (SKIP.has(n.tagName) || n.getAttribute('translate') === 'no' || n.isContentEditable) return true;
+      if (SKIP.has(n.tagName) || n.isContentEditable) return true;
+      const attr = n.getAttribute('translate');
+      if (attr === 'no') return true;
+      if (attr === 'yes') return false;
     }
     return false;
   };

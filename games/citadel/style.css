@@ -2,6 +2,8 @@
  * Modern Glassmorphism & Light/Dark Theme Sync
  */
 
+.teamSwatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 4px; }
+
 :root {
   /* Dark Mode Default Variables */
   --bg: #0b1020;

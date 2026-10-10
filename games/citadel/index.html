@@ -9,12 +9,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=14" />
-  <script src="../../shared/sw-register.js?v=14"></script>
+  <link rel="stylesheet" href="./style.css?v=15" />
+  <script src="../../shared/lang.js?v=15"></script>
+  <script src="./i18n.js?v=15"></script>
+  <script src="../../shared/sw-register.js?v=15"></script>
 </head>
 
 <body class="light"> <div class="global-nav">
     <a href="../../games.html" class="nav-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><path d="M15 5l-7 7 7 7"/></svg> Оюндар</a>
+    <span data-ba-lang></span>
     <button id="themeBtn" class="nav-btn theme-toggle" type="button" aria-label="Тема" hidden></button>
   </div>
 
@@ -37,11 +40,11 @@
           </div>
           <div class="grid2">
             <label class="kidLabel">
-              <span style="color: var(--accent-a)">🟥</span> А Командасы (сол жакта)
+              <span class="teamSwatch" style="background: var(--accent-a)" aria-hidden="true"></span> А командасы (сол жакта)
               <input id="teamAName" type="text" placeholder="Мисалы: Арстандар" maxlength="18" />
             </label>
             <label class="kidLabel">
-              <span style="color: var(--accent-b)">🟦</span> Б Командасы (оң жакта)
+              <span class="teamSwatch" style="background: var(--accent-b)" aria-hidden="true"></span> Б командасы (оң жакта)
               <input id="teamBName" type="text" placeholder="Мисалы: Бүркүттөр" maxlength="18" />
             </label>
           </div>
@@ -54,10 +57,10 @@
           </div>
           <div class="grid2">
             <label class="kidLabel">
-              Кыйынчылык деңгээли
+              Суроолордун темасы
               <select id="diffSelect" class="styled-select">
-                <option value="kyrgyz_lang_lit">Кыргыз тили жана адабияты</option>
                 <option value="kyrgyz_history_geo">Кыргызстан тарыхы жана географиясы</option>
+                <option value="kyrgyz_lang_lit">Кыргыз тили жана адабияты (кыргызча)</option>
               </select>
             </label>
             <div class="diff-desc" id="diffDesc">
@@ -109,8 +112,8 @@
             <span class="sideTimer" id="timerA">15 сек</span>
           </div>
           <div class="qPanel">
-            <div class="qTextSmall" id="qTextA">Өзүңүздүн тараптан плитканы басыңыз</div>
-            <div class="answersSmall" id="answersA"></div>
+            <div class="qTextSmall" id="qTextA" translate="no"><span translate="yes">Өзүңүздүн тараптан плитканы басыңыз</span></div>
+            <div class="answersSmall" id="answersA" translate="no"></div>
           </div>
         </aside>
 
@@ -130,8 +133,8 @@
             <span class="sideTimer" id="timerB">15 сек</span>
           </div>
           <div class="qPanel">
-            <div class="qTextSmall" id="qTextB">Өзүңүздүн тараптан плитканы басыңыз</div>
-            <div class="answersSmall" id="answersB"></div>
+            <div class="qTextSmall" id="qTextB" translate="no"><span translate="yes">Өзүңүздүн тараптан плитканы басыңыз</span></div>
+            <div class="answersSmall" id="answersB" translate="no"></div>
           </div>
         </aside>
       </div>
@@ -140,7 +143,7 @@
 
   <div id="winBackdrop" class="winBackdrop hidden">
     <div class="winCard">
-      <div class="winTitle" id="winTitle">🏆 Жеңиш!</div>
+      <div class="winTitle"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-6px;margin-right:8px;color:#E0A100"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4"/><path d="M12 13v4M8.5 20h7"/></svg><span id="winTitle">Жеңиш!</span></div>
       <div class="winSub" id="winSub">—</div>
       <div class="row center">
         <button id="btnPlayAgain" class="btn primary" type="button">Башкы меню</button>
@@ -151,7 +154,8 @@
   <canvas id="confetti-canvas"></canvas>
   <div id="toast" class="toast hidden"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <script src="app.js?v=14"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" integrity="sha384-HAH79XdRvHr6axVGh4xQWVCp14kcd32bNk4Xu0sHDHtFQ42n6BAM8ykvB47dGz6D" crossorigin="anonymous"></script>
+  <script src="./data.js?v=15"></script>
+  <script src="app.js?v=15"></script>
 </body>
 </html>
