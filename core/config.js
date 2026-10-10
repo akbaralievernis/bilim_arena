@@ -22,3 +22,23 @@ export const SUPABASE = {
  * каталоге, вход по 6-значному коду на play.html.
  */
 export const RACE_URL = 'https://bilimarenarace.vercel.app';
+
+/**
+ * TURN — запасной ретранслятор для связи доски и телефонов (WebRTC).
+ *
+ * Обычно телефоны соединяются с доской напрямую. В строгих школьных сетях
+ * (изоляция клиентов Wi-Fi, корпоративный файрвол) прямое соединение
+ * невозможно — тогда трафик идёт через TURN-сервер. Пусто — работает как
+ * раньше (только STUN), просто часть телефонов в таких сетях не подключится.
+ *
+ * Вариант 1 (рекомендуется) — Metered.ca, бесплатный тариф:
+ *   Dashboard → TURN Server → скопировать «Fetch Credentials» URL вида
+ *   https://<имя>.metered.live/api/v1/turn/credentials?apiKey=<ключ>
+ *   и вставить в credentialsUrl. Ключ виден в браузере — так задумано: по
+ *   нему выдаются только временные пароли TURN, а не доступ к аккаунту.
+ * Вариант 2 — готовый список серверов: servers: [{ urls, username, credential }].
+ */
+export const TURN = {
+  credentialsUrl: '',
+  servers: []
+};

@@ -6,7 +6,7 @@
  * Прогресс, XP и данные Supabase хранятся в localStorage/облаке — кэш их не трогает.
  */
 const PREFIX = 'ba-';
-const VERSION = 'ba-v19';
+const VERSION = 'ba-v20';
 const CORE = [
   './', './index.html', './home.css', './home.js',
   './board.html', './board.js', './play.html', './play.js',
@@ -19,7 +19,7 @@ const CORE = [
   './core/ui.css', './core/board.css', './core/ui.js', './core/i18n.js',
   './core/store.js', './core/profile.js', './core/curriculum.js',
   './core/progress.js', './core/engine.js', './core/realtime.js',
-  './core/questions.js', './core/assignments.js', './core/quiz-ui.js', './core/sync.js', './core/speech.js', './core/config.js', './core/cloud.js', './core/icons.js', './core/art.js', './core/catalog.js', './core/results.js', './core/race.js',
+  './core/questions.js', './core/assignments.js', './core/quiz-ui.js', './core/sync.js', './core/speech.js', './core/config.js', './core/cloud.js', './core/icons.js', './core/art.js', './core/catalog.js', './core/results.js', './core/race.js', './core/turn.js',
   './locales/ky.js', './locales/ru.js', './locales/en.js',
   './games/quickvote/game.js', './games/territory/game.js',
   './games/investigation/game.js', './games/errorhunt/game.js', './games/timeline/game.js', './games/codelock/game.js', './games/formula/game.js', './games/city/game.js', './games/lab/game.js',

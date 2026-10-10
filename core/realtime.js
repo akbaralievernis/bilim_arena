@@ -11,19 +11,16 @@
  * чтобы не тормозить обычные страницы сайта.
  */
 
+import { iceServers } from './turn.js';
+
 const PEER_CDN = 'https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js';
 const ROOM_PREFIX = 'bilimarena-room-';
 const CODE_CHARS = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'; // без похожих 0/O, 1/I
 
-const PEER_OPTIONS = {
-  debug: 0,
-  config: {
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:global.stun.twilio.com:3478' }
-    ]
-  }
-};
+/** Настройки PeerJS: STUN всегда, TURN — если задан в core/config.js (core/turn.js). */
+async function peerOptions() {
+  return { debug: 0, config: { iceServers: await iceServers() } };
+}
 
 let peerLib = null;
 
@@ -64,7 +61,7 @@ export function joinUrl(code) {
  * @param {(playerId:string, msg:object)=>void} handlers.onMessage
  */
 export async function createRoom({ onJoin, onLeave, onMessage } = {}) {
-  const Peer = await loadPeer();
+  const [Peer, options] = await Promise.all([loadPeer(), peerOptions()]);
   const conns = new Map();   // playerId -> connection
   const players = new Map(); // playerId -> { id, name }
 
@@ -76,7 +73,7 @@ export async function createRoom({ onJoin, onLeave, onMessage } = {}) {
     code = roomCode();
     try {
       peer = await new Promise((resolve, reject) => {
-        const p = new Peer(peerIdFor(code), PEER_OPTIONS);
+        const p = new Peer(peerIdFor(code), options);
         const timer = setTimeout(() => reject(new Error('timeout')), 15000);
         p.on('open', () => { clearTimeout(timer); resolve(p); });
         p.on('error', (err) => {
@@ -165,7 +162,7 @@ export async function createRoom({ onJoin, onLeave, onMessage } = {}) {
  * (телефон заблокировался, Wi-Fi моргнул).
  */
 export async function joinRoom({ code, name, playerId, onMessage, onStatus } = {}) {
-  const Peer = await loadPeer();
+  const [Peer, options] = await Promise.all([loadPeer(), peerOptions()]);
   const id = playerId || `s_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
   const target = peerIdFor(code);
 
@@ -176,7 +173,7 @@ export async function joinRoom({ code, name, playerId, onMessage, onStatus } = {
   const live = () => (conn?.open ? conn : lastOpen?.open ? lastOpen : null);
 
   const peer = await new Promise((resolve, reject) => {
-    const p = new Peer(undefined, PEER_OPTIONS);
+    const p = new Peer(undefined, options);
     const timer = setTimeout(() => reject(new Error('timeout')), 20000);
     p.on('open', () => { clearTimeout(timer); resolve(p); });
     p.on('error', (err) => {
