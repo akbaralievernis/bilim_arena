@@ -98,7 +98,32 @@ export async function createRoom({ onJoin, onLeave, onMessage } = {}) {
   }
   if (!peer) throw new Error('room-create-failed');
 
-  peer.on('error', (err) => console.warn('[room]', err?.type || err));
+  // Сервер знакомства (PeerJS) нужен только НОВЫМ телефонам: по нему они находят
+  // доску. Если доска потеряла с ним связь (вкладка ушла в фон, моргнул Wi-Fi),
+  // уже подключённые играют дальше, а новые получают «комната не найдена».
+  // Поэтому доска сама переподключается — с тем же кодом комнаты.
+  let closed = false;
+  let rejoin = null;
+  const reconnect = () => {
+    if (closed || peer.destroyed || !peer.disconnected) return;
+    try { peer.reconnect(); } catch (e) { console.warn('[room reconnect]', e); }
+  };
+  const keepRegistered = () => {
+    if (rejoin || closed) return;
+    reconnect();
+    rejoin = setInterval(() => {
+      if (closed || !peer.disconnected) { clearInterval(rejoin); rejoin = null; return; }
+      reconnect();
+    }, 3000);
+  };
+  peer.on('disconnected', keepRegistered);
+  peer.on('error', (err) => {
+    console.warn('[room]', err?.type || err);
+    if (['network', 'server-error', 'socket-error', 'socket-closed'].includes(err?.type)) keepRegistered();
+  });
+  const onVisible = () => { if (document.visibilityState === 'visible') keepRegistered(); };
+  document.addEventListener('visibilitychange', onVisible);
+  window.addEventListener('online', keepRegistered);
 
   peer.on('connection', (conn) => {
     conn.on('data', (msg) => {
@@ -154,7 +179,14 @@ export async function createRoom({ onJoin, onLeave, onMessage } = {}) {
       });
     },
 
+    /** true, пока новые телефоны могут найти доску */
+    get reachable() { return !peer.disconnected && !peer.destroyed; },
+
     close() {
+      closed = true;
+      if (rejoin) clearInterval(rejoin);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('online', keepRegistered);
       conns.forEach((c) => { try { c.close(); } catch { /* закрыт */ } });
       conns.clear();
       players.clear();
@@ -190,9 +222,14 @@ export async function joinRoom({ code, name, playerId, onMessage, onStatus } = {
     });
   });
 
+  // «Комнаты нет» — только если сервер знакомства ни разу не нашёл доску.
+  // Если доска нашлась, но канал не успел открыться — это плохая связь.
+  let boardFound = false;
+  let unavailable = 0;
+
   peer.on('disconnected', () => { if (!destroyed) { try { peer.reconnect(); } catch { /* закрыт */ } } });
   peer.on('error', (err) => {
-    if (err?.type === 'peer-unavailable') scheduleRetry();
+    if (err?.type === 'peer-unavailable') { unavailable += 1; scheduleRetry(); }
     else console.warn('[join]', err?.type || err);
   });
 
@@ -202,6 +239,8 @@ export async function joinRoom({ code, name, playerId, onMessage, onStatus } = {
 
   function bind(c, onOpen) {
     conn = c;
+    // Сервер передал предложение доске — значит, комната существует
+    c.on('iceStateChanged', () => { boardFound = true; });
     c.on('open', () => {
       lastOpen = c;
       onStatus?.('online');
@@ -223,10 +262,21 @@ export async function joinRoom({ code, name, playerId, onMessage, onStatus } = {
     }, 4000);
   }
 
-  await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('room-not-found')), 15000);
-    bind(peer.connect(target, { reliable: true }), () => { clearTimeout(timer); resolve(); });
-  });
+  try {
+    await new Promise((resolve, reject) => {
+      // 25 с: через TURN в строгой сети соединение открывается дольше
+      const timer = setTimeout(
+        () => reject(new Error(boardFound || unavailable === 0 ? 'connect-timeout' : 'room-not-found')),
+        25000
+      );
+      bind(peer.connect(target, { reliable: true }), () => { clearTimeout(timer); resolve(); });
+    });
+  } catch (err) {
+    destroyed = true;
+    if (retry) clearInterval(retry);
+    try { peer.destroy(); } catch { /* закрыт */ }
+    throw err;
+  }
 
   return {
     playerId: id,

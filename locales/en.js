@@ -197,6 +197,7 @@ export default {
   join_look_at_board: 'Look at the board',
   join_answer_sent: 'Answer sent',
   join_lost: 'Connection lost — reconnecting...',
+  err_connect_slow: 'The board was found, but the connection does not open. Try again; if it fails, switch to mobile data.',
   err_room_not_found: 'Room not found. Check the code.',
   err_no_connection: 'No connection. Check your internet.',
   err_enter_name: 'Enter your name',

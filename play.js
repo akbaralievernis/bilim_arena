@@ -240,7 +240,8 @@ async function connect(code, name) {
     render({ screen: 'wait' });
     toast(t('join_connected'), { icon: '✅' });
   } catch (e) {
-    const key = e?.message === 'room-not-found' ? 'err_room_not_found' : 'err_no_connection';
+    const key = e?.message === 'room-not-found' ? 'err_room_not_found'
+      : e?.message === 'connect-timeout' ? 'err_connect_slow' : 'err_no_connection';
     $('#joinError').textContent = t(key);
   } finally {
     conn.joining = false;
