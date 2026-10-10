@@ -1,7 +1,8 @@
 class AIBot {
   static generateBots(currentCount, minRequired = 4) {
     // Имена не повторяются: иначе двух «Алекс (Бот)» невозможно различить
-    const names = ['Айбек 🤖', 'Айпери 🤖', 'Бекзат 🤖', 'Нурай 🤖', 'Эрлан 🤖', 'Жамиля 🤖', 'Т-800', 'HAL 9000'];
+    // Что это бот, видно по значку рядом с именем (player.isBot)
+    const names = ['Айбек', 'Айпери', 'Бекзат', 'Нурай', 'Эрлан', 'Жамиля', 'Т-800', 'HAL 9000'];
     const pool = names.slice();
     for (let i = pool.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -13,7 +14,7 @@ class AIBot {
     for (let i = 0; i < needed; i++) {
       bots.push({
         id: `bot_${Date.now()}_${i}`,
-        name: pool[i] || `Бот ${i + 1}`,
+        name: pool[i] || `Bot ${i + 1}`,
         isBot: true,
         avatar: null
       });

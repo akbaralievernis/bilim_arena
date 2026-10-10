@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Check } from 'lucide-react';
+import { Check, User, Skull, Bot } from 'lucide-react';
 
 const getRoleColor = (role) => {
   switch (role) {
@@ -63,7 +63,7 @@ const PlayerCard = ({
         {player.avatar ? (
           <img src={player.avatar} alt={player.name} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isDead ? 0.2 : 1 }} />
         ) : (
-          <span style={{ fontSize: isHostView ? '1rem' : '1.5rem', opacity: 0.5 }}>👤</span>
+          <User size={isHostView ? 16 : 22} style={{ opacity: 0.5 }} aria-hidden="true" />
         )}
       </div>
       
@@ -75,7 +75,7 @@ const PlayerCard = ({
         whiteSpace: 'nowrap',
         marginBottom: '2px'
       }}>
-        {player.name}
+        {player.name}{player.isBot && <Bot size={12} style={{ marginLeft: 4, verticalAlign: '-1px', opacity: 0.7 }} aria-label="bot" />}
       </h4>
       
       {roleName && (
@@ -92,7 +92,7 @@ const PlayerCard = ({
       )}
 
       {isDead && !roleName && (
-         <p style={{ fontSize: '0.65rem', color: 'var(--accent-red)', marginTop: '0.2rem' }}>💀</p>
+         <Skull size={14} color="var(--accent-red)" style={{ marginTop: '0.2rem' }} aria-hidden="true" />
       )}
 
       {isVoting && votes > 0 && (

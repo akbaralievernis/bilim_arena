@@ -5,7 +5,7 @@ class RoleDistributor {
     const activePlayers = validPlayers.filter(p => !p.isHost);
     
     const count = activePlayers.length;
-    if (count < 4) throw new Error("Недостаточно игроков для старта игры (минимум 4 помимо создателя)");
+    if (count < 4) throw new Error("not_enough_players");
 
     const rolesArray = [];
     let mafiaCount = 1;

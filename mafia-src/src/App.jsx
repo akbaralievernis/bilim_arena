@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { SocketProvider, useSocket } from './context/SocketContext';
 import { useTranslation } from './utils/i18n';
+import { TriangleAlert, Plug, Sun, Moon } from 'lucide-react';
 import Home from './components/Home';
 import Lobby from './components/Lobby';
 import Game from './components/Game';
@@ -17,10 +18,10 @@ const StatusLayer = () => {
   return (
     <>
       {text && (
-        <div className="toast-error" role="alert">⚠️ {text}</div>
+        <div className="toast-error" role="alert" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><TriangleAlert size={18} aria-hidden="true" /> {text}</div>
       )}
       {!isHostPlayer && roomData && connection === 'offline' && (
-        <div className="conn-banner" role="status">🔌 {t('conn_offline')}</div>
+        <div className="conn-banner" role="status" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}><Plug size={16} aria-hidden="true" /> {t('conn_offline')}</div>
       )}
     </>
   );
@@ -59,6 +60,7 @@ const RoomRouter = () => {
 };
 
 const ThemeToggle = () => {
+  const { t } = useTranslation();
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('mafia_theme');
     if (saved) return saved === 'dark';
@@ -76,10 +78,10 @@ const ThemeToggle = () => {
     <button
       className="theme-toggle"
       onClick={() => setIsDark((v) => !v)}
-      title="Тема"
-      aria-label="Тема"
+      title={t('theme')}
+      aria-label={t('theme')}
     >
-      {isDark ? '☀️' : '🌙'}
+      {isDark ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
     </button>
   );
 };

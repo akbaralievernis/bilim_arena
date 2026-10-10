@@ -13,8 +13,8 @@ class GameState {
   }
 
   addPlayer(player) {
-    if (this.phase !== "lobby") throw new Error("Нельзя присоединиться: игра уже началась");
-    if (this.players.find(p => p.id === player.id)) throw new Error("Игрок уже в комнате");
+    if (this.phase !== "lobby") throw new Error("game_started");
+    if (this.players.find(p => p.id === player.id)) throw new Error("name_taken");
     this.players.push(player);
     if (!player.isHost) this.alivePlayers.push(player.id);
   }

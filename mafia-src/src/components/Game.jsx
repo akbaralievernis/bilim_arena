@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Moon, Sun, ShieldAlert } from 'lucide-react';
+import { Moon, Sun, ShieldAlert, Skull, Trophy, Check, Send, Ban, Search, Crown } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import { useTranslation, roleName as tRole } from '../utils/i18n';
 import PhaseTimer from './PhaseTimer';
 import PlayerCard from './PlayerCard';
+import RoleIcon from './RoleIcon';
 
-const ROLE_EMOJI = {
-  don: '🕴️', mafia: '🔪', doctor: '💊', detective: '🔍',
-  maniac: '🩸', putana: '💫', bodyguard: '🛡️', citizen: '🏠', spectator: '👁️'
-};
+const iconRow = { display: 'inline-flex', alignItems: 'center', gap: '0.4rem' };
 
 const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
   const { t } = useTranslation();
@@ -74,7 +72,7 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
       setCurrentVotes({});
       setHasActed(false);
       setSelectedId(null);
-      addEvent(`🔁 ${t('revote')}`);
+      addEvent(t('revote'));
     };
     const onDay = (data) => {
       const killed = data?.multipleKills?.length ? data.multipleKills : (data?.killedPlayerId ? [data.killedPlayerId] : []);
@@ -161,7 +159,7 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
         <motion.div initial={{ scale: 0, rotateY: 180 }} animate={{ scale: 1, rotateY: 0 }} transition={{ duration: 0.8, type: 'spring' }}>
           <div className="role-card">
             <h1 style={{ color: 'var(--accent-purple)', fontSize: '1.6rem', marginBottom: '1rem' }}>{t('your_role')}</h1>
-            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>{ROLE_EMOJI[myRole] || '🏠'}</div>
+            <div style={{ marginBottom: '1rem', color: 'var(--accent-purple)', display: 'flex', justifyContent: 'center' }}><RoleIcon role={myRole} size={64} /></div>
             <h2 style={{ fontSize: '1.8rem', textTransform: 'uppercase' }}>{tRole(myRole)}</h2>
             <p style={{ fontSize: '0.8rem', opacity: 0.75, marginTop: '1rem', lineHeight: 1.4 }}>
               {t(`desc_${myRole}`)}
@@ -173,7 +171,7 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
           className="btn-primary" style={{ marginTop: '1.5rem' }}
           onClick={() => setShowRoleReveal(false)}
         >
-          ✅ OK
+          <span style={iconRow}><Check size={18} aria-hidden="true" /> OK</span>
         </motion.button>
       </div>
     );
@@ -205,8 +203,8 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
           className="glass-panel end-card"
           style={{ border: `1px solid ${themeColor}`, boxShadow: `0 0 40px ${themeColor}33` }}
         >
-          <div style={{ fontSize: '3.5rem', marginBottom: '0.5rem' }}>
-            {isMafiaWin ? '💀' : isManiacWin ? '🔪' : '🏆'}
+          <div style={{ marginBottom: '0.5rem', color: themeColor, display: 'flex', justifyContent: 'center' }}>
+            {isMafiaWin ? <Skull size={56} aria-hidden="true" /> : isManiacWin ? <RoleIcon role="maniac" size={56} /> : <Trophy size={56} aria-hidden="true" />}
           </div>
 
           <h1 style={{ fontSize: 'clamp(1.6rem, 6vw, 2.4rem)', fontWeight: 900, color: themeColor, textShadow: `0 0 20px ${themeColor}` }}>
@@ -261,7 +259,7 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
         <div style={{ textAlign: 'right' }}>
           <p className="text-secondary" style={{ fontSize: '0.7rem', textTransform: 'uppercase' }}>{t('your_role')}</p>
           <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--accent-purple)' }}>
-            {ROLE_EMOJI[myRole]} {tRole(myRole)}
+            <span style={iconRow}><RoleIcon role={myRole} size={16} /> {tRole(myRole)}</span>
           </h3>
           {!amIAlive && <span style={{ fontSize: '0.7rem', color: 'var(--accent-red)' }}>{t('dead')}</span>}
         </div>
@@ -269,7 +267,7 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
 
       <div className="role-hint">{t(`desc_${myRole}`)}</div>
 
-      {!amIAlive && <div className="role-hint" style={{ borderColor: 'var(--accent-red)' }}>💀 {t('you_are_dead')}</div>}
+      {!amIAlive && <div className="role-hint" style={{ borderColor: 'var(--accent-red)', ...iconRow }}><Skull size={16} aria-hidden="true" /> {t('you_are_dead')}</div>}
 
       {events.length > 0 && (
         <div className="events-box">
@@ -284,11 +282,13 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
             initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
             className="private-msg"
           >
-            {privateMsg.type === 'detective'
-              ? `🔍 ${nameOf(privateMsg.targetId)} — ${privateMsg.isMafia ? '🔴 ' + tRole('mafia') : '🟢 ' + tRole('citizen')}`
-              : privateMsg.type === 'don'
-                ? `🕴️ ${nameOf(privateMsg.targetId)} — ${privateMsg.isDetective ? '🔵 ' + tRole('detective') : '🟢 —'}`
-                : '🚫 ' + t('desc_putana')}
+            {privateMsg.type === 'detective' ? (
+              <span style={iconRow}><Search size={16} aria-hidden="true" /> {nameOf(privateMsg.targetId)} — {privateMsg.isMafia ? t('is_mafia') : t('not_mafia')}</span>
+            ) : privateMsg.type === 'don' ? (
+              <span style={iconRow}><Crown size={16} aria-hidden="true" /> {nameOf(privateMsg.targetId)} — {privateMsg.isDetective ? t('is_detective') : t('not_detective')}</span>
+            ) : (
+              <span style={iconRow}><Ban size={16} aria-hidden="true" /> {t('blocked_tonight')}</span>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -309,12 +309,12 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
         )}
         {canSelect && hasActed && (
           <motion.div key="acted" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="waiting-box">
-            ✅ {t('action_accepted')}
+            <span style={iconRow}><Check size={16} aria-hidden="true" /> {t('action_accepted')}</span>
           </motion.div>
         )}
         {isNight && !canSelect && amIAlive && (
           <motion.div key="sleeping" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="waiting-box">
-            {subPhase ? `${ROLE_EMOJI[subPhase] || '🌙'} ${tRole(subPhase)}...` : t('city_sleeps')}
+            {subPhase ? <span style={iconRow}><RoleIcon role={subPhase} size={16} /> {tRole(subPhase)}...</span> : t('city_sleeps')}
           </motion.div>
         )}
       </AnimatePresence>
@@ -360,7 +360,7 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
               maxLength={200}
               style={{ flex: 1, padding: '0.5rem 0.8rem', fontSize: '0.85rem' }}
             />
-            <button className="btn-primary" onClick={sendChat} style={{ padding: '0.5rem 1rem' }}>➤</button>
+            <button className="btn-primary" onClick={sendChat} style={{ padding: '0.5rem 1rem' }} aria-label={t('send')}><Send size={16} aria-hidden="true" /></button>
           </div>
         </div>
       )}

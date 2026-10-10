@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { SkipForward, Mic, Eye, Users, Shield, Heart, Zap, Crosshair, Sparkles } from 'lucide-react';
+import { SkipForward, Mic, Eye, Users, Shield, Heart, Zap, Crosshair, Sparkles, Bell, Moon, Sun, Scale } from 'lucide-react';
 import PlayerCard from './PlayerCard';
 import { useTranslation, roleName as tRole, getLanguage } from '../utils/i18n';
 
@@ -30,6 +30,19 @@ const SCRIPTS = {
     day_discussion: { narrative: 'Наступило утро. Посмотрим, кто не проснулся...', instruction: 'Озвучьте результаты ночи и начните обсуждение.' },
     voting: { narrative: 'Пришло время правосудия. Городу пора сделать выбор.', instruction: 'Начните голосование.' },
     end: { narrative: 'Игра окончена. Победители определены.', instruction: 'Озвучьте итоги и поздравьте победителей!' }
+  },
+  en: {
+    night_start: { narrative: 'Night falls. The whole city goes to sleep.', instruction: 'Say: “The city falls asleep...”' },
+    putana: { narrative: 'The Hypnotist wakes up. Who will they put to sleep tonight?', instruction: 'Say: “Hypnotist, wake up.”' },
+    don: { narrative: 'The Mafia Don wakes up and looks for the Detective.', instruction: 'Say: “Don, wake up.”' },
+    mafia: { narrative: 'The mafia goes hunting. Who will they choose?', instruction: 'Say: “Mafia, wake up.”' },
+    doctor: { narrative: 'The Doctor wakes up. Who will they save?', instruction: 'Say: “Doctor, wake up.”' },
+    bodyguard: { narrative: 'The Bodyguard goes on patrol. Who will they protect?', instruction: 'Say: “Bodyguard, wake up.”' },
+    detective: { narrative: 'The Detective wakes up. Who will they check?', instruction: 'Say: “Detective, wake up.”' },
+    maniac: { narrative: 'The Maniac steps out of the shadows. Who is next?', instruction: 'Say: “Maniac, wake up.”' },
+    day_discussion: { narrative: 'Morning has come. Let us see who did not wake up...', instruction: 'Announce the results of the night and start the discussion.' },
+    voting: { narrative: 'It is time for justice. The city must decide.', instruction: 'Start the vote.' },
+    end: { narrative: 'The game is over. The winners are known.', instruction: 'Announce the results and congratulate the winners!' }
   }
 };
 
@@ -55,10 +68,10 @@ const HostDashboard = ({ gameState, socket }) => {
     window.speechSynthesis.cancel();
 
     const voices = window.speechSynthesis.getVoices();
-    const wanted = getLanguage() === 'de' ? 'de' : getLanguage() === 'ru' ? 'ru' : 'ky';
-    const pick = voices.find((v) => v.lang?.toLowerCase().startsWith(wanted))
-      || voices.find((v) => v.lang?.toLowerCase().startsWith('ru'))
-      || voices.find((v) => v.lang?.toLowerCase().startsWith('tr'));
+    const wanted = getLanguage();
+    const byLang = (code) => voices.find((v) => v.lang?.toLowerCase().startsWith(code));
+    // Кыргызского голоса обычно нет: русский голос читает кириллицу понятнее всего
+    const pick = byLang(wanted) || (wanted === 'en' ? null : byLang('ru') || byLang('tr'));
 
     const u = new SpeechSynthesisUtterance(text);
     if (pick) { u.voice = pick; u.lang = pick.lang; }
@@ -118,7 +131,7 @@ const HostDashboard = ({ gameState, socket }) => {
             </label>
           </div>
           <p style={{ fontStyle: 'italic', fontSize: '1.05rem', lineHeight: 1.4, marginBottom: '8px' }}>{currentData.narrative}</p>
-          <p style={{ fontSize: '0.8rem', color: 'var(--accent-purple)', fontWeight: 'bold' }}>🔔 {currentData.instruction}</p>
+          <p style={{ fontSize: '0.8rem', color: 'var(--accent-purple)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Bell size={14} aria-hidden="true" /> {currentData.instruction}</p>
         </div>
 
         <button className="btn-primary host-advance" onClick={handleAdvance}>
@@ -148,10 +161,13 @@ const HostDashboard = ({ gameState, socket }) => {
       <div className="host-view-area">
         <div className="host-view-head">
           <h3 style={{ fontSize: '1.2rem' }}>
-            {phase === 'night' ? `🌙 ${t('phase_night')}` : phase === 'vote' ? `⚖️ ${t('phase_vote')}` : `☀️ ${t('phase_day')}`}
-            {subPhase && ` — ${tRole(subPhase)}`}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}>
+              {phase === 'night' ? <Moon size={18} aria-hidden="true" /> : phase === 'vote' ? <Scale size={18} aria-hidden="true" /> : <Sun size={18} aria-hidden="true" />}
+              {phase === 'night' ? t('phase_night') : phase === 'vote' ? t('phase_vote') : t('phase_day')}
+              {subPhase && ` — ${tRole(subPhase)}`}
+            </span>
           </h3>
-          <div className="host-pill">👥 {alivePlayers.length} {t('host_in_game')}</div>
+          <div className="host-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><Users size={14} aria-hidden="true" /> {alivePlayers.length} {t('host_in_game')}</div>
         </div>
 
         <div className="grid-players">

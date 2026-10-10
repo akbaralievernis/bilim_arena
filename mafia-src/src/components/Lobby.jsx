@@ -1,3 +1,4 @@
+import { User, X, Bot } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
@@ -70,7 +71,7 @@ export default function Lobby({ roomData, onStart, isHost, socket }) {
 
           <p className="text-secondary" style={{ fontSize: '0.85rem' }}>{t('invite_friends')}</p>
           <button className="btn-ghost" onClick={copyLink} style={{ marginTop: '0.6rem' }}>
-            {copied ? `✅ ${t('link_copied')}` : t('copy_link')}
+            {copied ? t('link_copied') : t('copy_link')}
           </button>
         </div>
 
@@ -81,7 +82,7 @@ export default function Lobby({ roomData, onStart, isHost, socket }) {
                 <div style={avatarBox}>
                   {hostPlayer.avatar
                     ? <img src={hostPlayer.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : '👤'}
+                    : <User size={18} aria-hidden="true" />}
                 </div>
                 <span style={{ fontWeight: 600 }}>{hostPlayer.name}</span>
               </div>
@@ -107,9 +108,9 @@ export default function Lobby({ roomData, onStart, isHost, socket }) {
                   <div style={avatarBox}>
                     {p.avatar
                       ? <img src={p.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      : '👤'}
+                      : <User size={18} aria-hidden="true" />}
                   </div>
-                  <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                  <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>{p.isBot && <Bot size={14} style={{ flex: 'none', opacity: 0.7 }} aria-label="bot" />}
                 </div>
                 {isHost && (
                   <button
@@ -118,7 +119,7 @@ export default function Lobby({ roomData, onStart, isHost, socket }) {
                     title={t('kick')}
                     aria-label={`${t('kick')}: ${p.name}`}
                   >
-                    ✕
+                    <X size={16} aria-hidden="true" />
                   </button>
                 )}
               </motion.div>

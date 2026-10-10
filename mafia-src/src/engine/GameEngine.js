@@ -31,7 +31,9 @@ class GameEngine {
       this.startNight();
     } catch (e) {
       console.error(`Ошибка старта игры ${this.roomId}:`, e);
-      this.io.to(this.roomId).emit('error', { message: e.message });
+      // Клиент показывает перевод по ключу err_<message>; неизвестная ошибка — общий текст
+      const known = ['not_enough_players', 'game_started', 'name_taken'];
+      this.io.to(this.roomId).emit('error', { message: known.includes(e.message) ? e.message : 'start_failed' });
     }
   }
 

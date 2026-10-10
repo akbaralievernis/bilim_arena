@@ -2,13 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
-import { useTranslation } from '../utils/i18n';
-
-const LANGS = [
-  { code: 'ky', flag: '🇰🇬' },
-  { code: 'ru', flag: '🇷🇺' },
-  { code: 'de', flag: '🇩🇪' }
-];
+import { Camera, ArrowLeft } from 'lucide-react';
+import { useTranslation, LANGS } from '../utils/i18n';
 
 export default function Home() {
   const [name, setName] = useState(() => localStorage.getItem('playerName') || '');
@@ -43,7 +38,7 @@ export default function Home() {
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) return setMsg(t('file_too_large') || 'Файл өтө чоң!');
+    if (file.size > 5 * 1024 * 1024) return setMsg(t('file_too_large'));
 
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -101,21 +96,26 @@ export default function Home() {
         className="glass-panel"
         style={{ width: '100%', maxWidth: '420px', position: 'relative' }}
       >
-        <div style={{ position: 'absolute', top: 15, right: 15, display: 'flex', gap: '8px' }}>
-          {LANGS.map((l) => (
+        <div role="group" aria-label={t('language')} style={{ position: 'absolute', top: 15, right: 15, display: 'flex', gap: '4px' }}>
+          {LANGS.map((code) => (
             <button
-              key={l.code}
-              onClick={() => setLanguage(l.code)}
-              aria-label={l.code}
-              style={{ opacity: lang === l.code ? 1 : 0.4, border: 'none', background: 'none', fontSize: '1.2rem', cursor: 'pointer' }}
+              key={code}
+              type="button"
+              onClick={() => setLanguage(code)}
+              aria-pressed={lang === code}
+              style={{
+                opacity: lang === code ? 1 : 0.55, border: '1px solid var(--glass-border)', borderRadius: '8px',
+                background: lang === code ? 'rgba(255,255,255,0.12)' : 'none', color: 'inherit',
+                font: '700 0.75rem/1 inherit', letterSpacing: '0.04em', padding: '0.4rem 0.5rem', cursor: 'pointer'
+              }}
             >
-              {l.flag}
+              {code.toUpperCase()}
             </button>
           ))}
         </div>
 
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>МАФИЯ</h1>
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>{t('app_title')}</h1>
           <p className="text-secondary">{t('home_subtitle')}</p>
         </div>
 
@@ -131,7 +131,7 @@ export default function Home() {
             }}
             aria-label={t('avatar_upload')}
           >
-            {!avatar && <span style={{ fontSize: '2rem', opacity: 0.5 }}>📸</span>}
+            {!avatar && <Camera size={30} style={{ opacity: 0.5 }} aria-hidden="true" />}
           </button>
           <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleImageUpload} />
           <button
@@ -175,7 +175,7 @@ export default function Home() {
         </div>
       </motion.div>
 
-      <a href="../../index.html" className="back-link">← Билим Арена</a>
+      <a href="../../games.html" className="back-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><ArrowLeft size={16} aria-hidden="true" /> {t('back_to_site')}</a>
     </div>
   );
 }

@@ -1,8 +1,15 @@
 import { useState, useEffect } from 'react';
 
+/**
+ * Языки «Мафии» — те же, что на всём сайте: кыргызский, русский, английский.
+ * Выбор хранится там же, где у сайта (localStorage BA2_lang), поэтому
+ * игра открывается на языке, который ученик выбрал на главной странице.
+ */
 const translations = {
   ky: {
     // Home
+    app_title: 'МАФИЯ',
+    page_title: 'Мафия — Билим Арена',
     home_title: 'Шаар уйкуга кетти.',
     home_subtitle: 'Аман калыңыз же баарын алдаңыз.',
     join_button: 'Код менен кошулуу',
@@ -16,6 +23,10 @@ const translations = {
     connecting: 'Байланышууда...',
     back_to_game: 'Оюнга кайтуу',
     host_hint: 'Бөлмө түзсөңүз — сиз алып баруучу болосуз жана өзүңүз ойнобойсуз.',
+    file_too_large: 'Файл өтө чоң (5 МБдан ашпасын).',
+    back_to_site: 'Билим Арена',
+    language: 'Тил',
+    theme: 'Тема',
 
     // Lobby
     lobby_title: 'Бөлмөнүн коду:',
@@ -24,10 +35,11 @@ const translations = {
     waiting_host: 'Алып баруучу оюнду баштаганын күтүңүз...',
     start_game: 'Оюнду баштоо',
     host_badge: 'Алып баруучу',
-    copy_link: '🔗 Шилтемени көчүрүү',
+    copy_link: 'Шилтемени көчүрүү',
     link_copied: 'Шилтеме көчүрүлдү!',
     kick: 'Чыгаруу',
     need_players: 'Кеминде 4 оюнчу керек (жетишпесе робот кошулат)',
+    bot_name: 'Бот {n}',
 
     // Game Roles
     role_don: 'Мафиянын Дону',
@@ -44,23 +56,24 @@ const translations = {
     dead: 'Өлдү',
 
     // Role Descriptions
-    desc_don: '🔍 Мафиянын башчысы. Түнкүсүн биринчи ойгонуп Комиссарды издейсиз, андан соң мафия менен бирге курмандык тандайсыз.',
-    desc_mafia: '🔪 Сиз мафиясыз. Түнкүсүн шериктериңиз менен бир курмандык тандайсыз. Күндүз тынч жарандай көрүнүүгө аракет кылыңыз.',
-    desc_doctor: '🛡️ Сиздин милдетиңиз — адамдарды сактоо. Ар түнү бир оюнчуну тандап, аны өлүмдөн куткарасыз.',
-    desc_detective: '🔎 Сиз мыйзам өкүлүсүз. Ар түнү бир оюнчуну текшерип, анын мафия экенин билесиз. Күндүз шаарга жардам бериңиз!',
-    desc_maniac: '🩸 Жалгыз киши өлтүргүч. Өзүңүз үчүн ойнойсуз. Ар түнү бир курмандык тандайсыз. Максат — эң акыркы болуп калуу!',
-    desc_citizen: '🧑‍🌾 Тынч жаран. Түнкүсүн уктайсыз. Максатыңыз — күндүз сүйлөшүп, мафияны табуу!',
-    desc_spectator: '👁️ Сиз оюнду алып барасыз: фазаларды башкарасыз, бирок оюнга кийлигишпейсиз.',
-    desc_putana: '💫 Түнү бир оюнчуну уктатасыз — ал түнү анын ролу иштебейт.',
-    desc_bodyguard: '🛡️ Бир оюнчуну коргойсуз. Ага кол салса, соккуну өзүңүз аласыз.',
+    desc_don: 'Мафиянын башчысы. Түнкүсүн биринчи ойгонуп Комиссарды издейсиз, андан соң мафия менен бирге курмандык тандайсыз.',
+    desc_mafia: 'Сиз мафиясыз. Түнкүсүн шериктериңиз менен бир курмандык тандайсыз. Күндүз тынч жарандай көрүнүүгө аракет кылыңыз.',
+    desc_doctor: 'Сиздин милдетиңиз — адамдарды сактоо. Ар түнү бир оюнчуну тандап, аны өлүмдөн куткарасыз.',
+    desc_detective: 'Сиз мыйзам өкүлүсүз. Ар түнү бир оюнчуну текшерип, анын мафия экенин билесиз. Күндүз шаарга жардам бериңиз!',
+    desc_maniac: 'Жалгыз киши өлтүргүч. Өзүңүз үчүн ойнойсуз. Ар түнү бир курмандык тандайсыз. Максат — эң акыркы болуп калуу!',
+    desc_citizen: 'Тынч жаран. Түнкүсүн уктайсыз. Максатыңыз — күндүз сүйлөшүп, мафияны табуу!',
+    desc_spectator: 'Сиз оюнду алып барасыз: фазаларды башкарасыз, бирок оюнга кийлигишпейсиз.',
+    desc_putana: 'Түнү бир оюнчуну уктатасыз — ал түнү анын ролу иштебейт.',
+    desc_bodyguard: 'Бир оюнчуну коргойсуз. Ага кол салса, соккуну өзүңүз аласыз.',
+    blocked_tonight: 'Сизди бул түнү гипнозчу уктатты — ролуңуз иштебейт.',
 
     // Game Phases
     phase_night: 'Түн',
     phase_vote: 'Добуш берүү',
     phase_day: 'Күн',
     round: 'Раунд',
-    time_left: '⏳ Калды:',
-    transition_in: '⏭ Өтүү:',
+    time_left: 'Калды:',
+    transition_in: 'Өтүү:',
     sec: 'сек',
 
     // Game Actions
@@ -71,6 +84,7 @@ const translations = {
     action_accepted: 'Аракет кабыл алынды. Башкаларды күтөбүз...',
     confirm_prefix: 'Ырастоо:',
     chat_placeholder: 'Талкуу...',
+    send: 'Жөнөтүү',
 
     // System Messages
     city_sleeps: 'Шаар уйкуда...',
@@ -78,12 +92,16 @@ const translations = {
     revote: 'Кайра добуш берүү!',
     in_game: 'Оюнда',
     exiled: 'Чыгарылды',
-    nobody_died: '☀️ Жаңы күн! Бул түнү эч ким өлгөн жок.',
-    killed_players: '💀 Түнү өлгөндөр:',
-    exiled_player: '⚖️ Шаардын чечими менен чыгарылды:',
-    nobody_exiled: '⚖️ Эч ким чыгарылган жок.',
+    nobody_died: 'Жаңы күн! Бул түнү эч ким өлгөн жок.',
+    killed_players: 'Түнү өлгөндөр:',
+    exiled_player: 'Шаардын чечими менен чыгарылды:',
+    nobody_exiled: 'Эч ким чыгарылган жок.',
     events_title: 'Окуялар',
     you_are_dead: 'Сиз оюндан чыктыңыз, бирок көрүп тура аласыз.',
+    is_mafia: 'мафия',
+    not_mafia: 'мафия эмес',
+    is_detective: 'комиссар',
+    not_detective: 'комиссар эмес',
 
     // Connection
     conn_online: 'Байланыш бар',
@@ -97,6 +115,8 @@ const translations = {
     err_create_failed: 'Бөлмө түзүлгөн жок. Кайра аракет кылыңыз.',
     err_kicked: 'Алып баруучу сизди бөлмөдөн чыгарды.',
     err_enter_name: 'Атыңызды жазыңыз!',
+    err_not_enough_players: 'Оюнду баштоого оюнчулар жетишсиз (кеминде 4).',
+    err_start_failed: 'Оюн башталган жок. Кайра аракет кылыңыз.',
 
     // Host
     host_panel: 'Алып баруучу',
@@ -111,9 +131,9 @@ const translations = {
 
     // Game Over
     game_over: 'ОЮН БҮТТҮ',
-    winners_mafia: 'Мафия жеңди 🩸',
-    winners_citizens: 'Тынч жарандар шаарды сактап калды 🛡️',
-    winners_maniac: 'Маньяк жеңди! 🔪',
+    winners_mafia: 'Мафия жеңди',
+    winners_citizens: 'Тынч жарандар шаарды сактап калды',
+    winners_maniac: 'Маньяк жеңди!',
     msg_win_citizens: 'Бардык жамандар жок кылынды! Тынч жарандар шаарын сактап калды.',
     msg_win_mafia: 'Мафия шаарды ээледи. Каршылык көрсөтүүгө калгандар аз.',
     msg_win_maniac: 'Маньяк эң акыркы болуп калды жана аңчылыгын бүтүрдү.',
@@ -124,36 +144,109 @@ const translations = {
     leave_confirm: 'Оюндан чыгасызбы?'
   },
   ru: {
-    role_putana: 'Гипнотизёр',
-    role_bodyguard: 'Телохранитель',
-    desc_putana: '💫 Ночью вы усыпляете одного игрока — его роль в эту ночь не сработает.',
-    desc_bodyguard: '🛡️ Вы защищаете игрока. Если на него нападут, вы примете удар на себя.',
+    app_title: 'МАФИЯ',
+    page_title: 'Мафия — Билим Арена',
+    home_title: 'Город засыпает.',
+    home_subtitle: 'Выживите — или обманите всех.',
+    join_button: 'Войти по коду',
+    create_button: 'Создать свою игру',
+    avatar_upload: 'Загрузить фото',
+    enter_name: 'Введите имя...',
+    enter_code: 'Например: M4FA',
+    join_game: 'Присоединиться к игре',
+    create_room_btn: 'Создать комнату',
+    close: 'Закрыть',
     connecting: 'Подключение...',
     back_to_game: 'Вернуться в игру',
     host_hint: 'Создавая комнату, вы становитесь ведущим и сами не играете.',
-    copy_link: '🔗 Скопировать ссылку',
+    file_too_large: 'Файл слишком большой (не больше 5 МБ).',
+    back_to_site: 'Билим Арена',
+    language: 'Язык',
+    theme: 'Тема',
+
+    lobby_title: 'Код комнаты:',
+    players: 'Игроки',
+    invite_friends: 'Отсканируйте QR-код или продиктуйте код друзьям!',
+    waiting_host: 'Ждём, когда ведущий начнёт игру...',
+    start_game: 'Начать игру',
+    host_badge: 'Ведущий',
+    copy_link: 'Скопировать ссылку',
     link_copied: 'Ссылка скопирована!',
     kick: 'Удалить',
     need_players: 'Нужно минимум 4 игрока (недостающих заменят боты)',
+    bot_name: 'Бот {n}',
+
+    role_don: 'Дон мафии',
+    role_mafia: 'Мафия',
+    role_doctor: 'Доктор',
+    role_detective: 'Комиссар',
+    role_maniac: 'Маньяк',
+    role_citizen: 'Мирный житель',
+    role_spectator: 'Ведущий',
+    role_putana: 'Гипнотизёр',
+    role_bodyguard: 'Телохранитель',
+    hidden: 'Скрыто',
+    your_role: 'Ваша роль',
+    dead: 'Убит',
+
+    desc_don: 'Глава мафии. Ночью вы просыпаетесь первым и ищете Комиссара, затем вместе с мафией выбираете жертву.',
+    desc_mafia: 'Вы мафия. Ночью вместе с сообщниками выбираете одну жертву. Днём притворяйтесь мирным жителем.',
+    desc_doctor: 'Ваша задача — спасать людей. Каждую ночь вы выбираете игрока и спасаете его от смерти.',
+    desc_detective: 'Вы представитель закона. Каждую ночь проверяете одного игрока и узнаёте, мафия ли он. Днём помогите городу!',
+    desc_maniac: 'Одинокий убийца. Вы играете сами за себя и каждую ночь выбираете жертву. Цель — остаться последним!',
+    desc_citizen: 'Мирный житель. Ночью вы спите. Цель — днём обсуждать и вычислить мафию!',
+    desc_spectator: 'Вы ведёте игру: управляете фазами, но сами не играете.',
+    desc_putana: 'Ночью вы усыпляете одного игрока — его роль в эту ночь не сработает.',
+    desc_bodyguard: 'Вы защищаете игрока. Если на него нападут, удар примете вы.',
+    blocked_tonight: 'Этой ночью вас усыпил гипнотизёр — ваша роль не действует.',
+
+    phase_night: 'Ночь',
+    phase_vote: 'Голосование',
+    phase_day: 'День',
+    round: 'Раунд',
+    time_left: 'Осталось:',
+    transition_in: 'Переход через:',
+    sec: 'сек',
+
+    action_required: 'Нужно действие',
+    action_night: 'Выберите цель на эту ночь.',
+    action_vote: 'Выберите, кого изгнать из города.',
+    confirm_choice: 'Подтвердить выбор',
+    action_accepted: 'Действие принято. Ждём остальных...',
     confirm_prefix: 'Подтвердить:',
     chat_placeholder: 'Обсуждение...',
-    nobody_died: '☀️ Новый день! Этой ночью никто не погиб.',
-    killed_players: '💀 Ночью погибли:',
-    exiled_player: '⚖️ Город изгнал:',
-    nobody_exiled: '⚖️ Никто не изгнан.',
+    send: 'Отправить',
+
+    city_sleeps: 'Город спит...',
+    city_sleeps_desc: 'Сохраняйте тишину, пока активные роли делают выбор.',
+    revote: 'Переголосование!',
+    in_game: 'В игре',
+    exiled: 'Изгнан',
+    nobody_died: 'Новый день! Этой ночью никто не погиб.',
+    killed_players: 'Ночью погибли:',
+    exiled_player: 'Решением города изгнан:',
+    nobody_exiled: 'Никто не изгнан.',
     events_title: 'События',
     you_are_dead: 'Вы выбыли, но можете наблюдать за игрой.',
+    is_mafia: 'мафия',
+    not_mafia: 'не мафия',
+    is_detective: 'комиссар',
+    not_detective: 'не комиссар',
+
     conn_online: 'Связь есть',
     conn_offline: 'Связь потеряна — переподключаемся...',
     err_room_not_found: 'Комната не найдена. Проверьте код.',
     err_no_connection: 'Нет соединения или комната закрыта.',
     err_name_taken: 'Это имя занято, выберите другое.',
-    err_room_full: 'Комната переполнена.',
+    err_room_full: 'Комната заполнена.',
     err_game_started: 'Игра уже началась.',
     err_host_no_answer: 'Ведущий не отвечает.',
     err_create_failed: 'Не удалось создать комнату. Попробуйте ещё раз.',
     err_kicked: 'Ведущий удалил вас из комнаты.',
     err_enter_name: 'Введите имя!',
+    err_not_enough_players: 'Недостаточно игроков для старта (нужно минимум 4).',
+    err_start_failed: 'Игра не началась. Попробуйте ещё раз.',
+
     host_panel: 'Ведущий',
     host_next_role: 'Следующая роль',
     host_start_vote: 'Начать голосование',
@@ -163,222 +256,188 @@ const translations = {
     host_dead: 'Мёртв',
     host_autovoice: 'Авто-озвучка',
     host_in_game: 'игроков в игре',
-    msg_win_citizens: 'Все злодеи уничтожены! Мирные жители спасли свой город.',
-    msg_win_mafia: 'Мафия захватила контроль над городом.',
-    msg_win_maniac: 'Маньяк остался последним выжившим злодеем.',
-    roles_summary: 'Итоги ролей',
-    waiting_host_lobby: 'Ожидайте, пока ведущий вернёт всех в лобби...',
-    leave_confirm: 'Выйти из игры?',
-    // Home
-    home_title: 'Город засыпает.',
-    home_subtitle: 'Вам нужно выжить или обмануть всех.',
-    join_button: 'Присоединиться по коду',
-    create_button: 'Создать свою игру',
-    avatar_upload: 'Загрузить аватар',
-    enter_name: 'Введите ваше имя...',
-    enter_code: 'Например: M4F1A',
-    join_game: 'Присоединиться к игре',
-    create_room_btn: 'Создать комнату',
-    close: 'Закрыть',
 
-    // Lobby
-    lobby_title: 'Код комнаты:',
-    players: 'Игроки',
-    invite_friends: 'Приглашайте друзей по этому коду!',
-    waiting_host: 'Ожидание запуска игры хостом...',
-    start_game: 'Начать игру',
-    host_badge: 'Ведущий',
-
-    // Game Roles
-    role_don: 'Дон мафии',
-    role_mafia: 'Мафия',
-    role_doctor: 'Доктор',
-    role_detective: 'Комиссар',
-    role_maniac: 'Маньяк',
-    role_citizen: 'Мирный ',
-    role_spectator: 'Зритель',
-    hidden: 'Скрыто',
-    your_role: 'Ваша роль',
-    dead: 'Убит',
-
-    // Role Descriptions
-    desc_don: '🔍 Глава мафии. Ночью вы просыпаетесь первым и ищете Комиссара, чтобы узнать его личность. Днем голосуйте как мирный, чтобы отвести подозрения.',
-    desc_mafia: '🔪 Вы в клане мафии. Ночью вы просыпаетесь вместе со своими и выбираете одну жертву. Днем притворяйтесь мирным, чтобы вас не повесили.',
-    desc_doctor: '🛡️ Ваша задача — спасать людей. Каждую ночь вы выбираете одного игрока, чтобы вылечить его от нападения. Спасите тех, кто важен городу!',
-    desc_detective: '🔎 Вы представитель закона. Каждую ночь вы проверяете одного игрока, чтобы узнать, мафия он или нет. Помогите мирным вычислить бандитов днем!',
-    desc_maniac: '🩸 Одинокий убийца. Вы играете сами за себя. Каждую ночь вы выходите на охоту и убиваете жертву. Ваша цель — остаться последним выжившим!',
-    desc_citizen: '🧑‍🌾 Мирный житель. У вас нет ночных действий (спите крепко). Ваша цель — днем анализировать поведение других и вычислить мафию!',
-    desc_spectator: '👁️ Наблюдатель. Вы видите всю картину игры, следите за ночными действиями и обсуждениями, но не можете влиять на игру напрямую.',
-
-    // Game Phases
-    phase_night: 'Ночь',
-    phase_vote: 'Голосование',
-    phase_day: 'День',
-    round: 'Раунд',
-    time_left: '⏳ Осталось:',
-    transition_in: '⏭ Переход через:',
-    sec: 'сек',
-
-    // Game Actions
-    action_required: 'Действие требуется',
-    action_night: 'Выберите вашу цель на эту ночь.',
-    action_vote: 'Выберите, кого изгнать на дневном голосовании.',
-    confirm_choice: 'Подтвердить выбор',
-    action_accepted: 'Действие принято. Ожидаем остальных...',
-
-    // System Messages
-    city_sleeps: 'Город засыпает...',
-    city_sleeps_desc: 'Подождите, пока активные роли сделают свой выбор. Сохраняйте тишину.',
-    revote: 'Переголосование!',
-    in_game: 'В игре',
-    exiled: 'Исключен',
-
-    // Spectator Screen
-    spectator_title_night: 'Ночь: Город засыпает',
-    spectator_title_vote: 'Дневное голосование',
-    spectator_title_day: 'День: Обсуждение',
-    spectator_main_screen: 'Главный Экран',
-    spectator_active_roles: 'Активные роли делают свой выбор...',
-    spectator_don_chooses: '— 🕴️ Дон ищет комиссара',
-    spectator_mafia_chooses: '— 🗡️ Мафия выбирает жертву',
-    spectator_doctor_chooses: '— 🛡️ Доктор спешит на помощь',
-    spectator_detective_chooses: '— 🔍 Комиссар ищет мафию',
-    spectator_maniac_chooses: '— 🔪 Маньяк вышел на охоту',
-    spectator_discussion: 'Идет обсуждение. Выслушайте каждого!',
-
-    // Game Over
     game_over: 'ИГРА ОКОНЧЕНА',
-    winners_mafia: 'Победила Мафия 🩸',
-    winners_citizens: 'Мирные жители спасли город 🛡️',
-    winners_maniac: 'Выживших больше нет. Победил Маньяк! 🔪',
+    winners_mafia: 'Победила мафия',
+    winners_citizens: 'Мирные жители спасли город',
+    winners_maniac: 'Победил маньяк!',
+    msg_win_citizens: 'Все злодеи уничтожены! Мирные жители спасли свой город.',
+    msg_win_mafia: 'Мафия захватила город. Сопротивляться почти некому.',
+    msg_win_maniac: 'Маньяк остался последним и закончил свою охоту.',
+    roles_summary: 'Итоги ролей',
     return_to_lobby: 'Вернуться в лобби',
     home: 'На главную',
-
-    // TTS Fallbacks
-    tts_night_starts: 'Наступает ночь. Город засыпает.',
-    tts_don_wakes: 'Просыпается Дон мафии и ищет комиссара.',
-    tts_mafia_wakes: 'Просыпается мафия.',
-    tts_mafia_attacks: 'Мафия выбирает жертву.',
-    tts_doctor_wakes: 'Просыпается доктор и делает выбор.',
-    tts_detective_wakes: 'Просыпается комиссар полици и ищет мафию.',
-    tts_maniac_wakes: 'Просыпается маньяк и выходит на охоту.',
-    tts_day_starts: 'Наступил день. Город просыпается.',
-    tts_voting_time: 'Время голосования! Кого посадим в тюрьму?'
+    waiting_host_lobby: 'Ждём, пока ведущий вернёт всех в лобби...',
+    leave_confirm: 'Выйти из игры?'
   },
-  de: {
-    // Home
-    home_title: 'Die Stadt schläft ein.',
-    home_subtitle: 'Du musst überleben oder alle täuschen.',
-    join_button: 'Mit Code beitreten',
-    create_button: 'Neues Spiel erstellen',
-    avatar_upload: 'Avatar hochladen',
-    enter_name: 'Gib deinen Namen ein...',
-    enter_code: 'Zum Beispiel: M4F1A',
-    join_game: 'Spiel beitreten',
-    create_room_btn: 'Raum erstellen',
-    close: 'Schließen',
+  en: {
+    app_title: 'MAFIA',
+    page_title: 'Mafia — Bilim Arena',
+    home_title: 'The city falls asleep.',
+    home_subtitle: 'Survive — or fool everyone.',
+    join_button: 'Join with a code',
+    create_button: 'Create your own game',
+    avatar_upload: 'Upload a photo',
+    enter_name: 'Enter your name...',
+    enter_code: 'For example: M4FA',
+    join_game: 'Join the game',
+    create_room_btn: 'Create a room',
+    close: 'Close',
+    connecting: 'Connecting...',
+    back_to_game: 'Back to the game',
+    host_hint: 'If you create a room, you become the host and do not play yourself.',
+    file_too_large: 'The file is too large (5 MB at most).',
+    back_to_site: 'Bilim Arena',
+    language: 'Language',
+    theme: 'Theme',
 
-    // Lobby
-    lobby_title: 'Raumcode:',
-    players: 'Spieler',
-    invite_friends: 'Lade deine Freunde mit diesem Code ein!',
-    waiting_host: 'Warten auf den Spielleiter...',
-    start_game: 'Spiel starten',
-    host_badge: 'Spielleiter',
+    lobby_title: 'Room code:',
+    players: 'Players',
+    invite_friends: 'Scan the QR code or share the code with your friends!',
+    waiting_host: 'Waiting for the host to start the game...',
+    start_game: 'Start the game',
+    host_badge: 'Host',
+    copy_link: 'Copy link',
+    link_copied: 'Link copied!',
+    kick: 'Remove',
+    need_players: 'At least 4 players are needed (bots fill the empty seats)',
+    bot_name: 'Bot {n}',
 
-    // Game Roles
-    role_don: 'Don Mafia',
+    role_don: 'Mafia Don',
     role_mafia: 'Mafia',
-    role_doctor: 'Arzt',
-    role_detective: 'Kommissar',
+    role_doctor: 'Doctor',
+    role_detective: 'Detective',
     role_maniac: 'Maniac',
-    role_citizen: 'Bürger',
-    role_spectator: 'Zuschauer',
-    hidden: 'Versteckt',
-    your_role: 'Deine Rolle',
-    dead: 'Getötet',
+    role_citizen: 'Citizen',
+    role_spectator: 'Host',
+    role_putana: 'Hypnotist',
+    role_bodyguard: 'Bodyguard',
+    hidden: 'Hidden',
+    your_role: 'Your role',
+    dead: 'Dead',
 
-    // Role Descriptions
-    desc_don: '🔍 Der Anführer der Mafia. Nachts suchen Sie als Erster nach dem Kommissar. Stimmen Sie am Tag wie ein Bürger ab, um keinen Verdacht zu erregen.',
-    desc_mafia: '🔪 Du bist im Clan der Mafia. Nachts wählt ihr gemeinsam ein Opfer. Täusche am Tag alle, damit sie denken, du seist ein Bürger.',
-    desc_doctor: '🛡️ Deine Aufgabe ist es, Leben zu retten. Wähle jede Nacht einen Spieler, um ihn vor einem Angriff zu schützen.',
-    desc_detective: '🔎 Du bist das Gesetz. Überprüfe jede Nacht einen Spieler, um zu sehen, ob er zur Mafia gehört. Hilf der Stadt am Tag, die Banditen zu finden!',
-    desc_maniac: '🩸 Ein einsamer Mörder. Du spielst nur für dich. Wähle jede Nacht ein Opfer. Dein Ziel: als Letzter am Leben zu bleiben!',
-    desc_citizen: '🧑‍🌾 Ein friedlicher Bürger. Du hast nachts keine Aktionen. Dein Ziel ist es, das Verhalten der anderen am Tag zu analysieren und die Mafia zu finden!',
-    desc_spectator: '👁️ Beobachter. Du siehst alles, was im Spiel passiert, kannst aber nicht direkt eingreifen.',
+    desc_don: 'Head of the mafia. At night you wake up first and look for the Detective, then choose a victim together with the mafia.',
+    desc_mafia: 'You are the mafia. At night you and your partners choose one victim. In the day, try to look like an ordinary citizen.',
+    desc_doctor: 'Your job is to save people. Every night you choose a player and save them from death.',
+    desc_detective: 'You represent the law. Every night you check one player to learn whether they are mafia. Help the city in the day!',
+    desc_maniac: 'A lone killer. You play for yourself and choose a victim every night. Your goal is to be the last one standing!',
+    desc_citizen: 'An ordinary citizen. You sleep at night. Your goal is to talk in the day and find the mafia!',
+    desc_spectator: 'You run the game: you control the phases but do not play yourself.',
+    desc_putana: 'At night you put one player to sleep — their role does not work that night.',
+    desc_bodyguard: 'You protect a player. If they are attacked, you take the blow.',
+    blocked_tonight: 'The hypnotist put you to sleep tonight — your role does not work.',
 
-    // Game Phases
-    phase_night: 'Nacht',
-    phase_vote: 'Abstimmung',
-    phase_day: 'Tag',
-    round: 'Runde',
-    time_left: '⏳ Übrig:',
-    transition_in: '⏭ Wechsel in:',
-    sec: 'sek',
+    phase_night: 'Night',
+    phase_vote: 'Vote',
+    phase_day: 'Day',
+    round: 'Round',
+    time_left: 'Left:',
+    transition_in: 'Next in:',
+    sec: 's',
 
-    // Game Actions
-    action_required: 'Aktion erforderlich',
-    action_night: 'Wähle dein Ziel für diese Nacht.',
-    action_vote: 'Wähle, wen du bei der Wahl ausschließen möchtest.',
-    confirm_choice: 'Auswahl bestätigen',
-    action_accepted: 'Aktion akzeptiert. Warten auf die anderen...',
+    action_required: 'Action required',
+    action_night: 'Choose your target for tonight.',
+    action_vote: 'Choose who to send out of the city.',
+    confirm_choice: 'Confirm choice',
+    action_accepted: 'Action accepted. Waiting for the others...',
+    confirm_prefix: 'Confirm:',
+    chat_placeholder: 'Discussion...',
+    send: 'Send',
 
-    // System Messages
-    city_sleeps: 'Die Stadt schläft ein...',
-    city_sleeps_desc: 'Warte, bis die aktiven Rollen ihre Wahl treffen. Bleib ruhig.',
-    revote: 'Neuabstimmung!',
-    in_game: 'Im Spiel',
-    exiled: 'Ausgeschlossen',
+    city_sleeps: 'The city is asleep...',
+    city_sleeps_desc: 'Stay quiet while the active roles make their choice.',
+    revote: 'Revote!',
+    in_game: 'In the game',
+    exiled: 'Exiled',
+    nobody_died: 'A new day! Nobody died last night.',
+    killed_players: 'Killed last night:',
+    exiled_player: 'The city exiled:',
+    nobody_exiled: 'Nobody was exiled.',
+    events_title: 'Events',
+    you_are_dead: 'You are out of the game, but you can keep watching.',
+    is_mafia: 'mafia',
+    not_mafia: 'not mafia',
+    is_detective: 'the detective',
+    not_detective: 'not the detective',
 
-    // Spectator Screen
-    spectator_title_night: 'Nacht: Die Stadt schläft',
-    spectator_title_vote: 'Tagesabstimmung',
-    spectator_title_day: 'Tag: Diskussion',
-    spectator_main_screen: 'Hauptbildschirm',
-    spectator_active_roles: 'Aktive Rollen treffen ihre Wahl...',
-    spectator_don_chooses: '— 🕴️ Don sucht den Kommissar',
-    spectator_mafia_chooses: '— 🗡️ Mafia wählt ein Opfer',
-    spectator_doctor_chooses: '— 🛡️ Arzt eilt zur Hilfe',
-    spectator_detective_chooses: '— 🔍 Kommissar sucht die Mafia',
-    spectator_maniac_chooses: '— 🔪 Maniac geht auf die Jagd',
-    spectator_discussion: 'Die Diskussion läuft. Hör jedem zu!',
+    conn_online: 'Connected',
+    conn_offline: 'Connection lost — reconnecting...',
+    err_room_not_found: 'Room not found. Check the code.',
+    err_no_connection: 'No connection, or the room is closed.',
+    err_name_taken: 'This name is taken, choose another one.',
+    err_room_full: 'The room is full.',
+    err_game_started: 'The game has already started.',
+    err_host_no_answer: 'The host is not answering.',
+    err_create_failed: 'Could not create the room. Try again.',
+    err_kicked: 'The host removed you from the room.',
+    err_enter_name: 'Enter your name!',
+    err_not_enough_players: 'Not enough players to start (at least 4).',
+    err_start_failed: 'The game did not start. Try again.',
 
-    // Game Over
-    game_over: 'SPIEL BEENDET',
-    winners_mafia: 'Die Mafia gewinnt 🩸',
-    winners_citizens: 'Die Bürger haben die Stadt gerettet 🛡️',
-    winners_maniac: 'Keine Überlebenden. Der Maniac gewinnt! 🔪',
-    return_to_lobby: 'Zurück zur Lobby',
-    home: 'Hauptmenü',
+    host_panel: 'Host',
+    host_next_role: 'Next role',
+    host_start_vote: 'Start the vote',
+    host_end_day: 'End the day',
+    host_players_status: 'Players',
+    host_alive: 'Alive',
+    host_dead: 'Dead',
+    host_autovoice: 'Auto voice',
+    host_in_game: 'players in the game',
 
-    // TTS Fallbacks
-    tts_night_starts: 'Die Nacht beginnt. Die Stadt schläft ein.',
-    tts_don_wakes: 'Der Don erwacht und sucht den Kommissar.',
-    tts_mafia_wakes: 'Die Mafia erwacht.',
-    tts_mafia_attacks: 'Die Mafia wählt ein Opfer.',
-    tts_doctor_wakes: 'Der Arzt erwacht und trifft seine Wahl.',
-    tts_detective_wakes: 'Der Kommissar erwacht und sucht die Mafia.',
-    tts_maniac_wakes: 'Der Maniac erwacht und geht auf die Jagd.',
-    tts_day_starts: 'Der Tag ist gekommen. Die Stadt erwacht.',
-    tts_voting_time: 'Zeit zur Abstimmung! Wen schicken wir ins Gefängnis?'
+    game_over: 'GAME OVER',
+    winners_mafia: 'The mafia wins',
+    winners_citizens: 'The citizens saved the city',
+    winners_maniac: 'The maniac wins!',
+    msg_win_citizens: 'All the villains are gone! The citizens saved their city.',
+    msg_win_mafia: 'The mafia took over the city. Too few are left to resist.',
+    msg_win_maniac: 'The maniac is the last one standing and has finished the hunt.',
+    roles_summary: 'Roles',
+    return_to_lobby: 'Back to the lobby',
+    home: 'Home',
+    waiting_host_lobby: 'Waiting for the host to bring everyone back to the lobby...',
+    leave_confirm: 'Leave the game?'
   }
 };
 
-let currentLang = localStorage.getItem('mafia_lang') || 'ky';
+export const LANGS = ['ky', 'ru', 'en'];
+
+function readLang() {
+  try {
+    // ?lang=ru в ссылке (как у остальных игр сайта)
+    const fromUrl = new URLSearchParams(window.location.search).get('lang');
+    if (LANGS.includes(fromUrl)) {
+      localStorage.setItem('BA2_lang', JSON.stringify(fromUrl));
+      return fromUrl;
+    }
+    const site = JSON.parse(localStorage.getItem('BA2_lang') || 'null');
+    if (LANGS.includes(site)) return site;
+    const old = localStorage.getItem('mafia_lang');
+    if (LANGS.includes(old)) return old;
+  } catch { /* хранилище недоступно */ }
+  return 'ky';
+}
+
+let currentLang = readLang();
+document.documentElement.lang = currentLang;
+document.title = translations[currentLang].page_title;
 const listeners = new Set();
 
 export function setLanguage(lang) {
-  if (translations[lang]) {
-    currentLang = lang;
-    localStorage.setItem('mafia_lang', lang);
-    listeners.forEach(listener => listener(lang));
-  }
+  if (!translations[lang]) return;
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  document.title = translations[lang].page_title;
+  try { localStorage.setItem('BA2_lang', JSON.stringify(lang)); } catch { /* приватный режим */ }
+  listeners.forEach((listener) => listener(lang));
 }
 
 export function getLanguage() { return currentLang; }
 
-export function t(key) {
-  return translations[currentLang]?.[key] || translations.ky[key] || translations.ru[key] || key;
+/** Перевод по ключу; {n} в строке заменяется значением из vars */
+export function t(key, vars) {
+  let str = translations[currentLang]?.[key] ?? translations.ky[key] ?? key;
+  if (vars) str = str.replace(/\{(\w+)\}/g, (m, name) => (vars[name] !== undefined ? vars[name] : m));
+  return str;
 }
 
 /** Название роли на выбранном языке */
@@ -390,13 +449,9 @@ export function useTranslation() {
   const [lang, setLangState] = useState(currentLang);
 
   useEffect(() => {
-    const handleLangChange = (newLang) => {
-      setLangState(newLang);
-    };
+    const handleLangChange = (newLang) => setLangState(newLang);
     listeners.add(handleLangChange);
-    return () => {
-      listeners.delete(handleLangChange);
-    };
+    return () => { listeners.delete(handleLangChange); };
   }, []);
 
   return { t, lang, setLanguage };
