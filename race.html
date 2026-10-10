@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ky" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F7F8FC" />
+  <meta name="description" content="Bilim Arena Race — командалык жарыш: командалар картада жылып, ар бир чекпоинтте тапшырмага жооп беришет." />
+  <title>Bilim Arena Race — Билим Арена</title>
+  <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./core/ui.css?v=14" />
+  <link rel="stylesheet" href="./home.css?v=15" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main" data-i18n="skip_to_content">Мазмунга өтүү</a>
+  <div id="header"></div>
+
+  <main id="main" class="page home">
+    <section class="hero wrap" aria-labelledby="raceTitle">
+      <div class="hero-card">
+        <div class="hero-text">
+          <p class="hero-kicker" data-i18n="race_kicker">Командалык жарыш</p>
+          <h1 id="raceTitle">Bilim Arena Race</h1>
+          <p class="hero-sub" data-i18n="race_intro"></p>
+          <ul class="race-features" id="raceFeatures"></ul>
+        </div>
+        <div class="race-art" id="raceArt" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <section class="wrap section two-col" aria-label="Bilim Arena Race">
+      <form class="card" id="raceJoin" novalidate>
+        <h2 data-i18n="race_student_title">Мен окуучумун</h2>
+        <p class="muted" style="margin:0" data-i18n="race_student_text"></p>
+        <div>
+          <label class="label" for="raceCode" data-i18n="race_code_label">Жарыштын коду</label>
+          <input class="input race-code-input" id="raceCode" maxlength="7" inputmode="text" autocapitalize="characters"
+                 autocomplete="off" spellcheck="false" placeholder="A7K9Q2" aria-describedby="raceCodeError" />
+          <p class="small" id="raceCodeError" role="alert" style="color:var(--bad);min-height:1.2em;margin:6px 0 0"></p>
+        </div>
+        <button class="btn primary big block" type="submit" id="raceJoinBtn"></button>
+      </form>
+
+      <div class="card">
+        <h2 data-i18n="race_teacher_title">Мен мугалиммин</h2>
+        <p class="muted" style="margin:0" data-i18n="race_teacher_text"></p>
+        <div class="hero-actions">
+          <a class="btn primary big" id="raceCreate"></a>
+          <a class="btn big" id="raceStatus"></a>
+        </div>
+        <p class="small muted" style="margin:0" id="raceExternal"></p>
+      </div>
+    </section>
+  </main>
+
+  <div id="toasts"></div>
+  <script type="module" src="./race.js?v=15"></script>
+</body>
+</html>

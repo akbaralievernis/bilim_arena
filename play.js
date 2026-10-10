@@ -10,6 +10,7 @@ import { bootstrap, el, $, toast, sfx } from './core/ui.js';
 import { icon } from './core/icons.js';
 import { t } from './core/i18n.js';
 import { joinRoom } from './core/realtime.js';
+import { RACE_CODE_LENGTH, isRaceCode, raceUrl } from './core/race.js';
 import { getProfile, quickJoinProfile } from './core/profile.js';
 import { store } from './core/store.js';
 import { recordAnswer } from './core/progress.js';
@@ -266,6 +267,12 @@ async function connect(code, name) {
     const code = $('#codeInput').value.trim().toUpperCase();
     const name = $('#nameInput').value.trim();
     if (!code) return ($('#joinError').textContent = t('err_enter_code'));
+    // 6 символов — это не урок на доске, а Bilim Arena Race: ведём туда, имя спросит гонка
+    if (code.length === RACE_CODE_LENGTH) {
+      if (!isRaceCode(code)) return ($('#joinError').textContent = t('race_code_invalid'));
+      location.href = raceUrl('/join', { code });
+      return;
+    }
     if (!name) return ($('#joinError').textContent = t('err_enter_name'));
     connect(code, name);
   };
@@ -285,7 +292,7 @@ async function connect(code, name) {
   });
 
   // Если и код, и имя уже известны — подключаемся сразу
-  if (codeFromUrl && profile.name) connect(codeFromUrl, profile.name);
+  if (codeFromUrl && profile.name && codeFromUrl.length !== RACE_CODE_LENGTH) connect(codeFromUrl, profile.name);
 
   window.addEventListener('pagehide', () => conn.room?.close());
 })();

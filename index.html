@@ -14,7 +14,7 @@
   <meta property="og:image" content="./assets/suilom.webp" />
 
   <link rel="stylesheet" href="./core/ui.css?v=14" />
-  <link rel="stylesheet" href="./home.css?v=14" />
+  <link rel="stylesheet" href="./home.css?v=15" />
 </head>
 
 <body>
@@ -72,6 +72,18 @@
     </section>
 
     <!-- 7. Учителям -->
+    <section class="wrap section" aria-labelledby="raceHomeTitle">
+      <div class="teacher-card card">
+        <div class="teacher-art" id="raceHomeArt" aria-hidden="true"></div>
+        <div class="stack" style="gap:10px">
+          <p class="hero-kicker" style="margin:0" data-i18n="race_kicker">Командалык жарыш</p>
+          <h2 id="raceHomeTitle">Bilim Arena Race</h2>
+          <p class="muted" style="margin:0" data-i18n="race_intro"></p>
+          <div><a class="btn primary" href="./race.html" id="raceHomeBtn"></a></div>
+        </div>
+      </div>
+    </section>
+
     <section class="wrap section" aria-labelledby="teachTitle">
       <div class="teacher-card card">
         <div class="teacher-art" id="teacherArt" aria-hidden="true"></div>
@@ -97,6 +109,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./home.js?v=14"></script>
+  <script type="module" src="./home.js?v=15"></script>
 </body>
 </html>

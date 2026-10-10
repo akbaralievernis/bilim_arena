@@ -170,6 +170,14 @@ export const GAMES = [
 
   // ─── Командалык оюндар ───────────────────────────────────────────────────
   {
+    // Отдельный сайт командной гонки; race.html объясняет и ведёт туда с языком сайта
+    id: 'race', category: 'team', subjects: ['any'], type: 'team', difficulty: 2, players: [2, 40],
+    devices: ['board', 'phone'], minutes: 20, added: '2026-10-12', rank: 92, href: './race.html', art: { icon: 'flag', tone: 'violet' },
+    title: L('Bilim Arena Race', 'Bilim Arena Race', 'Bilim Arena Race'),
+    desc: L('Командалык жарыш: картада жылып, ар бир чекпоинтте тапшырмага жооп бергиле', 'Командная гонка по карте: на каждом чекпоинте — задание',
+      'A team race on a map: a task at every checkpoint')
+  },
+  {
     id: 'quickvote', category: 'team', subjects: ['any'], type: 'quiz', difficulty: 1, players: [1, 40],
     devices: ['board', 'phone'], minutes: 10, added: '2026-09-20', rank: 82, href: board(''), art: { icon: 'quiz', tone: 'violet' },
     title: L('Тез сурамжылоо', 'Быстрый опрос', 'Quick poll'),

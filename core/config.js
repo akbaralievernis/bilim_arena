@@ -15,3 +15,10 @@ export const SUPABASE = {
   url: 'https://udkxmgflbxetfzziftla.supabase.co',
   anonKey: 'sb_publishable_0CFwdxcFafATApELLa7DhA_OGYRjgGG'
 };
+
+/**
+ * Bilim Arena Race — командная гонка по карте, отдельный сайт (Next.js +
+ * своя база). Основной сайт только ведёт туда: страница race.html, карточка в
+ * каталоге, вход по 6-значному коду на play.html.
+ */
+export const RACE_URL = 'https://bilimarenarace.vercel.app';

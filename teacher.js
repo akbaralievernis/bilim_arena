@@ -7,6 +7,7 @@
  */
 
 import { bootstrap, mountHeader, el, $, toast } from './core/ui.js';
+import { raceUrl } from './core/race.js';
 import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
 import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, skillTitle } from './core/curriculum.js';
@@ -235,6 +236,8 @@ const stat = (value, label) => el('div', { class: 'stat' }, el('b', {}, String(v
   await bootstrap();
   await setRole('teacher');
   mountHeader($('#header'), { role: 'teacher', active: 'teacher.html' });
+  // Bilim Arena Race — сразу к созданию гонки, на языке сайта
+  $('#raceEntry').href = raceUrl('/create');
 
   document.querySelectorAll('[data-icon]').forEach((n) => n.replaceChildren(icon(n.dataset.icon, { size: 26 })));
   renderLessonSetup();

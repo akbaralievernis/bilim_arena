@@ -146,13 +146,18 @@ function renderProgress(profile, pr) {
   );
 }
 
+function renderRace() {
+  $('#raceHomeArt').replaceChildren(cover(icon('flag', { size: 48 }), 'violet'));
+  $('#raceHomeBtn').replaceChildren(icon('flag', { size: 18 }), el('span', {}, t('home_race_cta')));
+}
+
 function renderTeacher() {
   $('#teacherArt').replaceChildren(cover(icon('teacher', { size: 48 }), 'teal'));
   $('#teacherBtn').replaceChildren(icon('teacher', { size: 18 }), el('span', {}, t('home_teacher_cta')));
 }
 
 function renderFooter() {
-  const links = [['games.html', 'nav_games'], ['progress.html', 'nav_progress'], ['profile.html', 'nav_profile'], ['play.html', 'nav_join'], ['teacher.html', 'nav_teacher']];
+  const links = [['games.html', 'nav_games'], ['race.html', 'race_join_btn'], ['progress.html', 'nav_progress'], ['profile.html', 'nav_profile'], ['play.html', 'nav_join'], ['teacher.html', 'nav_teacher']];
   $('#footerLinks').setAttribute('aria-label', t('nav_main'));
   $('#footerLinks').replaceChildren(...links.map(([href, key]) => el('a', { href: `./${href}` }, t(key))));
 }
@@ -171,6 +176,7 @@ function renderFooter() {
   renderPopular(plays);
   await renderContinue(pr);
   renderProgress(profile, pr);
+  renderRace();
   renderTeacher();
   renderFooter();
   document.querySelector('.two-col').setAttribute('aria-label', t('home_progress_title'));

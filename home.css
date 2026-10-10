@@ -153,3 +153,13 @@
 .subject-card { display: flex; flex-direction: column; gap: 10px; text-align: left; font: inherit; color: inherit; cursor: pointer; }
 .set-card { display: flex; flex-direction: column; gap: 8px; text-align: left; font: inherit; color: inherit; cursor: pointer; }
 .chip.small { min-height: auto; padding: 0.2em 0.7em; font-size: 0.875rem; cursor: default; }
+
+/* ─── Bilim Arena Race (race.html, карточка на главной) ───────────────────── */
+.race-features { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.race-features li { display: flex; gap: 10px; align-items: flex-start; color: var(--text-secondary); }
+.race-features .icon { flex: none; margin-top: 2px; color: var(--primary); }
+.race-art { border-radius: 20px; overflow: hidden; aspect-ratio: 16 / 11; box-shadow: var(--shadow-lg); }
+.race-code-input { text-align: center; letter-spacing: 0.3em; font-size: 1.6rem; font-weight: 800; font-family: ui-monospace, monospace; }
+@media (max-width: 860px) {
+  .race-art { display: none; }
+}

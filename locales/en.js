@@ -506,4 +506,23 @@ export default {
   res_other_game: 'Another game',
   res_other_task: 'Another assignment',
   res_play_again: 'Play again',
+
+  // Bilim Arena Race
+  race_kicker: 'Team race',
+  race_intro: 'Teams move along a map and answer a task at every checkpoint. Points and places update for everyone in real time.',
+  race_f1: 'Join with a QR code or a 6-character code — no sign-up',
+  race_f2: 'Answers are checked by the server; points for accuracy and speed',
+  race_f3: 'For the teacher — a projector screen, a timer and a full report',
+  race_student_title: "I'm a student",
+  race_student_text: "Enter the 6-character code from the teacher's screen.",
+  race_code_label: 'Race code',
+  race_join_btn: 'Join the race',
+  race_code_invalid: 'A race code has 6 characters (no 0, 1, O or I).',
+  race_teacher_title: "I'm a teacher",
+  race_teacher_text: 'Create a race with a route and tasks and give the class a code. A teacher account is needed.',
+  race_create_btn: 'Create a race',
+  race_status_link: 'Pre-lesson check',
+  race_external: 'The race opens on a separate site (Kyrgyz and Russian)',
+  home_race_cta: 'Go to the race',
+  play_code_hint: 'Lesson code: 4 characters, race code: 6.',
 };

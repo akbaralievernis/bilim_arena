@@ -35,7 +35,9 @@
     <div>
       <label class="label" for="codeInput" data-i18n="join_code">Бөлмөнүн коду</label>
       <input class="input" id="codeInput" inputmode="latin" autocapitalize="characters"
-             maxlength="4" placeholder="ABCD" style="text-align:center;letter-spacing:.3em;font-size:1.6rem;font-weight:800" />
+             maxlength="6" placeholder="ABCD" aria-describedby="codeHint"
+             style="text-align:center;letter-spacing:.3em;font-size:1.6rem;font-weight:800" />
+      <p class="small muted" id="codeHint" data-i18n="play_code_hint" style="margin:6px 0 0"></p>
     </div>
 
     <div>
@@ -62,6 +64,6 @@
   </footer>
 
   <div id="toasts"></div>
-  <script type="module" src="./play.js?v=14"></script>
+  <script type="module" src="./play.js?v=15"></script>
 </body>
 </html>
