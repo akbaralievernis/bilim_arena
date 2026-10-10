@@ -36,9 +36,21 @@ export const RACE_URL = 'https://bilimarenarace.vercel.app';
  *   https://<имя>.metered.live/api/v1/turn/credentials?apiKey=<ключ>
  *   и вставить в credentialsUrl. Ключ виден в браузере — так задумано: по
  *   нему выдаются только временные пароли TURN, а не доступ к аккаунту.
- * Вариант 2 — готовый список серверов: servers: [{ urls, username, credential }].
+ * Вариант 2 (используется) — готовый список серверов: servers: [{ urls, username, credential }]
+ *   из Metered → Credentials → Get credential → Show ICE Servers Array.
  */
+// Metered.ca, бесплатный тариф (500 МБ/мес). Логин и пароль TURN по замыслу
+// публичны: Metered выдаёт их для вставки в сайт, ими можно только
+// пересылать трафик (расходовать квоту), а не войти в аккаунт.
+const METERED_USER = '05ec6aa2ac5e8b20dd5f2524';
+const METERED_PASS = '/MseDSMRrhdbo2xN';
+
 export const TURN = {
   credentialsUrl: '',
-  servers: []
+  servers: [
+    { urls: 'turn:global.relay.metered.ca:80', username: METERED_USER, credential: METERED_PASS },
+    { urls: 'turn:global.relay.metered.ca:80?transport=tcp', username: METERED_USER, credential: METERED_PASS },
+    { urls: 'turn:global.relay.metered.ca:443', username: METERED_USER, credential: METERED_PASS },
+    { urls: 'turns:global.relay.metered.ca:443?transport=tcp', username: METERED_USER, credential: METERED_PASS }
+  ]
 };

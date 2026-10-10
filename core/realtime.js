@@ -17,9 +17,17 @@ const PEER_CDN = 'https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js';
 const ROOM_PREFIX = 'bilimarena-room-';
 const CODE_CHARS = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'; // без похожих 0/O, 1/I
 
-/** Настройки PeerJS: STUN всегда, TURN — если задан в core/config.js (core/turn.js). */
+/**
+ * Настройки PeerJS: STUN всегда, TURN — если задан в core/config.js (core/turn.js).
+ * ?relay=1 в адресе доски или телефона — только через TURN: проверка, что связь
+ * пройдёт и в сети, где прямое соединение заблокировано.
+ */
 async function peerOptions() {
-  return { debug: 0, config: { iceServers: await iceServers() } };
+  const relayOnly = new URLSearchParams(window.location.search).get('relay') === '1';
+  return {
+    debug: 0,
+    config: { iceServers: await iceServers(), ...(relayOnly ? { iceTransportPolicy: 'relay' } : {}) }
+  };
 }
 
 let peerLib = null;
