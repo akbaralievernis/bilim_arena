@@ -337,5 +337,12 @@ async function openStats(assignmentId) {
     }
     updateMode();
   }
+  else if (params.get('topic') && getTopic(params.get('topic'))) {
+    const topic = getTopic(params.get('topic'));
+    await openForm(null);
+    $('#fSubject').value = topic.subject;
+    $('#fGrade').value = topic.grade;
+    await syncTopics(topic.id);
+  }
   void STATUS;
 })();

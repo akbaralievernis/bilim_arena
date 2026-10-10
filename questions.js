@@ -9,16 +9,24 @@
 import { bootstrap, mountHeader, el, $, toast } from './core/ui.js';
 import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
-import { SUBJECTS, TOPICS, topicsOf, getTopic, skillTitle, GRADES } from './core/curriculum.js';
+import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, skillTitle, GRADES, loadBank } from './core/curriculum.js';
+import { parseQuestions, IMPORT_EXAMPLE } from './core/import.js';
 import { setRole } from './core/profile.js';
 import {
   QUESTION_TYPES, typeMeta, findQuestions, saveQuestion,
-  deleteQuestion, duplicateQuestion, getQuestion
+  deleteQuestion, duplicateQuestion, getQuestion, allQuestions
 } from './core/questions.js';
 
-const state = { editing: null, selected: new Set(), list: [], draft: {} };
-const screens = ['listScreen', 'formScreen'];
-const show = (id) => screens.forEach((s) => $('#' + s).classList.toggle('hidden', s !== id));
+const state = { editing: null, selected: new Set(), list: [], draft: {}, parsed: [], imported: null };
+const screens = ['listScreen', 'formScreen', 'importScreen', 'readyScreen'];
+const show = (id) => {
+  screens.forEach((s) => $('#' + s).classList.toggle('hidden', s !== id));
+  const ready = id === 'readyScreen';
+  $('#tabMine').classList.toggle('on', !ready);
+  $('#tabReady').classList.toggle('on', ready);
+  $('#tabMine').setAttribute('aria-selected', String(!ready));
+  $('#tabReady').setAttribute('aria-selected', String(ready));
+};
 
 const textOf = (v, lang) => (v && typeof v === 'object' ? (v[lang] || v.ky || Object.values(v)[0] || '') : String(v ?? ''));
 const subjectsWithTopics = () => {
@@ -36,7 +44,7 @@ function fillSelect(sel, items, value) {
 
 function renderFilters() {
   const lang = getLang();
-  fillSelect($('#filterSubject'), [{ value: '', label: t('hw_all_skills') },
+  fillSelect($('#filterSubject'), [{ value: '', label: t('cat_all') },
     ...subjectsWithTopics().map((s) => ({ value: s.id, label: `${pick(s.title, lang)}` }))], '');
   fillSelect($('#filterGrade'), [{ value: '', label: '—' },
     ...GRADES.map((g) => ({ value: g, label: t('grade', { n: g }) }))], '');
@@ -344,6 +352,170 @@ async function save() {
   renderList();
 }
 
+// ─── Вставка вопросов текстом ─────────────────────────────────────────────────
+
+function openImport() {
+  const lang = getLang();
+  const subject = $('#filterSubject').value || subjectsWithTopics()[0]?.id;
+  fillSelect($('#iSubject'), subjectsWithTopics().map((x) => ({ value: x.id, label: pick(x.title, lang) })), subject);
+  fillSelect($('#iGrade'), GRADES.map((g) => ({ value: g, label: t('grade', { n: g }) })), $('#filterGrade').value || 6);
+  fillSelect($('#iDifficulty'), [
+    { value: 1, label: t('difficulty_1') }, { value: 2, label: t('difficulty_2') }, { value: 3, label: t('difficulty_3') }
+  ], 1);
+  syncImportTopics($('#filterTopic').value || null);
+  renderImportPreview();
+  show('importScreen');
+  $('#importText').focus();
+}
+
+function syncImportTopics(topicId = null) {
+  const lang = getLang();
+  const subject = $('#iSubject').value;
+  let topics = topicsOf(subject, Number($('#iGrade').value));
+  if (!topics.length) topics = topicsOf(subject);
+  const chosen = topics.some((x) => x.id === topicId) ? topicId : topics[0]?.id;
+  fillSelect($('#iTopic'), topics.map((x) => ({ value: x.id, label: pick(x.title, lang) })), chosen);
+  syncImportSkills();
+}
+
+function syncImportSkills() {
+  const lang = getLang();
+  const topic = getTopic($('#iTopic').value);
+  fillSelect($('#iSkill'), (topic?.skills || []).map((sk) => ({ value: sk.id, label: pick(sk.title, lang) })), topic?.skills?.[0]?.id);
+}
+
+function renderImportPreview() {
+  const lang = getLang();
+  state.parsed = parseQuestions($('#importText').value).questions;
+  const good = state.parsed.filter((q) => !q.errors.length);
+  const bad = state.parsed.length - good.length;
+
+  $('#importSummary').replaceChildren(...(state.parsed.length
+    ? [el('b', {}, t('imp_found', { n: state.parsed.length })), ...(bad ? [' · ', el('span', { class: 'imp-err' }, t('imp_bad', { n: bad }))] : [])]
+    : []));
+  $('#importSaveBtn').disabled = !good.length;
+  $('#importSaveBtn').textContent = t('imp_save', { n: good.length });
+
+  if (!state.parsed.length) {
+    $('#importPreview').replaceChildren(el('div', { class: 'card center muted' }, t('imp_empty')));
+    return;
+  }
+  $('#importPreview').replaceChildren(...state.parsed.map((q, i) => {
+    const correct = Array.isArray(q.correctAnswer) ? q.correctAnswer : [q.correctAnswer];
+    const choice = q.type === 'single' || q.type === 'multiple';
+    const body = q.options?.length
+      ? el('div', { class: 'imp-opts' }, ...q.options.map((o, k) => {
+        const ok = choice && correct.includes(k);
+        return el('span', { class: `imp-opt ${ok ? 'ok' : ''}` }, ...(ok ? [icon('check', { size: 14 })] : []), o);
+      }))
+      : q.correctAnswer
+        ? el('div', { class: 'small' }, el('b', {}, `${t('imp_answer')}: `), q.correctAnswer.join(' | '))
+        : null;
+    return el('div', { class: `imp-item ${q.errors.length ? 'bad' : ''}` },
+      el('div', { class: 'small muted' }, `${i + 1} · ${t('imp_line', { n: q.line })}${q.type ? ' · ' + pick(typeMeta(q.type).title, lang) : ''}`),
+      el('div', { class: 'imp-q' }, q.question || '—'),
+      ...(body ? [body] : []),
+      ...(q.explanation ? [el('div', { class: 'small muted' }, q.explanation)] : []),
+      ...q.errors.map((e) => el('div', { class: 'imp-err' }, t('imp_err_' + e)))
+    );
+  }));
+}
+
+async function saveImport() {
+  const good = state.parsed.filter((q) => !q.errors.length);
+  const topic = $('#iTopic').value;
+  const skill = $('#iSkill').value;
+  if (!good.length || !topic || !skill) return toast(t('required_fields'), { icon: '⚠️' });
+  const topicObj = getTopic(topic);
+  const common = {
+    subject: $('#iSubject').value,
+    grade: Number($('#iGrade').value),
+    section: topicObj ? pick(topicObj.section, getLang()) : '',
+    topic, skill,
+    difficulty: Number($('#iDifficulty').value) || 1,
+    xp: 10
+  };
+  const ids = [];
+  for (const q of good) {
+    const saved = await saveQuestion({
+      ...common,
+      type: q.type,
+      question: q.question,
+      options: q.options,
+      correctAnswer: q.correctAnswer,
+      explanation: q.explanation
+    });
+    ids.push(saved.id);
+  }
+  state.imported = { ids, topic, subject: common.subject };
+  state.selected = new Set(ids);
+  $('#importText').value = '';
+  // Показываем тему, в которую попали новые вопросы
+  $('#filterSubject').value = '';
+  $('#filterGrade').value = '';
+  $('#filterTopic').value = topic;
+  syncFilterSkills();
+  $('#importDoneTitle').textContent = t('imp_done', { n: ids.length });
+  $('#importDone').classList.remove('hidden');
+  toast(t('imp_done', { n: ids.length }), { icon: '✅' });
+  await renderList();
+}
+
+// ─── Готовые тесты ────────────────────────────────────────────────────────────
+
+const boardUrl = (topic) => `./board.html?${new URLSearchParams({ subject: topic.subject, topic: topic.id })}`;
+const homeworkUrl = (topic) => `./homework.html?${new URLSearchParams({ topic: topic.id })}`;
+
+async function renderReady() {
+  const lang = getLang();
+  const subject = $('#readySubject').value;
+  const grade = Number($('#readyGrade').value) || null;
+  const topics = TOPICS.filter((x) => x.bank && (!subject || x.subject === subject) && (!grade || x.grade === grade));
+  const own = await allQuestions();
+  show('readyScreen');
+  if (!topics.length) {
+    $('#readyList').replaceChildren(el('div', { class: 'card center muted' }, t('ready_empty')));
+    return;
+  }
+  const cards = await Promise.all(topics.map(async (topic) => {
+    const bank = await loadBank(topic.id);
+    const mine = own.filter((q) => q.topic === topic.id).length;
+    const subj = getSubject(topic.subject);
+    const preview = el('ol', { class: 'ready-preview small hidden' },
+      ...bank.slice(0, 8).map((q) => el('li', {}, pick(q.prompt, lang))));
+    const toggle = el('button', {
+      class: 'btn ghost', type: 'button', 'aria-expanded': 'false',
+      onclick: (e) => {
+        const open = !preview.classList.toggle('hidden');
+        e.currentTarget.setAttribute('aria-expanded', String(open));
+        e.currentTarget.textContent = open ? t('act_hide') : t('act_preview');
+      }
+    }, t('act_preview'));
+    return el('div', { class: 'card ready-card' },
+      el('b', {}, pick(topic.title, lang)),
+      el('div', { class: 'ready-meta small muted' },
+        el('span', {}, `${subj ? pick(subj.title, lang) : ''} · ${t('grade', { n: topic.grade })} · ${pick(topic.section, lang)}`),
+        el('span', {}, t('ready_count', { n: bank.length }) + (mine ? ` ${t('ready_mine', { n: mine })}` : ''))
+      ),
+      preview,
+      el('div', { class: 'row', style: 'gap:8px' },
+        el('a', { class: 'btn primary', href: boardUrl(topic) }, icon('board', { size: 18 }), ' ', t('act_board')),
+        el('a', { class: 'btn ghost', href: homeworkUrl(topic) }, t('act_homework')),
+        toggle
+      )
+    );
+  }));
+  $('#readyList').replaceChildren(...cards);
+}
+
+function renderReadyFilters() {
+  const lang = getLang();
+  fillSelect($('#readySubject'), [{ value: '', label: t('cat_all') },
+    ...subjectsWithTopics().map((x) => ({ value: x.id, label: pick(x.title, lang) }))], '');
+  fillSelect($('#readyGrade'), [{ value: '', label: '—' },
+    ...GRADES.map((g) => ({ value: g, label: t('grade', { n: g }) }))], '');
+}
+
 // ─── Запуск ───────────────────────────────────────────────────────────────────
 
 (async function init() {
@@ -363,6 +535,39 @@ async function save() {
   $('#filterSearch').addEventListener('input', () => renderList());
 
   $('#createBtn').addEventListener('click', () => openForm(null));
+
+  // Вставка текстом
+  $('#importBtn').addEventListener('click', openImport);
+  $('#importCancelBtn').addEventListener('click', renderList);
+  $('#importSaveBtn').addEventListener('click', saveImport);
+  $('#importText').addEventListener('input', renderImportPreview);
+  $('#importExampleBtn').addEventListener('click', () => {
+    $('#importText').value = IMPORT_EXAMPLE[getLang()] || IMPORT_EXAMPLE.ky;
+    renderImportPreview();
+  });
+  $('#importClearBtn').addEventListener('click', () => { $('#importText').value = ''; renderImportPreview(); $('#importText').focus(); });
+  $('#iSubject').addEventListener('change', () => syncImportTopics());
+  $('#iGrade').addEventListener('change', () => syncImportTopics());
+  $('#iTopic').addEventListener('change', syncImportSkills);
+  $('#importDoneBoard').addEventListener('click', () => {
+    const imp = state.imported;
+    if (!imp) return;
+    location.href = `./board.html?${new URLSearchParams({ subject: imp.subject, topic: imp.topic, mode: 'review', questions: imp.ids.join(',') })}`;
+  });
+  $('#importDoneHomework').addEventListener('click', () => {
+    const imp = state.imported;
+    if (!imp) return;
+    location.href = `./homework.html?${new URLSearchParams({ questions: imp.ids.join(','), topic: imp.topic })}`;
+  });
+
+  // Готовые тесты
+  renderReadyFilters();
+  $('#tabReady').addEventListener('click', renderReady);
+  $('#tabMine').addEventListener('click', renderList);
+  $('#readyBackBtn').addEventListener('click', renderList);
+  $('#readySubject').addEventListener('change', renderReady);
+  $('#readyGrade').addEventListener('change', renderReady);
+  if (new URLSearchParams(location.search).get('view') === 'ready') renderReady();
   $('#cancelBtn').addEventListener('click', renderList);
   $('#saveBtn').addEventListener('click', save);
 

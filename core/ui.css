@@ -842,3 +842,15 @@ button.option:not([disabled]):hover { border-color: var(--primary); }
   .res-stat { padding: 12px; }
   .result-screen.card.pad-lg { padding: 18px 16px; }
 }
+
+/* Вставка вопросов текстом и готовые тесты (questions.html) */
+.imp-item { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; background: var(--surface); display: grid; gap: 6px; }
+.imp-item.bad { border-color: #F3B4B6; background: #FFF6F6; }
+.imp-item .imp-q { font-weight: 700; overflow-wrap: anywhere; }
+.imp-opts { display: flex; flex-wrap: wrap; gap: 6px; }
+.imp-opt { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); font-size: 0.875rem; overflow-wrap: anywhere; }
+.imp-opt.ok { border-color: #16A36A; color: #0E7A4E; background: #EAF8F1; font-weight: 700; }
+.imp-err { color: #B42318; font-size: 0.875rem; font-weight: 600; }
+.ready-card { display: grid; gap: 8px; }
+.ready-card .ready-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; }
+.ready-preview { display: grid; gap: 4px; margin: 0; padding-left: 1.2em; }

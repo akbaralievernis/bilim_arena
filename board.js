@@ -152,7 +152,7 @@ function renderSetup() {
   }
 
   state.plan = state.review
-    ? [{ id: 'review', key: 'lesson_stage_practice', game: 'quickvote', questions: Math.max(4, state.review.ids.length), minutes: 10, difficulty: [1, 2, 3] }]
+    ? [{ id: 'review', key: 'lesson_stage_practice', game: 'quickvote', questions: Math.min(12, state.review.ids.length + (state.review.skills.length ? 4 : 0)) || 4, minutes: 10, difficulty: [1, 2, 3] }]
     : FORMAT_GAMES.includes(state.mode)
       ? [{ id: state.mode, key: 'lesson_stage_practice', game: state.mode, questions: Math.min(GAMES[state.mode].meta.questions || 8, counts?.[state.mode] || 0), minutes: 10, difficulty: [1, 2, 3] }]
       : buildPlan(state.duration);
