@@ -2,6 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <script src="../../shared/lang.js?v=15"></script>
+    <script src="./i18n.js?v=15"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ылдамдык сыноо — Билим Арена</title>
     <style>
@@ -100,8 +102,8 @@
     </style>
     
     <!-- MediaPipe -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js" integrity="sha384-q1KhAZhJcJXr3zfC3Tz07pBqQSabwFIZhXlmlUAB8s0zk4ETWERkIKGBCFQ5Jc3e" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" integrity="sha384-oHwoZ9HyKv5ark5VOH+XWdbNfmhYtptAOBuV8plz6mAfXvTA6d8fULuYllWouEK2" crossorigin="anonymous"></script>
   <script src="../../shared/camera.js?v=14"></script>
   <script src="../../shared/sw-register.js?v=14"></script>
 </head>
@@ -357,14 +359,14 @@
             ctx.textAlign = 'center';
             ctx.shadowColor = '#00ff00';
             ctx.fillStyle = '#ccffcc';
-            ctx.fillText(`УПАЙ: ${gameState.score.toString().padStart(3, '0')}`, canvas.width / 2, 80);
+            ctx.fillText(BALang.t('УПАЙ: {n}', { n: gameState.score.toString().padStart(3, '0') }), canvas.width / 2, 80);
 
             // Отрисовка Жизней
             ctx.textAlign = 'right';
             ctx.shadowColor = '#ff0055';
             ctx.fillStyle = '#ffcccc';
             let livesText = "";
-            for(let i=0; i<gameState.lives; i++) livesText += "❤️ ";
+            for(let i=0; i<gameState.lives; i++) livesText += "♥ ";
             ctx.fillText(livesText, canvas.width - 40, 80);
 
             ctx.restore();
@@ -476,7 +478,7 @@
         const videoElement = document.getElementById('bg-video');
 
         const hands = new Hands({locateFile: (file) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`;
         }});
 
         hands.setOptions({

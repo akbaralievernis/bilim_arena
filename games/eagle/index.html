@@ -2,6 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <script src="../../shared/lang.js?v=15"></script>
+    <script src="./i18n.js?v=15"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Кыргыз бүркүтү — Билим Арена</title>
     
@@ -9,8 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
     
     <!-- MediaPipe для отслеживания рук -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js" integrity="sha384-q1KhAZhJcJXr3zfC3Tz07pBqQSabwFIZhXlmlUAB8s0zk4ETWERkIKGBCFQ5Jc3e" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" integrity="sha384-oHwoZ9HyKv5ark5VOH+XWdbNfmhYtptAOBuV8plz6mAfXvTA6d8fULuYllWouEK2" crossorigin="anonymous"></script>
 
     <style>
         :root {
@@ -154,13 +156,13 @@
         <!-- ГЛАВНОЕ МЕНЮ -->
         <div id="menu-main" class="ui-layer">
             <div class="panel">
-                <h1 class="text-gold">КЫРГЫЗ<br><span style="color:white">PINCH</span></h1>
+                <h1 class="text-gold">КЫРГЫЗ<br><span style="color:white">БҮРКҮТҮ</span></h1>
                 <p class="subtitle">Кушту колдун кыймылдары менен башкарыңыз!</p>
                 <button class="btn btn-primary" onclick="startGame(1)">1 Оюнчу (Жалгыз)</button>
                 <button class="btn btn-secondary" onclick="startGame(2)">2 Оюнчу (Команда)</button>
                 <button class="btn btn-gold" onclick="showScreen('menu-records')">Рекорддор тизмеси</button>
                 <div style="margin-top: 15px; font-size: 0.8rem; color: #95a5a6;">
-                    Сол кол = Кызылдар | Оң кол = Көктөр<br>Чымчуу 🤏 секирүү үчүн
+                    <div>Эки оюнчу: сол кол — кызыл куш, оң кол — көк куш</div><div>Учуу үчүн баш бармак менен сөөмөйдү чымчыңыз</div>
                 </div>
             </div>
         </div>
@@ -462,7 +464,7 @@
                     winText = 'Абдан жакшы аракет!';
                 } else {
                     maxScore = Math.max(birds[0].score, birds[1].score);
-                    finalScoreText = `<span class="text-red">Күн: ${birds[0].score}</span> | <span class="text-blue">Асман: ${birds[1].score}</span>`;
+                    finalScoreText = `<span class="text-red">${BALang.t('Күн: {n}', { n: birds[0].score })}</span> | <span class="text-blue">${BALang.t('Асман: {n}', { n: birds[1].score })}</span>`;
                     if(birds[0].score > birds[1].score) winText = 'Күн командасы жеңди!';
                     else if(birds[1].score > birds[0].score) winText = 'Асман командасы жеңди!';
                     else winText = 'Тең чыгуу!';
@@ -625,7 +627,7 @@
             }
         }
 
-        const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+        const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`});
         hands.setOptions({
             maxNumHands: 2, // Теперь отслеживаем ДВЕ руки!
             modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5

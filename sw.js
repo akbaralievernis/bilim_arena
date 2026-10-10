@@ -6,7 +6,7 @@
  * Прогресс, XP и данные Supabase хранятся в localStorage/облаке — кэш их не трогает.
  */
 const PREFIX = 'ba-';
-const VERSION = 'ba-v23';
+const VERSION = 'ba-v24';
 const CORE = [
   './', './index.html', './home.css', './home.js',
   './board.html', './board.js', './play.html', './play.js',
@@ -55,7 +55,9 @@ const CORE = [
   './games/eagle/index.html', './games/reaction/index.html',
   './games/focus-duel/index.html', './games/focus-duel/focus-duel.js', './games/focus-duel/data.js', './games/focus-duel/style.css', './games/focus-duel/i18n.js',
   './games/odd-one-out/index.html', './games/odd-one-out/app.js', './games/odd-one-out/style.css', './games/odd-one-out/data.js', './games/odd-one-out/i18n.js',
-  './games/sentence/index.html', './games/sentence/app.js', './games/sentence/style.css'
+  './games/sentence/index.html', './games/sentence/app.js', './games/sentence/style.css',
+  // Переводы отдельных игр и игры с камерой
+  './shared/lang.js', './games/flashcards/i18n.js', './games/word-match/i18n.js', './games/wordle/i18n.js', './games/word-rain/i18n.js', './games/balloons/i18n.js', './games/sentence/i18n.js', './games/eagle/i18n.js', './games/reaction/i18n.js', './web/neon-draw.html', './web/neon-draw.i18n.js', './web/hand-shooter.html', './web/hand-shooter.i18n.js', './web/build-3d.html', './web/build-3d.i18n.js'
 ];
 
 self.addEventListener('install', (e) => {

@@ -2,12 +2,14 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <script src="../shared/lang.js?v=15"></script>
+    <script src="./neon-draw.i18n.js?v=15"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Неон сүрөт — Билим Арена</title>
     <!-- MediaPipe Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" integrity="sha384-oHwoZ9HyKv5ark5VOH+XWdbNfmhYtptAOBuV8plz6mAfXvTA6d8fULuYllWouEK2" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js" integrity="sha384-q1KhAZhJcJXr3zfC3Tz07pBqQSabwFIZhXlmlUAB8s0zk4ETWERkIKGBCFQ5Jc3e" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1675466124/drawing_utils.js" integrity="sha384-W/7NVG2tfN12ld8faSFVOZ/W4UHFHze98GqEUPTl8EjY9QDwCKQIzoCHp8/IlIIr" crossorigin="anonymous"></script>
     
     <style>
         :root {
@@ -227,11 +229,6 @@
         <p style="margin-top: 20px; letter-spacing: 3px;">ЖҮКТӨЛҮҮДӨ...</p>
     </div>
 
-    <!-- Кнопки навигации -->
-    <div class="nav-buttons">
-        <a href="#" class="planet-btn">ПЛАНЕТА</a>
-        <a href="#" class="kainat-btn">ААЛАМ</a>
-    </div>
 
     <!-- Выбор цвета -->
     <div class="color-palette">
@@ -251,10 +248,10 @@
     </div>
 
     <div class="instructions">
-        [КАРМОО ЛОГИКАСЫ]<br>
-        1. Объекттин сызыгына жакындаңыз<br>
-        2. Баш бармак менен сөөмөйдү бириктириңиз (Чымчуу)<br>
-        3. <span style="color:var(--neon-green)">СЫЗЫКТЫ КАРМАП</span> жана жылдырыңыз
+        <div>Кантип кармайт:</div>
+        <div>1. Сызыкка жакындаңыз</div>
+        <div>2. Баш бармак менен сөөмөйдү бириктириңиз (чымчуу)</div>
+        <div style="color:var(--neon-green)">3. Сызыкты кармап, жылдырыңыз</div>
     </div>
 
     <video id="input_video"></video>
@@ -519,16 +516,16 @@
                 canvasCtx.stroke();
             });
 
-            const tipIdx = (currentMode === "ПЕРЕМЕЩЕНИЕ") ? 4 : 8;
+            const tipIdx = (currentMode === "КЫЙМЫЛДАТУУ") ? 4 : 8;
             const tip = landmarks[tipIdx];
             canvasCtx.beginPath();
             canvasCtx.arc(tip.x * canvasElement.width, tip.y * canvasElement.height, 8, 0, Math.PI*2);
-            canvasCtx.fillStyle = (currentMode === "ПЕРЕМЕЩЕНИЕ") ? "var(--neon-green)" : "var(--neon-blue)";
+            canvasCtx.fillStyle = (currentMode === "КЫЙМЫЛДАТУУ") ? "#39ff14" : "#00f2ff";
             canvasCtx.fill();
         }
 
         const hands = new Hands({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`
         });
 
         hands.setOptions({
