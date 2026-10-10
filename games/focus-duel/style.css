@@ -465,6 +465,10 @@ input:focus, select:focus { border-color: var(--accent); background: rgba(0, 0, 
 
 /* Item List in Drawer */
 .edList { display: flex; flex-direction: column; gap: 0.75rem; }
+.edItem { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line, #E3E6F0); border-radius: 12px; }
+.edText { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; overflow-wrap: anywhere; }
+body.solo .duelGrid { display: none; }
+.winBadge svg { display: block; margin: 0 auto; color: #E0A100; }
 .item {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--glass-border);

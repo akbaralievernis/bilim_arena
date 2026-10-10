@@ -4,13 +4,15 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
-  <title>Фокус Дуэль — Билим Арена</title>
+  <title>Фокус дуэль — Билим Арена</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=14" />
-  <script src="../../shared/sw-register.js?v=14"></script>
+  <link rel="stylesheet" href="./style.css?v=15" />
+  <script src="../../shared/lang.js?v=15"></script>
+  <script src="./i18n.js?v=15"></script>
+  <script src="../../shared/sw-register.js?v=15"></script>
 </head>
 
 <body data-theme="light">
@@ -19,16 +21,16 @@
       <div class="brand">
         <div class="logo">FD</div>
         <div class="brandText">
-          <div class="title">Фокус Дуэль</div>
-          <div class="subtitle">Кыргыз тилин жана логиканы өнүктүрүү</div>
+          <div class="title">Фокус дуэль</div>
+          <div class="subtitle">Кыргыз тили боюнча суроолор — ким тезирээк?</div>
         </div>
       </div>
 
       <div class="topActions">
-        <button class="iconBtn" id="btnTheme" title="Теманы алмаштыруу" hidden>🌓</button>
-        <button class="iconBtn" id="btnReset" title="Матчты башынан баштоо" aria-label="Матчты башынан баштоо"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
-        <button class="iconBtn" id="btnTeacher" title="Мугалим режими" aria-label="Мугалим режими"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2.5 9 2.5 12 0v-5"/><path d="M22 9v6"/></svg></button>
-        <button class="iconBtn" id="btnOpenSetup" title="Орнотуулар" aria-label="Орнотуулар"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M4.2 6.5l2.6 1.5M17.2 16l2.6 1.5M4.2 17.5L6.8 16M17.2 8l2.6-1.5"/><circle cx="12" cy="12" r="7"/></svg></button>
+        <span data-ba-lang></span>
+        <button class="iconBtn" id="btnReset" type="button" title="Матчты башынан баштоо" aria-label="Матчты башынан баштоо"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
+        <button class="iconBtn" id="btnTeacher" type="button" title="Мугалим режими" aria-label="Мугалим режими" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2.5 9 2.5 12 0v-5"/><path d="M22 9v6"/></svg></button>
+        <button class="iconBtn" id="btnOpenSetup" type="button" title="Орнотуулар" aria-label="Орнотуулар"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M4.2 6.5l2.6 1.5M17.2 16l2.6 1.5M4.2 17.5L6.8 16M17.2 8l2.6-1.5"/><circle cx="12" cy="12" r="7"/></svg></button>
         <a class="btn small" href="../../games.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><path d="M15 5l-7 7 7 7"/></svg> Оюндар</a>
       </div>
     </header>
@@ -37,7 +39,7 @@
       <section class="arena">
         <div class="arenaTop">
           <div class="pill" id="pillMode">ДУЭЛЬ</div>
-          <div class="pill" id="pillLevel">BASIC</div>
+          <div class="pill" id="pillLevel">Базалык</div>
           <div class="pill" id="pillSet">Базалык топтом</div>
 
           <div class="turn" id="turnInfo">Кезек: —</div>
@@ -55,12 +57,12 @@
         </div>
 
         <div class="question">
-          <div class="qPrompt" id="qPrompt">Баштоо үчүн «Старт» баскычын басыңыз</div>
+          <div class="qPrompt" id="qPrompt" translate="no">Баштоо үчүн «Старт» баскычын басыңыз</div>
           <div class="qHint" id="qHint"></div>
         </div>
 
         <!-- SOLO ANSWERS -->
-        <div class="answers" id="answers"></div>
+        <div class="answers" id="answers" translate="no"></div>
 
         <!-- DUEL ANSWERS -->
         <div class="duelGrid" id="duelGrid">
@@ -72,7 +74,7 @@
               </div>
               <div class="score" id="scoreA">0</div>
             </div>
-            <div class="choices" id="choicesA"></div>
+            <div class="choices" id="choicesA" translate="no"></div>
             <div class="sideMsg" id="msgA"></div>
           </div>
 
@@ -86,7 +88,7 @@
               </div>
               <div class="score" id="scoreB">0</div>
             </div>
-            <div class="choices" id="choicesB"></div>
+            <div class="choices" id="choicesB" translate="no"></div>
             <div class="sideMsg" id="msgB"></div>
           </div>
         </div>
@@ -103,8 +105,8 @@
         </div>
 
         <div class="row right">
-            <button class="btn primary" id="btnStartNow">СТАРТ</button>
-            <button class="btn" id="btnOpenSetup2">Орнотуулар</button>
+            <button class="btn primary" id="btnStartNow" type="button">СТАРТ</button>
+            <button class="btn" id="btnOpenSetup2" type="button">Орнотуулар</button>
         </div>
       </section>
     </main>
@@ -130,9 +132,9 @@
             <div class="field">
               <label>Деңгээли</label>
               <select id="selLevel">
-                <option value="basic">Basic (Базалык)</option>
-                <option value="hard">Hard (Кыйын)</option>
-                <option value="expert">Expert (Эксперт)</option>
+                <option value="basic">Базалык</option>
+                <option value="hard">Кыйын</option>
+                <option value="expert">Эксперт</option>
               </select>
             </div>
 
@@ -147,37 +149,32 @@
             </div>
           </div>
 
-          <div class="field">
-            <label>Тема</label>
-            <select id="selTopic">
-              <option value="all">Баары</option>
-            </select>
-          </div>
 
           <div class="sep teacherOnly"></div>
 
           <div class="field teacherOnly">
-            <label>Топтом (Set)</label>
+            <label>Суроолор топтому</label>
             <div class="row">
               <select id="selSet" class="grow"></select>
-              <button class="btn small" id="btnNewSet">Жаңы</button>
-              <button class="btn small danger" id="btnDeleteSet">Өчүрүү</button>
+              <button class="btn small" id="btnNewSet" type="button">Жаңы</button>
+              <button class="btn small danger" id="btnDeleteSet" type="button">Өчүрүү</button>
+              <button class="btn small" id="btnOpenEditor" type="button">Редактор</button>
             </div>
           </div>
           
           <div class="field teacherOnly">
-              <label>Жаңы суроо кошуу</label>
+              <label>Жаңы суроо кошуу (тандалган деңгээлге)</label>
               <div class="grid2">
-                  <input id="edMain" type="text" placeholder="Сөз/Фраза" />
+                  <input id="edMain" type="text" placeholder="Суроо же сөз" />
                   <input id="edCorrect" type="text" placeholder="Туура жооп" />
               </div>
-              <input id="edOptions" type="text" placeholder="Варианттар (үтүр менен)" style="margin-top:0.5rem;" />
-              <button class="btn primary small" id="btnAdd" style="margin-top:0.5rem;">Кошуу</button>
+              <input id="edOptions" type="text" placeholder="Туура эмес варианттар (үтүр менен)" style="margin-top:0.5rem;" />
+              <button class="btn primary small" id="btnAdd" type="button" style="margin-top:0.5rem;">Кошуу</button>
           </div>
         </div>
         <div class="modalFoot">
-          <button class="btn" id="btnOnlyConfirm">Сактоо</button>
-          <button class="btn primary" id="btnConfirmStart">Баштоо</button>
+          <button class="btn" id="btnOnlyConfirm" type="button">Сактоо</button>
+          <button class="btn primary" id="btnConfirmStart" type="button">Баштоо</button>
         </div>
       </div>
     </div>
@@ -189,15 +186,23 @@
         <button class="iconBtn" id="btnCloseEditor" aria-label="Жабуу"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
       <div class="drawerBody">
+        <div class="field">
+          <label for="drawerLevel">Деңгээли</label>
+          <select id="drawerLevel">
+            <option value="basic">Базалык</option>
+            <option value="hard">Кыйын</option>
+            <option value="expert">Эксперт</option>
+          </select>
+        </div>
         <div id="edList" class="edList"></div>
         <div class="sep"></div>
         <div class="field">
           <label>Импорт/Экспорт (JSON)</label>
-          <textarea id="ioBox" rows="6" placeholder='[...]'></textarea>
+          <textarea id="ioBox" rows="6" placeholder='[{"main": "...", "correct": "...", "options": ["..."]}]'></textarea>
         </div>
         <div class="row">
-          <button class="btn small" id="btnExport">Экспорт</button>
-          <button class="btn small primary" id="btnImport">Импорт</button>
+          <button class="btn small" id="btnExport" type="button">Экспорт</button>
+          <button class="btn small primary" id="btnImport" type="button">Импорт</button>
         </div>
       </div>
     </aside>
@@ -206,12 +211,12 @@
     <div class="modal" id="winModal">
       <div class="backdrop" id="winBackdrop"></div>
       <div class="modalCard win">
-        <div class="winBadge">🏆</div>
+        <div class="winBadge"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4"/><path d="M12 13v4M8.5 20h7"/></svg></div>
         <div class="winTitle" id="winTitle">Азаматсыз!</div>
         <div class="winSub" id="winSub">Оюн аяктады</div>
         <div class="row right">
-          <button class="btn primary" id="btnPlayAgain">Кайра ойноо</button>
-          <button class="btn" id="btnCloseWin">Жабуу</button>
+          <button class="btn primary" id="btnPlayAgain" type="button">Кайра ойноо</button>
+          <button class="btn" id="btnCloseWin" type="button">Жабуу</button>
         </div>
       </div>
     </div>
@@ -219,7 +224,7 @@
     <div class="toast hidden" id="toast"></div>
   </div>
 
-  <script src="data.js?v=14"></script>
-  <script src="focus-duel.js?v=14"></script>
+  <script src="data.js?v=15"></script>
+  <script src="focus-duel.js?v=15"></script>
 </body>
 </html>
