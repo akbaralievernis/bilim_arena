@@ -474,6 +474,14 @@ textarea {
   align-items: center;
 }
 
+.previewRow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 8px; }
+.previewChip { padding: 4px 10px; border-radius: 99px; border: 1px solid var(--glass-border); font-weight: 600; }
+.previewChip.odd { border-color: #E5484D; color: #C62828; background: #FDECEC; }
+.previewError { margin-top: 10px; color: #C62828; font-weight: 600; }
+.savedItem { gap: 12px; }
+.savedItem > span:first-child { flex: 1; font-weight: 700; }
+.highScoreTitle { display: flex; align-items: center; }
+
 /* Game Screen */
 .gameTop {
   display: flex;

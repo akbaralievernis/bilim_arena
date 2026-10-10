@@ -54,7 +54,7 @@ const CORE = [
   './games/citadel/index.html', './games/citadel/app.js', './games/citadel/style.css',
   './games/eagle/index.html', './games/reaction/index.html',
   './games/focus-duel/index.html', './games/focus-duel/focus-duel.js', './games/focus-duel/data.js', './games/focus-duel/style.css',
-  './games/odd-one-out/index.html', './games/odd-one-out/app.js', './games/odd-one-out/style.css', './games/odd-one-out/questions.json',
+  './games/odd-one-out/index.html', './games/odd-one-out/app.js', './games/odd-one-out/style.css', './games/odd-one-out/data.js', './games/odd-one-out/i18n.js',
   './games/sentence/index.html', './games/sentence/app.js', './games/sentence/style.css'
 ];
 
