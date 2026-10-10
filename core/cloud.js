@@ -18,7 +18,8 @@ import { allAssignments, allSubmissions } from './assignments.js';
 import { allQuestions } from './questions.js';
 import { mergeAssignments, mergeSubmissions } from './sync.js';
 
-const CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+// Точная версия: обновление библиотеки — осознанное решение, а не сюрприз на уроке
+const CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/+esm';
 
 /** Какие личные данные синхронизируются у каждой роли */
 const PERSONAL = {

@@ -289,8 +289,28 @@ export class BaseGame {
   revealAnswer() {
     if (this.state === STATE.REVEAL || this.state === STATE.FINISHED) return;
     this._stopTimer();
+    this._logUnanswered();
     this.state = STATE.REVEAL;
     this._update();
+  }
+
+  /**
+   * Одиночная игра (тренировка, домашнее задание): вопрос, на который ученик
+   * не успел ответить, — тоже ошибка. Иначе итог «2/8» при 10 вопросах и
+   * завышенная точность, а пропущенный вопрос не попадает в разбор.
+   * На доске пропуски не записываются: там отвечает не весь класс.
+   */
+  _logUnanswered() {
+    if (this.players.size !== 1 || !this.current || this.current.vote) return;
+    const [playerId, player] = [...this.players.entries()][0];
+    if (this.answers.has(playerId)) return;
+    this.answers.set(playerId, { value: null, correct: false, ms: null, points: 0, skipped: true });
+    player.total += 1;
+    player.streak = 0;
+    this.log.push({
+      playerId, playerName: player.name, questionId: this.current.raw.id,
+      skill: this.current.skill, correct: false, ms: null, value: null, skipped: true
+    });
   }
 
   async finish(reason = 'manual') {

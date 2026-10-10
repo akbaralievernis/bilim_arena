@@ -14,6 +14,10 @@
 import { iceServers } from './turn.js';
 
 const PEER_CDN = 'https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js';
+// SRI: браузер выполнит файл с CDN, только если он байт в байт совпадает с проверенным
+const PEER_SRI = 'sha384-x0YgkOr/3UOZP2CRDxGW9e0Q+2Qjyr3uJrm4xU32Y7ZCNAo7Cc7bjhrZMi/dwczu';
+const QR_CDN = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js';
+const QR_SRI = 'sha384-8FWZA6BGMXhsfO+BLtrJK0We6gg5o1JyO8xQm6peWDEUs17ACA5ziE/NIAkl9z2k';
 const ROOM_PREFIX = 'bilimarena-room-';
 const CODE_CHARS = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'; // без похожих 0/O, 1/I
 
@@ -39,6 +43,8 @@ async function loadPeer() {
   await new Promise((resolve, reject) => {
     const s = document.createElement('script');
     s.src = PEER_CDN;
+    s.integrity = PEER_SRI;
+    s.crossOrigin = 'anonymous';
     s.onload = resolve;
     s.onerror = () => reject(new Error('peer-load-failed'));
     document.head.appendChild(s);
@@ -47,6 +53,54 @@ async function loadPeer() {
   if (!peerLib) throw new Error('peer-load-failed');
   return peerLib;
 }
+
+// ─── Защита доски от лишних и поддельных сообщений ──────────────────────────
+// Подключиться к комнате может любой, кто знает код, поэтому доска не доверяет
+// телефонам: ограничивает размер и частоту сообщений, проверяет, что ответ
+// пришёл именно по соединению этого игрока, и не даёт занять чужое место.
+
+const MAX_PLAYERS = 200;
+const MAX_MESSAGE_CHARS = 8000;
+const RATE_WINDOW_MS = 10000;
+const RATE_LIMIT = 60;        // сообщений за 10 с — с большим запасом для любой игры
+const RATE_HARD_LIMIT = 300;  // заведомый спам — соединение закрывается
+const PLAYER_ID = /^[A-Za-z0-9_-]{1,64}$/;
+
+/** Имя ученика: без управляющих символов, без лишних пробелов, до 20 символов. */
+export function cleanPlayerName(value) {
+  const name = String(value ?? '').replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\u2066-\u2069]/g, '')
+    .replace(/\s+/g, ' ').trim();
+  return [...name].slice(0, 20).join('') || '?';
+}
+
+/** Сообщение телефона, которое доска готова обработать; null — отбросить. */
+export function acceptMessage(msg) {
+  if (!msg || typeof msg !== 'object' || Array.isArray(msg)) return null;
+  if (typeof msg.type !== 'string' || msg.type.length > 40) return null;
+  if (typeof msg.playerId !== 'string' || !PLAYER_ID.test(msg.playerId)) return null;
+  let size = 0;
+  try { size = JSON.stringify(msg).length; } catch { return null; }
+  return size <= MAX_MESSAGE_CHARS ? msg : null;
+}
+
+/** Счётчик сообщений одного соединения: 'ok' | 'drop' | 'close'. */
+export function rateLimiter(now = () => Date.now()) {
+  let windowStart = now();
+  let count = 0;
+  return () => {
+    const t = now();
+    if (t - windowStart > RATE_WINDOW_MS) { windowStart = t; count = 0; }
+    count += 1;
+    if (count > RATE_HARD_LIMIT) return 'close';
+    return count > RATE_LIMIT ? 'drop' : 'ok';
+  };
+}
+
+const randomSecret = () => {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
+};
 
 export const roomCode = (len = 4) =>
   Array.from({ length: len }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join('');
@@ -72,6 +126,7 @@ export async function createRoom({ onJoin, onLeave, onMessage } = {}) {
   const [Peer, options] = await Promise.all([loadPeer(), peerOptions()]);
   const conns = new Map();   // playerId -> connection
   const players = new Map(); // playerId -> { id, name }
+  const secrets = new Map(); // playerId -> секрет телефона, занявшего это место
 
   let code = null;
   let peer = null;
@@ -126,21 +181,34 @@ export async function createRoom({ onJoin, onLeave, onMessage } = {}) {
   window.addEventListener('online', keepRegistered);
 
   peer.on('connection', (conn) => {
-    conn.on('data', (msg) => {
-      if (!msg || typeof msg !== 'object') return;
+    const limit = rateLimiter();
+    conn.on('data', (raw) => {
+      const verdict = limit();
+      if (verdict === 'close') { try { conn.close(); } catch { /* закрыт */ } return; }
+      if (verdict === 'drop') return;
+      const msg = acceptMessage(raw);
+      if (!msg) return;
       const id = msg.playerId;
-      if (!id) return;
 
       if (msg.type === 'join') {
+        const secret = typeof msg.secret === 'string' ? msg.secret.slice(0, 64) : '';
+        // Место уже занято другим телефоном — без его секрета не пускаем
+        if (secrets.has(id) && secrets.get(id) !== secret) { try { conn.close(); } catch { /* закрыт */ } return; }
+        if (!players.has(id) && players.size >= MAX_PLAYERS) { try { conn.close(); } catch { /* закрыт */ } return; }
+        // Одно соединение — один игрок: сменить имя игрока на чужое нельзя
+        if (conn._playerId && conn._playerId !== id) return;
+        secrets.set(id, secret);
         const prev = conns.get(id);
         if (prev && prev !== conn) { try { prev.close(); } catch { /* закрыт */ } }
         conns.set(id, conn);
         conn._playerId = id;
-        const player = { id, name: String(msg.name || '').slice(0, 20) || '?' };
+        const player = { id, name: cleanPlayerName(msg.name) };
         players.set(id, player);
         onJoin?.(player);
         return;
       }
+      // Ответ засчитывается, только если пришёл по соединению этого игрока
+      if (conn._playerId !== id || conns.get(id) !== conn) return;
       onMessage?.(id, msg);
     });
 
@@ -201,9 +269,11 @@ export async function createRoom({ onJoin, onLeave, onMessage } = {}) {
  * Подключение к комнате. Сам переподключается, если связь оборвалась
  * (телефон заблокировался, Wi-Fi моргнул).
  */
-export async function joinRoom({ code, name, playerId, onMessage, onStatus } = {}) {
+export async function joinRoom({ code, name, playerId, secret, onMessage, onStatus } = {}) {
   const [Peer, options] = await Promise.all([loadPeer(), peerOptions()]);
   const id = playerId || `s_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+  // Секрет телефона: только он может вернуться на это место после обрыва
+  const key = typeof secret === 'string' && secret ? secret : randomSecret();
   const target = peerIdFor(code);
 
   let conn = null;
@@ -234,7 +304,7 @@ export async function joinRoom({ code, name, playerId, onMessage, onStatus } = {
   });
 
   function hello() {
-    safeSend(conn, { type: 'join', playerId: id, name });
+    safeSend(conn, { type: 'join', playerId: id, name, secret: key });
   }
 
   function bind(c, onOpen) {
@@ -280,6 +350,7 @@ export async function joinRoom({ code, name, playerId, onMessage, onStatus } = {
 
   return {
     playerId: id,
+    secret: key,
     send(msg) {
       const c = live();
       if (!c) return false;
@@ -309,7 +380,9 @@ export async function renderQR(el, text, size = 260) {
     if (!window.qrcode) {
       await new Promise((resolve, reject) => {
         const s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js';
+        s.src = QR_CDN;
+        s.integrity = QR_SRI;
+        s.crossOrigin = 'anonymous';
         s.onload = resolve;
         s.onerror = reject;
         document.head.appendChild(s);

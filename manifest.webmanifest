@@ -1,14 +1,17 @@
 {
   "name": "Билим Арена",
   "short_name": "Билим Арена",
-  "description": "Тил үйрөнүүчү жана логикалык оюндар — 100% кыргызча",
+  "description": "Класстагы оюндар, практика жана үй тапшырмалары — кыргызча, орусча, англисче",
   "lang": "ky",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0b1020",
-  "theme_color": "#0b1020",
+  "background_color": "#F7F8FC",
+  "theme_color": "#F7F8FC",
   "icons": [
+    { "src": "./assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
     { "src": "./assets/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ]
 }

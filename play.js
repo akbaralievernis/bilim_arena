@@ -209,9 +209,11 @@ async function connect(code, name) {
 
   try {
     const saved = await store.get('play_player_id');
+    const savedSecret = await store.get('play_player_secret');
     conn.room = await joinRoom({
       code, name,
       playerId: saved,
+      secret: savedSecret,
       onMessage: (msg) => {
         if (msg.type === 'screen') render(msg.spec);
         if (msg.type === 'sync-assignments') syncWithTeacher(msg);
@@ -230,6 +232,7 @@ async function connect(code, name) {
     });
 
     await store.set('play_player_id', conn.room.playerId);
+    await store.set('play_player_secret', conn.room.secret);
     await store.set('play_last_room', code);
     await quickJoinProfile(name);
 
