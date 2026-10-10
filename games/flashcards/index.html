@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
   <title>Сөз карточкалары — Билим Арена</title>
-  <link rel="stylesheet" href="../../shared/game.css?v=14" />
+  <link rel="stylesheet" href="../../shared/game.css?v=15" />
   <style>
     .gWrap { max-width: 620px; }
     .catGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 16px 0; }
@@ -43,7 +43,9 @@
     .boxes i { width: 14px; height: 6px; border-radius: 3px; background: var(--line); }
     .boxes i.on { background: var(--ok); }
   </style>
-  <script src="../../shared/sw-register.js?v=14"></script>
+  <script src="../../shared/lang.js?v=15"></script>
+  <script src="./i18n.js?v=15"></script>
+  <script src="../../shared/sw-register.js?v=15"></script>
 </head>
 <body>
   <header class="gTop">
@@ -56,7 +58,7 @@
   <main class="gWrap">
     <section id="setup" class="panel">
       <div class="center">
-        <div class="bigEmoji">📇</div>
+        <div class="bigEmoji" data-icon="cards"></div>
         <h2 class="gH">Сөз карточкалары</h2>
         <p class="muted">Картаны бурап, котормосун көр жана ук. «Билем» деген сөздөр кийин сейрек, «Кайталайм» деген сөздөр тез-тез чыгат.</p>
       </div>
@@ -74,13 +76,13 @@
         <div class="fcInner">
           <div class="side front">
             <div class="fcEmoji" id="fEmoji"></div>
-            <div class="fcWord" id="fWord"></div>
+            <div class="fcWord" id="fWord" translate="no"></div>
             <div class="boxes" id="fBoxes"></div>
-            <div class="tapHint">👆 Басып бурагыла (же Пробел)</div>
+            <div class="tapHint">Басып бурагыла (же Пробел)</div>
           </div>
           <div class="side back">
             <div class="fcEmoji" id="bEmoji" style="font-size:3rem"></div>
-            <div class="tr" id="bTr"></div>
+            <div class="tr" id="bTr" translate="no"></div>
           </div>
         </div>
       </div>
@@ -103,9 +105,9 @@
     </div>
   </div>
 
-  <script src="../../shared/vocab.js?v=14"></script>
-  <script src="../../shared/progress.js?v=14"></script>
-  <script src="../../shared/game-shell.js?v=14"></script>
+  <script src="../../shared/vocab.js?v=15"></script>
+  <script src="../../shared/progress.js?v=15"></script>
+  <script src="../../shared/game-shell.js?v=15"></script>
   <script>
   (function () {
     'use strict';
@@ -207,7 +209,9 @@
       BA.saveBest('flashcards', st.knew);
       BA.sfx.win();
       $('endEmoji').innerHTML = BAShell.endIcon(st.again ? 'book' : 'trophy');
-      $('endText').innerHTML = `Билди: <b>${st.knew}</b> · Кайталоо керек: <b>${st.again}</b><br><span class="muted">Эртең кайра кир — мөөнөтү келген сөздөр биринчи чыгат.</span>`;
+      const T = BALang.t;
+      $('endText').innerHTML = T('Билди: <b>{a}</b> · Кайталоо керек: <b>{b}</b>', { a: st.knew, b: st.again }) +
+        `<br><span class="muted">${T('Эртең кайра кир — мөөнөтү келген сөздөр биринчи чыгат.')}</span>`;
       $('endModal').classList.remove('hidden');
     }
 

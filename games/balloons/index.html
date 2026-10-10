@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
   <title>Шарлар — Билим Арена</title>
-  <link rel="stylesheet" href="../../shared/game.css?v=14" />
+  <link rel="stylesheet" href="../../shared/game.css?v=15" />
   <style>
     .gWrap { max-width: 640px; }
     .balloons { display: flex; justify-content: center; gap: 6px; height: 110px; align-items: flex-end; margin-bottom: 6px; }
@@ -33,7 +33,9 @@
     .key.ok { background: var(--ok); color: #fff; }
     .key.no { background: #475569; color: #94a3b8; }
   </style>
-  <script src="../../shared/sw-register.js?v=14"></script>
+  <script src="../../shared/lang.js?v=15"></script>
+  <script src="./i18n.js?v=15"></script>
+  <script src="../../shared/sw-register.js?v=15"></script>
 </head>
 <body>
   <header class="gTop">
@@ -53,10 +55,10 @@
       <div class="balloons" id="balloons" aria-label="Калган шарлар"></div>
       <div class="clue">
         <div class="em" id="clueEmoji"></div>
-        <div class="tr" id="clueTr"></div>
+        <div class="tr" id="clueTr" translate="no"></div>
       </div>
-      <div class="slots" id="slots" aria-live="polite"></div>
-      <div class="kb" id="kb"></div>
+      <div class="slots" id="slots" translate="no" aria-live="polite"></div>
+      <div class="kb" id="kb" translate="no"></div>
     </div>
     <div class="center" style="margin-top:14px">
       <div class="chips" id="catChips" style="justify-content:center"></div>
@@ -67,15 +69,15 @@
     <div class="panel">
       <div class="bigEmoji" id="endEmoji"></div>
       <h2 class="gH" id="endTitle"></h2>
-      <p style="font-size:1.8rem;font-weight:900;letter-spacing:.1em;margin:4px 0" id="endWord"></p>
-      <p class="muted" id="endTr"></p>
+      <p style="font-size:1.8rem;font-weight:900;letter-spacing:.1em;margin:4px 0" id="endWord" translate="no"></p>
+      <p class="muted" id="endTr" translate="no"></p>
       <button class="btn primary" id="nextBtn" type="button">Кийинки сөз</button>
     </div>
   </div>
 
-  <script src="../../shared/vocab.js?v=14"></script>
-  <script src="../../shared/progress.js?v=14"></script>
-  <script src="../../shared/game-shell.js?v=14"></script>
+  <script src="../../shared/vocab.js?v=15"></script>
+  <script src="../../shared/progress.js?v=15"></script>
+  <script src="../../shared/game-shell.js?v=15"></script>
   <script>
   (function () {
     'use strict';

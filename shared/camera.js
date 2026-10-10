@@ -38,9 +38,32 @@
     return a ? a.getAttribute('href') : '../../games.html';
   }
 
+  const L = window.BALang;
+  if (L) L.add({
+    'Камерага уруксат берилген жок': ['Нет доступа к камере', 'Camera access was not allowed'],
+    'Оюн колуңду камера аркылуу көрөт. Дарек тилкесиндеги камера белгисин басып, «Уруксат берүү» тандаңыз, анан «Кайра аракет» баскычын басыңыз.':
+      ['Игра видит руку через камеру. Нажмите значок камеры в адресной строке, выберите «Разрешить», затем нажмите «Ещё раз».',
+       'The game sees your hand through the camera. Click the camera icon in the address bar, choose “Allow”, then press “Try again”.'],
+    'Камера табылган жок': ['Камера не найдена', 'No camera found'],
+    'Түзмөктө камера бар экенин жана ал туташтырылганын текшериңиз.': ['Проверьте, что у устройства есть камера и она подключена.', 'Check that the device has a camera and that it is connected.'],
+    'Камера бош эмес': ['Камера занята', 'The camera is busy'],
+    'Камераны башка программа (Zoom, Teams ж.б.) же башка өтмөк колдонуп жатат. Аны жаап, кайра аракет кылыңыз.':
+      ['Камеру использует другая программа (Zoom, Teams и т. п.) или другая вкладка. Закройте её и попробуйте ещё раз.',
+       'Another program (Zoom, Teams, etc.) or another tab is using the camera. Close it and try again.'],
+    'Камера коопсуз байланышта гана иштейт': ['Камера работает только по защищённому соединению', 'The camera works only over a secure connection'],
+    'Сайтты https:// аркылуу ачыңыз.': ['Откройте сайт через https://.', 'Open the site over https://.'],
+    'Бул браузер камераны колдобойт': ['Этот браузер не поддерживает камеру', 'This browser does not support the camera'],
+    'Chrome, Edge же Safari браузеринин жаңы версиясын колдонуңуз.': ['Используйте свежую версию Chrome, Edge или Safari.', 'Use a recent version of Chrome, Edge or Safari.'],
+    'Камера иштеген жок': ['Камера не заработала', 'The camera did not start'],
+    'Баракты жаңыртып, кайра аракет кылыңыз.': ['Обновите страницу и попробуйте ещё раз.', 'Reload the page and try again.'],
+    'Кайра аракет': ['Ещё раз', 'Try again'],
+    'Оюндар': ['Игры', 'Games']
+  });
+  const T = (s) => (L ? L.t(s) : s);
+
   function showError(reason, retry, withoutCamera) {
     hideError();
-    const [title, text] = MESSAGES[reason] || MESSAGES.other;
+    const [title, text] = (MESSAGES[reason] || MESSAGES.other).map(T);
     const box = document.createElement('div');
     box.id = 'ba-camera-error';
     box.setAttribute('role', 'alertdialog');
@@ -54,9 +77,9 @@
         '<h2 id="ba-cam-title" style="margin:0 0 8px;font-size:20px;font-weight:800;line-height:1.3">' + title + '</h2>' +
         '<p style="margin:0 0 20px;color:#667085;font-size:15px;line-height:1.5">' + text + '</p>' +
         '<div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">' +
-          '<button type="button" data-act="retry" style="' + btn + ';border:0;background:#635BFF;color:#fff">Кайра аракет</button>' +
-          (withoutCamera ? '<button type="button" data-act="without" style="' + btn + ';border:1px solid #E4E7EC;background:#fff;color:#202B46">' + withoutCamera.label + '</button>' : '') +
-          '<a href="' + backHref() + '" style="' + btn + ';border:1px solid #E4E7EC;background:#fff;color:#202B46">Оюндар</a>' +
+          '<button type="button" data-act="retry" style="' + btn + ';border:0;background:#635BFF;color:#fff">' + T('Кайра аракет') + '</button>' +
+          (withoutCamera ? '<button type="button" data-act="without" style="' + btn + ';border:1px solid #E4E7EC;background:#fff;color:#202B46">' + T(withoutCamera.label) + '</button>' : '') +
+          '<a href="' + backHref() + '" style="' + btn + ';border:1px solid #E4E7EC;background:#fff;color:#202B46">' + T('Оюндар') + '</a>' +
         '</div>' +
       '</div>';
     box.addEventListener('click', (e) => {

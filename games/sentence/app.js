@@ -40,12 +40,28 @@
     return a;
   }
 
-  /* ========= ИСПРАВЛЕННЫЕ ПРЕСЕТЫ ========= */
+  // Язык — общий для сайта (shared/lang.js); строки без таблицы I18N — через tr()
+  const tr = (s, v) => (window.BALang ? window.BALang.t(s, v) : s);
+
+  /* ========= Тексты раундов на трёх языках ========= */
   const PRESETS = {
-    text_easy: "Мышык уктап жатат. Биз үйгө бара жатабыз. Ит катуу үрүп жатат. Асман абдан ачык. Апам нан жапты.",
-    text_medium: "Бүгүн биз кунт коюп көңүл бурууну жана эс тутумду машыктырабыз. Ылдамдык маанилүү бирок тактык андан да маанилүүрөөк. Көңүл топтоп ишенимдүү аракет кыл.",
-    text_expert: "Интегралдык эсептөө математикалык анализдин маанилүү бөлүгү болуп саналат. Заманбап тиркемелерди иштеп чыгуу архитектураны кылдат пландаштырууну талап кылат."
+    ky: {
+      text_easy: "Мышык уктап жатат. Биз үйгө бара жатабыз. Ит катуу үрүп жатат. Асман абдан ачык. Апам нан жапты.",
+      text_medium: "Бүгүн биз кунт коюп көңүл бурууну жана эс тутумду машыктырабыз. Ылдамдык маанилүү бирок тактык андан да маанилүүрөөк. Көңүл топтоп ишенимдүү аракет кыл.",
+      text_expert: "Интегралдык эсептөө математикалык анализдин маанилүү бөлүгү болуп саналат. Заманбап тиркемелерди иштеп чыгуу архитектураны кылдат пландаштырууну талап кылат."
+    },
+    ru: {
+      text_easy: "Кошка спит на диване. Мы идём домой. Собака громко лает. Небо сегодня ясное. Мама испекла хлеб.",
+      text_medium: "Сегодня мы тренируем внимание и память. Скорость важна, но точность ещё важнее. Сосредоточься и действуй уверенно.",
+      text_expert: "Интегральное исчисление является важной частью математического анализа. Разработка современных приложений требует тщательного планирования архитектуры."
+    },
+    en: {
+      text_easy: "The cat is sleeping. We are going home. The dog is barking loudly. The sky is very clear. Mom baked fresh bread.",
+      text_medium: "Today we train attention and memory. Speed matters but accuracy matters even more. Stay focused and act with confidence.",
+      text_expert: "Integral calculus is an important part of mathematical analysis. Building modern applications requires careful planning of the architecture."
+    }
   };
+  const presetText = (key) => (PRESETS[getLang()] || PRESETS.ky)[key] || PRESETS.ky[key];
 
   /* ========= ИСПРАВЛЕННЫЙ I18N ========= */
   const I18N = {
@@ -97,14 +113,8 @@
   };
 
   function getLang() {
-    const saved = localStorage.getItem("ld_lang");
-    return (saved && I18N[saved]) ? saved : "ky";
-  }
-  function setLang(lang) {
-    const l = (I18N[lang]) ? lang : "ky";
-    localStorage.setItem("ld_lang", l);
-    document.documentElement.lang = l;
-    applyI18n();
+    const lang = window.BALang ? window.BALang.lang : "ky";
+    return I18N[lang] ? lang : "ky";
   }
 
   function getTheme() {
@@ -125,7 +135,7 @@
     if (UI.pauseBtn) UI.pauseBtn.textContent = Game.paused ? T.resume : T.pause;
     if (UI.startBtn) UI.startBtn.textContent = T.startBtn;
     if (UI.themeBtn) UI.themeBtn.textContent = getTheme() === "dark" ? T.themeDark : T.themeLight;
-    if (UI.openSetupBtn) UI.openSetupBtn.textContent = `${lang === 'ky' ? 'Жөндөөлөр' : (lang === 'ru' ? 'Настройки' : 'Settings')}`;
+    if (UI.openSetupBtn) UI.openSetupBtn.textContent = tr('Жөндөөлөр');
   }
 
   /* ========= UI Elements ========= */
@@ -262,7 +272,7 @@
 
   function tickGlobalTimer() {
     if (!Game.running) return;
-    if (Game.globalFrozen) return;
+    if (Game.globalFrozen || Game.paused) return;
     const remainingMs = Game.globalEndAt - now();
     UI.globalTimer.textContent = fmtInt(Math.ceil(remainingMs / 1000));
     if (remainingMs <= 0) endGame();
@@ -281,7 +291,7 @@
     if (Game.running) return;
     if (!totalRounds()) { UI.setupOverlay.classList.add("show"); return; }
     Sound.unlock(); Game.running = true; Game.paused = false;
-    UI.startBtn.classList.add("disabled"); UI.openSetupBtn.classList.add("disabled"); 
+    UI.startBtn.classList.add("disabled"); 
     hideOverlay(UI.endOverlay);
 
     for (const k of ["A", "B"]) {
@@ -290,7 +300,7 @@
     Game.globalEndAt = now() + Game.config.globalSeconds * 1000;
     tickGlobalTimer(); Game.globalTickId = setInterval(tickGlobalTimer, 200);
     startSentence("A");
-    if (Game.config.soloMode) { stopTeamTimers("B"); clearZone("B"); setNote("B", "Соло режим: играет Команда A."); } else { startSentence("B"); }
+    if (Game.config.soloMode) { stopTeamTimers("B"); clearZone("B"); setNote("B", tr("Соло режим: Команда A ойнойт.")); } else { startSentence("B"); }
   }
 
   // Вспомогательная функция: плавно накручивает счет от start до end
@@ -348,7 +358,7 @@
     
     // 3. Определяем текст победителя
     if(Game.config.soloMode) {
-      winnerLine.textContent = "Соло-режим завершён";
+      winnerLine.textContent = tr("Соло режим бүттү");
     } else {
       winnerLine.textContent = (a > b) ? T.winnerA : (b > a) ? T.winnerB : T.draw;
     }
@@ -387,18 +397,18 @@
   function startSentence(k) {
     if (!Game.running) return;
     const t = Game.teams[k]; const round = getRoundAt(t.idx);
-    if (!round) { t.phase = "done"; clearZone(k); setNote(k, "Раунды завершены."); return; }
+    if (!round) { t.phase = "done"; clearZone(k); setNote(k, I18N[getLang()].noteRoundsOver); return; }
 
     stopTeamTimers(k); clearZone(k); t.phase = "flash"; t.flashIndex = 0; t.placed = [];
     t.sentenceStartAt = now(); t.lastActionAt = now(); setRound(k);
 
     if (isMathMode()) {
       t.words = round.expr.split(" ");
-      setNote(k, `Раунд ${t.idx + 1}: ${({ ky: 'Туура жоопту танда.', en: 'Pick the right answer.' })[getLang()] || 'Выбери правильный ответ.'}`);
+      setNote(k, tr('Раунд {n}: Туура жоопту танда.', { n: t.idx + 1 }));
     } else {
       t.words = tokenize(String(round));
       t.placed = new Array(t.words.length).fill(null);
-      setNote(k, `Раунд ${t.idx + 1}: ${({ ky: 'Сөздөрдү ирети менен бас.', en: 'Tap the words in order.' })[getLang()] || 'Нажимай слова по порядку.'}`);
+      setNote(k, tr('Раунд {n}: Сөздөрдү ирети менен бас.', { n: t.idx + 1 }));
     }
     runFlash(k, t.words);
   }
@@ -424,6 +434,44 @@
     const rand = mulberry32((Game.seedBase ^ (t.idx + 1)) >>> 0);
     buildTiles(k, shuffle(t.words.slice(), rand));
     attachClickMode(k);
+    showHintButton(k, true);
+  }
+
+  /** Слово встало на место: в скрытом режиме через 2 с его не видно */
+  function placeWord(k, index, word) {
+    const t = Game.teams[k];
+    t.placed[index] = word;
+    const slot = zFor(k).slots.querySelector(`.slot[data-slot-index="${index}"]`);
+    if (!slot) return;
+    slot.textContent = word; slot.classList.add("filled", "correct");
+    if (Game.config.hiddenMode) setTimeout(() => slot.classList.add("masked"), Game.config.hideMs);
+  }
+
+  /** 3 ошибки подряд — штраф (настройка «Каталар үчүн айып») */
+  function registerWrong(k) {
+    const t = Game.teams[k];
+    t.wrongStreak++;
+    if (t.wrongStreak < 3 || !Game.config.penaltyOn3Wrong) return;
+    t.wrongStreak = 0;
+    t.score = Math.max(0, t.score - Game.config.penaltyOn3Wrong);
+    setScore(k); Sound.penalty();
+    setNote(k, tr('Айып: −{n} упай', { n: Game.config.penaltyOn3Wrong }));
+  }
+
+  /** Подсказка ставит следующее слово, но раунд приносит на 250 очков меньше */
+  function useHint(k) {
+    const t = Game.teams[k];
+    if (!Game.running || Game.paused || t.phase !== "scramble" || isMathMode()) return;
+    const index = t.placed.findIndex((v) => v === null);
+    if (index === -1) return;
+    const word = t.words[index];
+    const tile = [...zFor(k).tiles.querySelectorAll(".tile")].find((el) => el.dataset.word === word);
+    if (tile) tile.remove();
+    placeWord(k, index, word);
+    t.perSentencePoints = Math.max(250, t.perSentencePoints - 250);
+    setNote(k, tr('Кыйытма: «{w}»', { w: word }));
+    resetCombo(k);
+    checkComplete(k);
   }
 
   function startMathChoices(k) {
@@ -439,7 +487,7 @@
     const z = zFor(k); if (z.tiles.dataset.bound === "1") return;
     z.tiles.dataset.bound = "1";
     z.tiles.addEventListener("pointerdown", (ev) => {
-      if (!Game.running || Game.teams[k].phase !== "scramble") return;
+      if (!Game.running || Game.paused || Game.teams[k].phase !== "scramble") return;
       const tile = ev.target.closest(".tile"); if (!tile) return;
       ev.preventDefault(); Sound.unlock();
 
@@ -448,13 +496,12 @@
       if (nextIndex === -1) return;
 
       if (tile.dataset.word === t.words[nextIndex]) {
-        t.placed[nextIndex] = tile.dataset.word;
-        const slot = z.slots.querySelector(`.slot[data-slot-index="${nextIndex}"]`);
-        if (slot) { slot.textContent = tile.dataset.word; slot.classList.add("filled", "correct"); }
+        placeWord(k, nextIndex, tile.dataset.word);
+        t.wrongStreak = 0;
         tile.remove(); Sound.correct(); addCombo(k);
         checkComplete(k);
       } else {
-        tile.classList.add("wrong"); Sound.wrong(); resetCombo(k);
+        tile.classList.add("wrong"); Sound.wrong(); resetCombo(k); registerWrong(k);
         setTimeout(() => tile.classList.remove("wrong"), 250);
       }
     });
@@ -464,18 +511,19 @@
     const z = zFor(k); if (!z.mathOptions || z.mathOptions.dataset.bound === "1") return;
     z.mathOptions.dataset.bound = "1";
     z.mathOptions.addEventListener("pointerdown", (ev) => {
-      if (!Game.running || Game.teams[k].phase !== "scramble") return;
+      if (!Game.running || Game.paused || Game.teams[k].phase !== "scramble") return;
       const btn = ev.target.closest(".mathBtn"); if (!btn) return;
       ev.preventDefault(); Sound.unlock();
 
       if(Number(btn.dataset.value) === Game.mathRounds[Game.teams[k].idx].answer){
+        Game.teams[k].wrongStreak = 0;
         Sound.correct(); 
         addCombo(k); 
         
         Game.teams[k].phase = "done"; // БЛОКИРУЕМ ДВОЙНОЙ КЛИК
         finishSentence(k);
       } else {
-        Sound.wrong(); resetCombo(k);
+        Sound.wrong(); resetCombo(k); registerWrong(k);
         btn.style.background = "var(--error)"; setTimeout(() => btn.style.background = "", 200);
       }
     });
@@ -518,7 +566,85 @@
     startSentence(k);
   }
 
+  // ─── Управление ходом игры ────────────────────────────────────────────────
+  /** Пауза: стоят общий таймер, показ слов и ответы обеих команд */
+  function togglePause() {
+    if (!Game.running) return;
+    if (!Game.paused) {
+      Game.paused = true; Game.pausedAt = now();
+      for (const k of ["A", "B"]) stopTeamTimers(k);
+    } else {
+      const shift = now() - Game.pausedAt;
+      Game.paused = false;
+      if (!Game.globalFrozen) Game.globalEndAt += shift;
+      for (const k of ["A", "B"]) {
+        const t = Game.teams[k];
+        if (t.phase === "flash") runFlash(k, t.words);
+      }
+    }
+    document.body.classList.toggle("paused", Game.paused);
+    applyI18n();
+  }
+
+  /** Заморозка общего времени — команды продолжают играть */
+  function toggleFreeze() {
+    if (!Game.running) return;
+    if (!Game.globalFrozen) {
+      Game.frozenRemainingMs = Math.max(0, Game.globalEndAt - now());
+      Game.globalFrozen = true;
+    } else {
+      Game.globalEndAt = now() + Game.frozenRemainingMs;
+      Game.globalFrozen = false;
+    }
+    UI.freezeBtn.textContent = tr(Game.globalFrozen ? "Убакытты улантуу" : "Убакытты токтотуу");
+  }
+
+  function skipRound(k) {
+    if (!Game.running || (Game.config.soloMode && k === "B")) return;
+    const t = Game.teams[k];
+    if (t.idx >= totalRounds()) return;
+    stopTeamTimers(k);
+    t.idx++;
+    resetCombo(k);
+    if (t.idx >= totalRounds()) {
+      t.phase = "done"; clearZone(k); setNote(k, I18N[getLang()].noteRoundsOver);
+      const doneA = Game.teams.A.idx >= totalRounds();
+      const doneB = Game.config.soloMode || Game.teams.B.idx >= totalRounds();
+      if (doneA && doneB) endGame();
+      return;
+    }
+    startSentence(k);
+    setNote(k, tr("Раунд өткөрүлдү."));
+  }
+
+  function restartRound() {
+    if (!Game.running) return;
+    for (const k of Game.config.soloMode ? ["A"] : ["A", "B"]) {
+      const t = Game.teams[k];
+      if (t.idx < totalRounds()) { t.perSentencePoints = 1000; t.wrongStreak = 0; startSentence(k); }
+    }
+  }
+
+  /** Полный сброс: игра останавливается, очки обнуляются */
+  function hardReset() {
+    clearInterval(Game.globalTickId);
+    Game.running = false; Game.paused = false; Game.globalFrozen = false;
+    document.body.classList.remove("paused");
+    for (const k of ["A", "B"]) {
+      stopTeamTimers(k);
+      Game.teams[k] = mkTeamState(k); setScore(k); setRound(k); resetCombo(k); clearZone(k);
+      setNote(k, tr("Оюн тазаланды. Жөндөөлөрдү ырастап, «Башта» басыңыз."));
+    }
+    UI.globalTimer.textContent = String(Game.config.globalSeconds);
+    UI.freezeBtn.textContent = tr("Убакытты токтотуу");
+    UI.startBtn.classList.remove("disabled"); UI.openSetupBtn.classList.remove("disabled");
+    hideOverlay(UI.endOverlay);
+    applyI18n();
+  }
+
   function applySetup() {
+    // Во время игры тексты раундов не меняются — применяются только правила
+    if (Game.running) { hideOverlay(UI.setupOverlay); return; }
     if (isMathMode()) { Game.mathRounds = buildMathRounds(10); Game.sentences = []; }
     else {
       const text = UI.textInput.value.trim();
@@ -556,14 +682,35 @@
     UI.speedRange.addEventListener("input", () => { Game.config.baseFlashMs = Number(UI.speedRange.value); UI.speedVal.textContent = UI.speedRange.value; });
     UI.timeRange.addEventListener("input", () => { Game.config.globalSeconds = Number(UI.timeRange.value); UI.timeVal.textContent = UI.timeRange.value; });
 
-    UI.presetSelect.addEventListener("change", () => { if (UI.presetSelect.value !== "custom") UI.textInput.value = PRESETS[UI.presetSelect.value]; });
+    UI.presetSelect.addEventListener("change", () => { if (UI.presetSelect.value !== "custom") UI.textInput.value = presetText(UI.presetSelect.value); });
+    UI.penaltyRange.addEventListener("input", () => { Game.config.penaltyOn3Wrong = Number(UI.penaltyRange.value); UI.penaltyVal.textContent = UI.penaltyRange.value; });
 
-    UI.soloBtn.addEventListener("click", () => { Game.config.soloMode = !Game.config.soloMode; UI.soloBtn.textContent = Game.config.soloMode ? "Күйүк" : "Өчүк"; document.body.classList.toggle("solo", Game.config.soloMode); });
+    // Переключатели: подпись «Күйүк / Өчүк» и класс .on
+    const toggle = (btn, on) => { btn.classList.toggle("on", on); btn.textContent = tr(on ? "Күйүк" : "Өчүк"); btn.setAttribute("aria-pressed", String(on)); };
+    UI.soloBtn.addEventListener("click", () => { Game.config.soloMode = !Game.config.soloMode; toggle(UI.soloBtn, Game.config.soloMode); document.body.classList.toggle("solo", Game.config.soloMode); });
+    UI.comboBtn.addEventListener("click", () => {
+      Game.config.comboEnabled = !Game.config.comboEnabled; toggle(UI.comboBtn, Game.config.comboEnabled);
+      if (!Game.config.comboEnabled) { resetCombo("A"); resetCombo("B"); }
+    });
+    UI.hiddenBtn.addEventListener("click", () => { Game.config.hiddenMode = !Game.config.hiddenMode; toggle(UI.hiddenBtn, Game.config.hiddenMode); });
+    UI.soundBtn.addEventListener("click", () => { Sound.enabled = !Sound.enabled; toggle(UI.soundBtn, Sound.enabled); });
+    [[UI.soloBtn, Game.config.soloMode], [UI.comboBtn, Game.config.comboEnabled], [UI.hiddenBtn, Game.config.hiddenMode], [UI.soundBtn, Sound.enabled]]
+      .forEach(([btn, on]) => toggle(btn, on));
+
+    UI.teamA.hintBtn.addEventListener("click", () => useHint("A"));
+    UI.teamB.hintBtn.addEventListener("click", () => useHint("B"));
+    UI.pauseBtn.addEventListener("click", togglePause);
+    UI.freezeBtn.addEventListener("click", toggleFreeze);
+    UI.skipA.addEventListener("click", () => skipRound("A"));
+    UI.skipB.addEventListener("click", () => skipRound("B"));
+    UI.resetBtn.addEventListener("click", restartRound);
+    UI.hardResetBtn.addEventListener("click", hardReset);
     UI.modeSelect.addEventListener("change", () => { Game.config.mode = UI.modeSelect.value; document.body.classList.toggle("mode-math", isMathMode()); });
 
     UI.applyBtn.addEventListener("click", applySetup);
     UI.startBtn.addEventListener("click", startGame);
-    UI.openSetupBtn.addEventListener("click", () => { if (!Game.running) showOverlay(UI.setupOverlay); });
+    // Панель открывается и во время игры: там пропуск раунда, заморозка времени и сброс
+    UI.openSetupBtn.addEventListener("click", () => showOverlay(UI.setupOverlay));
     UI.closeSetupBtn.addEventListener("click", () => hideOverlay(UI.setupOverlay));
     UI.closeEndBtn.addEventListener("click", () => hideOverlay(UI.endOverlay));
     UI.replayBtn.addEventListener("click", () => { hideOverlay(UI.endOverlay); startGame(); });

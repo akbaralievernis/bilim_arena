@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
   <title>Сөз жамгыры — Билим Арена</title>
-  <link rel="stylesheet" href="../../shared/game.css?v=14" />
+  <link rel="stylesheet" href="../../shared/game.css?v=15" />
   <style>
     .gWrap { max-width: 720px; padding-bottom: 20px; }
     .sky {
@@ -35,7 +35,9 @@
     .lives { letter-spacing: 2px; }
     .pauseCover { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(2,6,23,.55); font-size: 1.4rem; font-weight: 900; color: #fff; }
   </style>
-  <script src="../../shared/sw-register.js?v=14"></script>
+  <script src="../../shared/lang.js?v=15"></script>
+  <script src="./i18n.js?v=15"></script>
+  <script src="../../shared/sw-register.js?v=15"></script>
 </head>
 <body>
   <header class="gTop">
@@ -48,7 +50,7 @@
 
   <main class="gWrap">
     <section id="setup" class="panel center">
-      <div class="bigEmoji">🌧️</div>
+      <div class="bigEmoji" data-icon="rain"></div>
       <h2 class="gH">Сөз жамгыры</h2>
       <p class="muted">Асмандан сөздөр түшөт! Жерге жеткиче туура котормону бас. Ар бир 5 туура жооп — ылдамдык жогорулайт. 3 жан бар.</p>
       <div class="setupGrid">
@@ -57,7 +59,7 @@
       </div>
       <p class="muted" id="bestLine"></p>
       <button class="btn primary big" id="startBtn" type="button">Баштоо</button>
-      <p class="muted" style="font-size:.85rem">⌨️ Клавиатура: 1, 2, 3, 4 баскычтары</p>
+      <p class="muted" style="font-size:.85rem">Клавиатура: 1, 2, 3, 4 баскычтары</p>
     </section>
 
     <section id="game" class="hidden">
@@ -65,16 +67,16 @@
         <div class="stat"><b id="score">0</b><span>Упай</span></div>
         <div class="stat"><b id="combo">x1</b><span>Комбо</span></div>
         <div class="stat"><b id="level">1</b><span>Деңгээл</span></div>
-        <div class="stat"><b class="lives" id="lives">❤️❤️❤️</b><span>Жан</span></div>
+        <div class="stat"><b class="lives" id="lives"></b><span>Жан</span></div>
       </div>
-      <div class="sky" id="sky"><div class="ground"></div></div>
-      <div class="answers" id="answers"></div>
+      <div class="sky" id="sky" translate="no"><div class="ground"></div></div>
+      <div class="answers" id="answers" translate="no"></div>
     </section>
   </main>
 
   <div class="modal hidden" id="endModal">
     <div class="panel">
-      <div class="bigEmoji">🏁</div>
+      <div class="bigEmoji" data-icon="flag"></div>
       <h2 class="gH">Оюн бүттү!</h2>
       <p style="font-size:2rem;font-weight:900;margin:0" id="endScore">0</p>
       <p class="muted" id="endText"></p>
@@ -86,9 +88,9 @@
     </div>
   </div>
 
-  <script src="../../shared/vocab.js?v=14"></script>
-  <script src="../../shared/progress.js?v=14"></script>
-  <script src="../../shared/game-shell.js?v=14"></script>
+  <script src="../../shared/vocab.js?v=15"></script>
+  <script src="../../shared/progress.js?v=15"></script>
+  <script src="../../shared/game-shell.js?v=15"></script>
   <script>
   (function () {
     'use strict';
@@ -233,11 +235,12 @@
       const record = BA.saveBest('word-rain', st.score);
       BA.addXP('word-rain', Math.round(st.right * 3 + st.score / 20));
       if (record && st.score > 0) { BA.sfx.win(); BA.confetti(); } else BA.sfx.lose();
-      $('endScore').textContent = st.score + ' упай';
-      $('endText').textContent = `${st.right} туура жооп · деңгээл ${st.level}${record && st.score > 0 ? ' · Жаңы рекорд!' : ''}`;
+      const T = BALang.t;
+      $('endScore').textContent = T('{n} упай', { n: st.score });
+      $('endText').textContent = T('{a} туура жооп · деңгээл {b}', { a: st.right, b: st.level }) + (record && st.score > 0 ? ' · ' + T('Жаңы рекорд!') : '');
       $('mistakes').innerHTML = st.mistakes.length
-        ? '<div class="fieldLabel">📌 Кайталап ал:</div>' + st.mistakes.map((w) =>
-            `<div>${w.emoji} <b>${w.ky}</b> — ${w.ru} — ${w.en}</div>`).join('')
+        ? '<div class="fieldLabel">' + T('Кайталап ал:') + '</div>' + st.mistakes.map((w) =>
+            `<div translate="no">${w.emoji} <b>${w.ky}</b> — ${w.ru} — ${w.en}</div>`).join('')
         : '';
       $('endModal').classList.remove('hidden');
       showBest();
@@ -249,7 +252,7 @@
       $('pauseBtn').innerHTML = st.paused ? ICON_PLAY : ICON_PAUSE;
       const sky = $('sky');
       const c = sky.querySelector('.pauseCover');
-      if (st.paused && !c) { const p = document.createElement('div'); p.className = 'pauseCover'; p.textContent = 'Тыным'; sky.appendChild(p); }
+      if (st.paused && !c) { const p = document.createElement('div'); p.className = 'pauseCover'; p.textContent = BALang.t('Тыным'); sky.appendChild(p); }
       if (!st.paused && c) c.remove();
     }
 

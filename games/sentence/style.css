@@ -208,6 +208,10 @@ body {
 }
 
 /* Buttons */
+.settingHint { display: block; font-size: .78rem; font-weight: 500; margin-top: 2px; }
+.slot.masked { color: transparent; position: relative; }
+.slot.masked::after { content: '•••'; position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted, #8a93a6); }
+
 .btn,
 .tbtn,
 .toggle {

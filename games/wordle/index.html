@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
   <title>Сөз табышмак — Билим Арена</title>
-  <link rel="stylesheet" href="../../shared/game.css?v=14" />
+  <link rel="stylesheet" href="../../shared/game.css?v=15" />
   <style>
     .gWrap { max-width: 560px; }
     .modeRow { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
@@ -37,9 +37,14 @@
     .key.kg { outline: 2px solid var(--primary); outline-offset: -2px; }
     .hintBox { text-align: center; min-height: 26px; margin-bottom: 10px; font-weight: 700; }
     .legend { display: flex; gap: 12px; justify-content: center; font-size: .8rem; margin-top: 14px; flex-wrap: wrap; }
+    .legendList { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 8px; }
+    .legendList li { display: flex; align-items: center; gap: 10px; }
+    .legendList i { flex: none; width: 22px; height: 22px; border-radius: 6px; }
     .legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 4px; }
   </style>
-  <script src="../../shared/sw-register.js?v=14"></script>
+  <script src="../../shared/lang.js?v=15"></script>
+  <script src="./i18n.js?v=15"></script>
+  <script src="../../shared/sw-register.js?v=15"></script>
 </head>
 <body>
   <header class="gTop">
@@ -57,8 +62,8 @@
       <button class="chipBtn" id="hintBtn" type="button">Кыйытма</button>
     </div>
     <div class="hintBox" id="msg" aria-live="polite"></div>
-    <div class="grid" id="grid"></div>
-    <div class="kb" id="kb"></div>
+    <div class="grid" id="grid" translate="no"></div>
+    <div class="kb" id="kb" translate="no"></div>
     <div class="legend muted">
       <span><i style="background:var(--ok)"></i>Туура орунда</span>
       <span><i style="background:var(--warn)"></i>Сөздө бар, бирок башка орунда</span>
@@ -69,10 +74,14 @@
   <div class="modal hidden" id="helpModal">
     <div class="panel" style="text-align:left">
       <h2 class="gH">Кантип ойнойт?</h2>
-      <p>Жашыруун <b>5 тамгалуу</b> кыргыз сөзүн <b>6 аракетте</b> табыңыз.</p>
+      <p>Жашыруун 5 тамгалуу кыргыз сөзүн 6 аракетте табыңыз.</p>
       <p>Ар бир аракеттен кийин тамгалардын түсү өзгөрөт:</p>
-      <p>🟩 — тамга туура жана туура орунда.<br>🟨 — тамга сөздө бар, бирок башка орунда.<br>⬛ — бул тамга сөздө жок.</p>
-      <p class="muted">💡 Кыйытма сөздүн орусча жана англисче маанисин көрсөтөт (упай азыраак болот). Ң, Ө, Ү тамгаларын унутпаңыз!</p>
+      <ul class="legendList">
+        <li><i style="background:var(--ok)"></i><span>тамга туура жана туура орунда.</span></li>
+        <li><i style="background:var(--warn)"></i><span>тамга сөздө бар, бирок башка орунда.</span></li>
+        <li><i style="background:#475569"></i><span>бул тамга сөздө жок.</span></li>
+      </ul>
+      <p class="muted">Кыйытма сөздүн орусча жана англисче маанисин көрсөтөт (упай азыраак болот). Ң, Ө, Ү тамгаларын унутпаңыз!</p>
       <div class="center"><button class="btn primary" id="helpClose" type="button">Түшүндүм!</button></div>
     </div>
   </div>
@@ -81,8 +90,8 @@
     <div class="panel">
       <div class="bigEmoji" id="endEmoji"></div>
       <h2 class="gH" id="endTitle"></h2>
-      <p style="font-size:1.6rem;font-weight:900;letter-spacing:.15em" id="endWord"></p>
-      <p class="muted" id="endMeaning"></p>
+      <p style="font-size:1.6rem;font-weight:900;letter-spacing:.15em" id="endWord" translate="no"></p>
+      <p class="muted" id="endMeaning" translate="no"></p>
       <p id="endStats"></p>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
         <button class="btn" id="shareBtn" type="button">Натыйжаны көчүрүү</button>
@@ -91,8 +100,8 @@
     </div>
   </div>
 
-  <script src="../../shared/progress.js?v=14"></script>
-  <script src="../../shared/game-shell.js?v=14"></script>
+  <script src="../../shared/progress.js?v=15"></script>
+  <script src="../../shared/game-shell.js?v=15"></script>
   <script>
   (function () {
     'use strict';
@@ -162,8 +171,8 @@
           b.type = 'button';
           b.className = 'key' + (k.length > 1 ? ' wide' : '') + (KG.has(k) ? ' kg' : '');
           b.dataset.k = k;
-          b.textContent = k === 'ENTER' ? 'ТЕКШЕР' : k === 'BACK' ? '⌫' : k;
-          b.setAttribute('aria-label', k === 'ENTER' ? 'Текшерүү' : k === 'BACK' ? 'Өчүрүү' : k);
+          b.textContent = k === 'ENTER' ? BALang.t('ТЕКШЕР') : k === 'BACK' ? '⌫' : k;
+          b.setAttribute('aria-label', k === 'ENTER' ? BALang.t('Текшерүү') : k === 'BACK' ? BALang.t('Өчүрүү') : k);
           b.addEventListener('click', () => press(k));
           row.appendChild(b);
         });
@@ -262,7 +271,7 @@
     function end(won, replay) {
       const word = st.word.join('');
       $('endEmoji').innerHTML = BAShell.endIcon(won ? 'trophy' : 'target');
-      $('endTitle').textContent = won ? `Таптың! (${st.row}/6)` : 'Бул жолу болгон жок';
+      $('endTitle').textContent = won ? BALang.t('Таптың! ({n}/6)', { n: st.row }) : BALang.t('Бул жолу болгон жок');
       $('endWord').textContent = word.toUpperCase();
       $('endMeaning').textContent = `RU: ${st.ru} · EN: ${st.en}`;
       if (!replay) {
@@ -279,13 +288,13 @@
         window.BA.speak(st.en, 'en');
       }
       $('endStats').textContent = daily ? 'Эртең жаңы күндүн сөзү чыгат! Азыр эркин оюн ойноп көр.' : '';
-      $('msg').textContent = won ? 'Азаматсың!' : `Сөз: ${word.toUpperCase()}`;
+      $('msg').textContent = won ? BALang.t('Азаматсың!') : BALang.t('Сөз: {w}', { w: word.toUpperCase() });
       $('endModal').classList.remove('hidden');
     }
 
     function share() {
       const map = { g: '🟩', y: '🟨', x: '⬛' };
-      const txt = `Билим Арена — Сөз табышмак ${st.over && st.results[st.results.length - 1].every((r) => r === 'g') ? st.row : 'X'}/6\n` +
+      const txt = `${BALang.t('Билим Арена — Сөз табышмак')} ${st.over && st.results[st.results.length - 1].every((r) => r === 'g') ? st.row : 'X'}/6\n` +
         st.results.map((r) => r.map((c) => map[c]).join('')).join('\n');
       const done = () => window.BA.toast('Көчүрүлдү!');
       if (navigator.clipboard) navigator.clipboard.writeText(txt).then(done, () => window.BA.toast(txt.replace(/\n/g, '<br>')));
@@ -307,7 +316,7 @@
     $('hintBtn').addEventListener('click', () => {
       if (!st || st.over) return;
       st.hint = true;
-      $('msg').textContent = `Мааниси: RU: ${st.ru} · EN: ${st.en}`;
+      $('msg').textContent = BALang.t('Мааниси: RU: {a} · EN: {b}', { a: st.ru, b: st.en });
     });
     $('helpBtn').addEventListener('click', () => $('helpModal').classList.remove('hidden'));
     $('helpClose').addEventListener('click', () => $('helpModal').classList.add('hidden'));

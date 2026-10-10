@@ -44,18 +44,40 @@
     return { level, into: rest, need, pct: Math.round((rest / need) * 100) };
   }
 
+  // Перевод строк этого файла для отдельных игр (shared/lang.js)
+  const L = window.BALang;
+  if (L) L.add({
+    'Жаңы окуучу': ['Новичок', 'Newcomer'],
+    'Изденүүчү': ['Искатель', 'Seeker'],
+    'Билимкана': ['Знаток', 'Scholar'],
+    'Акылман': ['Мудрец', 'Sage'],
+    'Чечен': ['Оратор', 'Orator'],
+    'Устат': ['Мастер', 'Master'],
+    'Манасчы': ['Манасчы', 'Manaschi'],
+    'Билим баатыры': ['Герой знаний', 'Hero of knowledge'],
+    'Биринчи кадам': ['Первый шаг', 'First step'],
+    '3 күн катары менен': ['3 дня подряд', '3 days in a row'],
+    'Бир жума катары менен': ['Неделя подряд', 'A week in a row'],
+    '25 сөз үйрөндүм': ['Выучено 25 слов', '25 words learned'],
+    '100 сөз үйрөндүм': ['Выучено 100 слов', '100 words learned'],
+    '5 түрдүү оюн ойноду': ['Сыграно 5 разных игр', 'Played 5 different games'],
+    'Жаңы деңгээл: <b>{n}</b> — {title}': ['Новый уровень: <b>{n}</b> — {title}', 'New level: <b>{n}</b> — {title}'],
+    'Жаңы белги: <b>{title}</b>': ['Новый значок: <b>{title}</b>', 'New badge: <b>{title}</b>']
+  });
+  const T = (s, v) => (L ? L.t(s, v) : s.replace(/\{(\w+)\}/g, (m, k) => (v && v[k] !== undefined ? v[k] : m)));
+
   const TITLES = ['Жаңы окуучу', 'Изденүүчү', 'Билимкана', 'Акылман', 'Чечен', 'Устат', 'Манасчы', 'Билим баатыры'];
   const titleFor = (lvl) => TITLES[Math.min(TITLES.length - 1, Math.floor((lvl - 1) / 2))];
 
   const BADGES = [
-    { id: 'first', icon: '🎉', title: 'Биринчи кадам', test: (d) => d.xp > 0 },
-    { id: 'xp500', icon: '⭐', title: '500 XP', test: (d) => d.xp >= 500 },
-    { id: 'xp2000', icon: '🌟', title: '2000 XP', test: (d) => d.xp >= 2000 },
-    { id: 'streak3', icon: '🔥', title: '3 күн катары менен', test: (d) => d.streak >= 3 },
-    { id: 'streak7', icon: '🏆', title: 'Бир жума катары менен', test: (d) => d.streak >= 7 },
-    { id: 'words25', icon: '📗', title: '25 сөз үйрөндүм', test: (d) => learnedCount(d) >= 25 },
-    { id: 'words100', icon: '📚', title: '100 сөз үйрөндүм', test: (d) => learnedCount(d) >= 100 },
-    { id: 'explorer', icon: '🧭', title: '5 түрдүү оюн ойноду', test: (d) => Object.keys(d.games).length >= 5 }
+    { id: 'first', icon: 'flag', title: 'Биринчи кадам', test: (d) => d.xp > 0 },
+    { id: 'xp500', icon: 'star', title: '500 XP', test: (d) => d.xp >= 500 },
+    { id: 'xp2000', icon: 'star', title: '2000 XP', test: (d) => d.xp >= 2000 },
+    { id: 'streak3', icon: 'flame', title: '3 күн катары менен', test: (d) => d.streak >= 3 },
+    { id: 'streak7', icon: 'trophy', title: 'Бир жума катары менен', test: (d) => d.streak >= 7 },
+    { id: 'words25', icon: 'book', title: '25 сөз үйрөндүм', test: (d) => learnedCount(d) >= 25 },
+    { id: 'words100', icon: 'book', title: '100 сөз үйрөндүм', test: (d) => learnedCount(d) >= 100 },
+    { id: 'explorer', icon: 'compass', title: '5 түрдүү оюн ойноду', test: (d) => Object.keys(d.games).length >= 5 }
   ];
 
   function learnedCount(d) {
@@ -250,8 +272,8 @@
       toPlatform(gameId, { xp: amount, legacyXpBefore: d.xp - amount });
       const after = levelInfo(d.xp).level;
       toast(`+${amount} XP`);
-      if (after > before) { setTimeout(() => toast(`Жаңы деңгээл: <b>${after}</b> — ${titleFor(after)}`), 700); sfx.win(); }
-      fresh.forEach((b, i) => setTimeout(() => toast(`Жаңы белги: <b>${b.title}</b>`), 1400 + i * 700));
+      if (after > before) { setTimeout(() => toast(T('Жаңы деңгээл: <b>{n}</b> — {title}', { n: after, title: T(titleFor(after)) })), 700); sfx.win(); }
+      fresh.forEach((b, i) => setTimeout(() => toast(T('Жаңы белги: <b>{title}</b>', { title: T(b.title) })), 1400 + i * 700));
     },
 
     /** Оюн бүткөндө чакырылат. Жаңы рекорд болсо true кайтарат */

@@ -5,7 +5,57 @@
 (function () {
   'use strict';
 
+  // Общие строки отдельных игр (перевод — shared/lang.js)
+  const L = window.BALang;
+  const T = (s, v) => (L ? L.t(s, v) : s);
+  if (L) L.add({
+    'Оюндар': ['Игры', 'Games'],
+    'Үн': ['Звук', 'Sound'],
+    'Эреже': ['Правила', 'Rules'],
+    'Тил': ['Язык', 'Language'],
+    'Тема': ['Тема', 'Topic'],
+    'Деңгээл': ['Уровень', 'Level'],
+    'Баштоо': ['Начать', 'Start'],
+    'Баары': ['Все', 'All'],
+    'Упай': ['Очки', 'Points'],
+    'Убакыт': ['Время', 'Time'],
+    'Раунд': ['Раунд', 'Round'],
+    'Жөндөө': ['Настройки', 'Settings'],
+    'Дагы ойноо': ['Играть ещё', 'Play again'],
+    'Жабуу': ['Закрыть', 'Close'],
+    'Тыным': ['Пауза', 'Pause'],
+    'Угуу': ['Послушать', 'Listen'],
+    'Жаңы рекорд!': ['Новый рекорд!', 'New record!'],
+    'Рекорд: {n}': ['Рекорд: {n}', 'Best: {n}'],
+    '{n} упай': ['Очки: {n}', '{n} points'],
+    'Азаматсың!': ['Молодец!', 'Well done!'],
+    'Көчүрүлдү!': ['Скопировано!', 'Copied!'],
+    // Языковые пары
+    'Кыргызча → Орусча': ['Кыргызский → Русский', 'Kyrgyz → Russian'],
+    'Кыргызча → Англисче': ['Кыргызский → Английский', 'Kyrgyz → English'],
+    'Орусча → Кыргызча': ['Русский → Кыргызский', 'Russian → Kyrgyz'],
+    'Англисче → Кыргызча': ['Английский → Кыргызский', 'English → Kyrgyz'],
+    'Сүрөт → Кыргызча': ['Картинка → Кыргызский', 'Picture → Kyrgyz'],
+    'Сүрөт → Англисче': ['Картинка → Английский', 'Picture → English'],
+    // Темы словаря
+    'Жаныбарлар': ['Животные', 'Animals'],
+    'Тамак-аш': ['Еда', 'Food'],
+    'Түстөр': ['Цвета', 'Colours'],
+    'Үй-бүлө': ['Семья', 'Family'],
+    'Дене мүчөлөрү': ['Части тела', 'Body parts'],
+    'Мектеп': ['Школа', 'School'],
+    'Табият': ['Природа', 'Nature'],
+    'Сандар': ['Числа', 'Numbers'],
+    'Этиштер': ['Глаголы', 'Verbs'],
+    'Үй жана буюмдар': ['Дом и вещи', 'Home and things']
+  });
+
   // Тема (порталдагы тандоо менен бирдей ачкыч)
+  /** Значки вместо эмодзи: <div class="bigEmoji" data-icon="cards"></div> */
+  function bigIcons() {
+    document.querySelectorAll('[data-icon]').forEach((el) => { el.innerHTML = endIcon(el.dataset.icon); });
+  }
+
   function applyTheme() {
     // Платформа использует один светлый интерфейс
     const t = 'light';
@@ -33,7 +83,7 @@
   function backButtons() {
     document.querySelectorAll('a.iconBtn[href$="games.html"]').forEach((a) => {
       a.innerHTML = ICON_BACK;
-      a.setAttribute('aria-label', 'Оюндар');
+      a.setAttribute('aria-label', T('Оюндар'));
     });
   }
 
@@ -41,6 +91,7 @@
     applyTheme();
     soundLabel();
     backButtons();
+    bigIcons();
     const tb = document.getElementById('themeBtn');
     if (tb) tb.addEventListener('click', () => {
       const light = document.body.classList.contains('light');
@@ -99,7 +150,11 @@
     trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4"/><path d="M12 13v4M8.5 20h7"/>',
     star: '<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8-4.3-4.1 5.9-.9z"/>',
     target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/>',
-    book: '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23"/>'
+    book: '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23"/>',
+    cards: '<rect x="3" y="6" width="11" height="15" rx="2"/><path d="M8 3h11a2 2 0 0 1 2 2v13"/>',
+    grid: '<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>',
+    rain: '<path d="M7 15a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 7.5a3.75 3.75 0 0 1 .5 7.5"/><path d="M8 18l-1 2.5M12 17l-1 3.5M16 18l-1 2.5"/>',
+    flag: '<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>'
   };
   function endIcon(name) {
     return '<svg class="end-icon" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (END[name] || END.star) + '</svg>';

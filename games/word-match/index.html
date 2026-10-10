@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
   <title>Жупташтыр — Билим Арена</title>
-  <link rel="stylesheet" href="../../shared/game.css?v=14" />
+  <link rel="stylesheet" href="../../shared/game.css?v=15" />
   <style>
     .board { display: grid; gap: 10px; grid-template-columns: repeat(var(--cols, 4), 1fr); perspective: 1000px; }
     .mcard { position: relative; aspect-ratio: 3 / 4; border: 0; padding: 0; background: none; }
@@ -22,19 +22,21 @@
     .learned { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 12px 0; }
     .learned span { background: var(--card-strong); border: 1px solid var(--line); border-radius: 10px; padding: 4px 10px; font-size: .9rem; }
   </style>
-  <script src="../../shared/sw-register.js?v=14"></script>
+  <script src="../../shared/lang.js?v=15"></script>
+  <script src="./i18n.js?v=15"></script>
+  <script src="../../shared/sw-register.js?v=15"></script>
 </head>
 <body>
   <header class="gTop">
     <a class="iconBtn" href="../../games.html" aria-label="Оюндар"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M15 5l-7 7 7 7"/></svg></a>
-    <div class="title">🃏 Жупташтыр <small>Сөз менен анын котормосун тап</small></div>
+    <div class="title">Жупташтыр <small>Сөз менен анын котормосун тап</small></div>
     <button class="iconBtn" id="soundBtn" type="button" aria-label="Үн"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></button>
     <button class="iconBtn" id="themeBtn" type="button" aria-label="Тема" hidden></button>
   </header>
 
   <main class="gWrap">
     <section id="setup" class="panel center">
-      <div class="bigEmoji">🃏</div>
+      <div class="bigEmoji" data-icon="grid"></div>
       <h2 class="gH">Жупташтыр</h2>
       <p class="muted">Карточкаларды ачып, сөз менен анын котормосун жупташтыр. Аз аракет — көп жылдыз!</p>
       <div class="setupGrid">
@@ -51,16 +53,16 @@
         <div class="stat"><b id="moves">0</b><span>Аракет</span></div>
         <div class="stat"><b id="time">0:00</b><span>Убакыт</span></div>
       </div>
-      <div class="board" id="board"></div>
+      <div class="board" id="board" translate="no"></div>
     </section>
   </main>
 
   <div class="modal hidden" id="endModal">
     <div class="panel">
-      <div class="bigEmoji" id="endStars">⭐⭐⭐</div>
+      <div class="bigEmoji" id="endStars"></div>
       <h2 class="gH">Азаматсың!</h2>
       <p class="muted" id="endText"></p>
-      <div class="learned" id="learnedList"></div>
+      <div class="learned" id="learnedList" translate="no"></div>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
         <button class="btn" id="menuBtn" type="button">Жөндөө</button>
         <button class="btn primary" id="againBtn" type="button">Дагы ойноо</button>
@@ -68,9 +70,9 @@
     </div>
   </div>
 
-  <script src="../../shared/vocab.js?v=14"></script>
-  <script src="../../shared/progress.js?v=14"></script>
-  <script src="../../shared/game-shell.js?v=14"></script>
+  <script src="../../shared/vocab.js?v=15"></script>
+  <script src="../../shared/progress.js?v=15"></script>
+  <script src="../../shared/game-shell.js?v=15"></script>
   <script>
   (function () {
     'use strict';
@@ -190,7 +192,9 @@
       window.BA.confetti();
       $('endStars').innerHTML = [0, 1, 2].map((i) => { const f = i < stars ? '#FFB547' : 'none'; return '<svg width="28" height="28" viewBox="0 0 24 24" fill="' + f + '" stroke="#E0A100" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8-4.3-4.1 5.9-.9z"/></svg>'; }).join('');
       $('endStars').setAttribute('aria-label', `${stars}/3`);
-      $('endText').innerHTML = `${st.moves} аракет · ${fmt(st.secs)} · <b>${score}</b> упай${record ? ' · Жаңы рекорд!' : ''}`;
+      const T = BALang.t;
+      $('endText').innerHTML = [T('{n} аракет', { n: st.moves }), fmt(st.secs), T('<b>{n}</b> упай', { n: score })]
+        .concat(record ? [T('Жаңы рекорд!')] : []).join(' · ');
       const [from, to] = cfg.pair.split('-');
       $('learnedList').innerHTML = st.words.map((w) =>
         `<span>${w.emoji} ${from === 'emoji' ? '' : w[from] + ' — '}${w[to]}</span>`).join('');
