@@ -77,5 +77,110 @@ export default [
     ],
     correct: 1,
     explain: L('Соттор мыйзамдарды колдонуп, талаштарды чечет — мыйзамды кабыл алышпайт.', 'Суды применяют законы и решают споры, но не принимают законы.', 'Courts apply laws and settle disputes; they do not pass laws.')
+  },
+  {
+    id: "so20", skill: "state", difficulty: 1, type: "choice",
+    prompt: {"ky": "Кыргызстандын негизги мыйзамы кайсы?", "ru": "Какой закон — основной закон Кыргызстана?", "en": "What is the main law of Kyrgyzstan?"},
+    options: [
+      {"ky": "Конституция", "ru": "Конституция", "en": "The Constitution"},
+      {"ky": "Кодекс", "ru": "Кодекс", "en": "A code"},
+      {"ky": "Жарлык", "ru": "Указ", "en": "A decree"},
+      {"ky": "Буйрук", "ru": "Приказ", "en": "An order"}
+    ], correct: 0,
+    explain: {"ky": "Башка мыйзамдар Конституцияга карама-каршы келбеши керек.", "ru": "Другие законы не должны противоречить Конституции.", "en": "No other law may contradict the Constitution."}
+  },
+  {
+    id: "so21", skill: "state", difficulty: 2, type: "choice",
+    prompt: {"ky": "Мамлекеттик бийлик кайсы бутактарга бөлүнөт?", "ru": "На какие ветви делится государственная власть?", "en": "Which branches is state power divided into?"},
+    options: [
+      {"ky": "Мыйзам чыгаруу, аткаруу жана сот", "ru": "Законодательная, исполнительная и судебная", "en": "Legislative, executive and judicial"},
+      {"ky": "Шаардык жана айылдык", "ru": "Городская и сельская", "en": "Urban and rural"},
+      {"ky": "Аскердик жана жарандык", "ru": "Военная и гражданская", "en": "Military and civil"},
+      {"ky": "Эски жана жаңы", "ru": "Старая и новая", "en": "Old and new"}
+    ], correct: 0,
+    explain: {"ky": "Бийликтин бөлүнүшү бир адамга же органга бардык бийликти бербейт.", "ru": "Разделение властей не даёт всю власть одному человеку или органу.", "en": "Separating powers stops one person or body holding all the power."}
+  },
+  {
+    id: "so22", skill: "state", difficulty: 1, type: "choice",
+    prompt: {"ky": "Кыргызстандын парламенти кандай аталат?", "ru": "Как называется парламент Кыргызстана?", "en": "What is the parliament of Kyrgyzstan called?"},
+    options: [
+      {"ky": "Жогорку Кеңеш", "ru": "Жогорку Кенеш", "en": "The Jogorku Kenesh"},
+      {"ky": "Сенат", "ru": "Сенат", "en": "The Senate"},
+      {"ky": "Мамлекеттик Дума", "ru": "Государственная дума", "en": "The State Duma"},
+      {"ky": "Меджлис", "ru": "Меджлис", "en": "The Majlis"}
+    ], correct: 0,
+    explain: {"ky": "Жогорку Кеңеш — мыйзам чыгаруучу бийлик.", "ru": "Жогорку Кенеш — законодательная власть.", "en": "The Jogorku Kenesh is the legislative branch."}
+  },
+  {
+    id: "so23", skill: "state", difficulty: 2, type: "choice",
+    prompt: {"ky": "Кыргызстанда мыйзамдарды ким кабыл алат?", "ru": "Кто принимает законы в Кыргызстане?", "en": "Who passes laws in Kyrgyzstan?"},
+    options: [
+      {"ky": "Жогорку Кеңеш", "ru": "Жогорку Кенеш", "en": "The Jogorku Kenesh"},
+      {"ky": "Сот", "ru": "Суд", "en": "The courts"},
+      {"ky": "Министрлер", "ru": "Министры", "en": "The ministers"},
+      {"ky": "Шаардын мэриясы", "ru": "Мэрия города", "en": "The city council"}
+    ], correct: 0,
+    explain: {"ky": "Мыйзамды парламент кабыл алат, Президент кол коёт.", "ru": "Законы принимает парламент, подписывает Президент.", "en": "Parliament passes laws and the President signs them."}
+  },
+  {
+    id: "so24", skill: "rights", difficulty: 1, type: "choice",
+    prompt: {"ky": "Кайсысы адамдын негизги укугу?", "ru": "Какое из этого — основное право человека?", "en": "Which of these is a basic human right?"},
+    options: [
+      {"ky": "Билим алуу укугу", "ru": "Право на образование", "en": "The right to education"},
+      {"ky": "Салык төлөбөө укугу", "ru": "Право не платить налоги", "en": "The right not to pay taxes"},
+      {"ky": "Мыйзамды бузуу укугу", "ru": "Право нарушать закон", "en": "The right to break the law"},
+      {"ky": "Башкалардын мүлкүн алуу укугу", "ru": "Право забирать чужое имущество", "en": "The right to take other people’s property"}
+    ], correct: 0,
+    explain: {"ky": "Билим алуу укугу Конституцияда бекитилген.", "ru": "Право на образование закреплено в Конституции.", "en": "The right to education is written in the Constitution."}
+  },
+  {
+    id: "so25", skill: "rights", difficulty: 2, type: "multiple",
+    prompt: {"ky": "Баланын укуктарына кайсылар кирет?", "ru": "Что входит в права ребёнка?", "en": "Which of these are children’s rights?"},
+    options: [
+      {"ky": "Билим алуу", "ru": "На образование", "en": "Education"},
+      {"ky": "Ден соолукту коргоо", "ru": "На охрану здоровья", "en": "Health care"},
+      {"ky": "Өз пикирин айтуу", "ru": "Выражать своё мнение", "en": "Expressing their views"},
+      {"ky": "Оор жумушка мажбурлоо", "ru": "Быть принуждённым к тяжёлой работе", "en": "Being forced into hard labour"}
+    ], correct: [0, 1, 2],
+    explain: {"ky": "Балага оор жумуш иштетүүгө тыюу салынат.", "ru": "Принуждать детей к тяжёлой работе запрещено.", "en": "Forcing children into hard labour is forbidden."}
+  },
+  {
+    id: "so26", skill: "rights", difficulty: 2, type: "choice",
+    prompt: {"ky": "Бала укуктары жөнүндө негизги эл аралык документ кайсы?", "ru": "Какой главный международный документ о правах ребёнка?", "en": "What is the main international document on children’s rights?"},
+    options: [
+      {"ky": "БУУнун Бала укуктары жөнүндө конвенциясы", "ru": "Конвенция ООН о правах ребёнка", "en": "The UN Convention on the Rights of the Child"},
+      {"ky": "Олимпиада хартиясы", "ru": "Олимпийская хартия", "en": "The Olympic Charter"},
+      {"ky": "Жол кыймылынын эрежелери", "ru": "Правила дорожного движения", "en": "The traffic rules"},
+      {"ky": "Мектептин уставы", "ru": "Устав школы", "en": "The school charter"}
+    ], correct: 0,
+    explain: {"ky": "Конвенция 1989-жылы кабыл алынган.", "ru": "Конвенция принята в 1989 году.", "en": "The Convention was adopted in 1989."}
+  },
+  {
+    id: "so27", skill: "citizenship", difficulty: 1, type: "choice",
+    prompt: {"ky": "Жаран деген ким?", "ru": "Кто такой гражданин?", "en": "Who is a citizen?"},
+    options: [
+      {"ky": "Мамлекет менен укуктары жана милдеттери аркылуу байланышкан адам", "ru": "Человек, связанный с государством правами и обязанностями", "en": "A person bound to a state by rights and duties"},
+      {"ky": "Туристтер гана", "ru": "Только туристы", "en": "Only tourists"},
+      {"ky": "Шаарда жашаган ар бир адам", "ru": "Любой житель города", "en": "Anyone who lives in a city"},
+      {"ky": "Чет өлкөлүктөр гана", "ru": "Только иностранцы", "en": "Only foreigners"}
+    ], correct: 0,
+    explain: {"ky": "Жарандык паспорт же ID-карта менен тастыкталат.", "ru": "Гражданство подтверждается паспортом или ID-картой.", "en": "Citizenship is shown by a passport or ID card."}
+  },
+  {
+    id: "so28", skill: "citizenship", difficulty: 2, type: "input", numeric: true,
+    prompt: {"ky": "Кыргызстанда жаранга паспорт (ID-карта) канча жаштан берилет?", "ru": "С какого возраста гражданину Кыргызстана выдают паспорт (ID-карту)?", "en": "At what age does a citizen of Kyrgyzstan get an ID card (passport)?"},
+    answer: ["16"],
+    explain: {"ky": "ID-карта 16 жашка толгондо берилет.", "ru": "ID-карту выдают с 16 лет.", "en": "The ID card is issued at age 16."}
+  },
+  {
+    id: "so29", skill: "citizenship", difficulty: 1, type: "choice",
+    prompt: {"ky": "Кайсысы жарандын милдети?", "ru": "Что из этого — обязанность гражданина?", "en": "Which of these is a duty of a citizen?"},
+    options: [
+      {"ky": "Мыйзамдарды сактоо", "ru": "Соблюдать законы", "en": "Obeying the laws"},
+      {"ky": "Салык төлөбөө", "ru": "Не платить налоги", "en": "Not paying taxes"},
+      {"ky": "Башкалардын укугун бузуу", "ru": "Нарушать права других", "en": "Violating other people’s rights"},
+      {"ky": "Табиятты булгоо", "ru": "Загрязнять природу", "en": "Polluting nature"}
+    ], correct: 0,
+    explain: {"ky": "Мыйзамды сактоо — ар бир жарандын милдети.", "ru": "Соблюдать законы — обязанность каждого гражданина.", "en": "Obeying the law is every citizen’s duty."}
   }
 ];

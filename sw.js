@@ -6,7 +6,7 @@
  * Прогресс, XP и данные Supabase хранятся в localStorage/облаке — кэш их не трогает.
  */
 const PREFIX = 'ba-';
-const VERSION = 'ba-v26';
+const VERSION = 'ba-v27';
 const CORE = [
   './', './index.html', './home.css', './home.js',
   './board.html', './board.js', './play.html', './play.js',

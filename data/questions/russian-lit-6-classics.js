@@ -67,5 +67,115 @@ export default [
     options: ['«Муму» — И. С. Тургенев', '«Ворона и Лисица» — И. А. Крылов', '«Тарас Бульба» — А. С. Пушкин', '«Каштанка» — А. П. Чехов'],
     correct: 2,
     explain: L('«Тарас Бульба» — Н. В. Гоголдун повести.', '«Тарас Бульба» — повесть Н. В. Гоголя.', '"Taras Bulba" is by N. V. Gogol.')
+  },
+  {
+    id: "rl20", skill: "authors", difficulty: 1, type: "choice",
+    prompt: {"ky": "«Сказка о рыбаке и рыбке» жомогун ким жазган?", "ru": "Кто написал «Сказку о рыбаке и рыбке»?", "en": "Who wrote \"The Tale of the Fisherman and the Fish\"?"},
+    options: [
+      {"ky": "А. С. Пушкин", "ru": "А. С. Пушкин", "en": "Alexander Pushkin"},
+      {"ky": "М. Ю. Лермонтов", "ru": "М. Ю. Лермонтов", "en": "Mikhail Lermontov"},
+      {"ky": "Л. Н. Толстой", "ru": "Л. Н. Толстой", "en": "Leo Tolstoy"},
+      {"ky": "И. А. Крылов", "ru": "И. А. Крылов", "en": "Ivan Krylov"}
+    ], correct: 0,
+    explain: {"ky": "Жомок 1833-жылы жазылган.", "ru": "Сказка написана в 1833 году.", "en": "It was written in 1833."}
+  },
+  {
+    id: "rl21", skill: "authors", difficulty: 1, type: "choice",
+    prompt: {"ky": "Көп тамсилдери (басняларды) менен белгилүү орус жазуучусу ким?", "ru": "Какой русский писатель знаменит своими баснями?", "en": "Which Russian writer is famous for his fables?"},
+    options: [
+      {"ky": "И. А. Крылов", "ru": "И. А. Крылов", "en": "Ivan Krylov"},
+      {"ky": "А. С. Пушкин", "ru": "А. С. Пушкин", "en": "Alexander Pushkin"},
+      {"ky": "Н. В. Гоголь", "ru": "Н. В. Гоголь", "en": "Nikolai Gogol"},
+      {"ky": "И. С. Тургенев", "ru": "И. С. Тургенев", "en": "Ivan Turgenev"}
+    ], correct: 0,
+    explain: {"ky": "Крылов 200дөн ашык тамсил жазган.", "ru": "Крылов написал более 200 басен.", "en": "Krylov wrote more than 200 fables."}
+  },
+  {
+    id: "rl22", skill: "authors", difficulty: 2, type: "choice",
+    prompt: {"ky": "«Муму» аңгемесинин автору ким?", "ru": "Кто автор рассказа «Муму»?", "en": "Who wrote the story \"Mumu\"?"},
+    options: [
+      {"ky": "И. С. Тургенев", "ru": "И. С. Тургенев", "en": "Ivan Turgenev"},
+      {"ky": "Л. Н. Толстой", "ru": "Л. Н. Толстой", "en": "Leo Tolstoy"},
+      {"ky": "А. П. Чехов", "ru": "А. П. Чехов", "en": "Anton Chekhov"},
+      {"ky": "Н. В. Гоголь", "ru": "Н. В. Гоголь", "en": "Nikolai Gogol"}
+    ], correct: 0,
+    explain: {"ky": "«Муму» — Тургеневдин аңгемеси.", "ru": "«Муму» — рассказ И. С. Тургенева.", "en": "\"Mumu\" is a story by Ivan Turgenev."}
+  },
+  {
+    id: "rl23", skill: "authors", difficulty: 2, type: "choice",
+    prompt: {"ky": "«Бородино» ырын ким жазган?", "ru": "Кто написал стихотворение «Бородино»?", "en": "Who wrote the poem \"Borodino\"?"},
+    options: [
+      {"ky": "М. Ю. Лермонтов", "ru": "М. Ю. Лермонтов", "en": "Mikhail Lermontov"},
+      {"ky": "А. С. Пушкин", "ru": "А. С. Пушкин", "en": "Alexander Pushkin"},
+      {"ky": "Н. А. Некрасов", "ru": "Н. А. Некрасов", "en": "Nikolai Nekrasov"},
+      {"ky": "И. А. Крылов", "ru": "И. А. Крылов", "en": "Ivan Krylov"}
+    ], correct: 0,
+    explain: {"ky": "Лермонтов «Бородинону» 1837-жылы жазган.", "ru": "Лермонтов написал «Бородино» в 1837 году.", "en": "Lermontov wrote \"Borodino\" in 1837."}
+  },
+  {
+    id: "rl24", skill: "genres", difficulty: 1, type: "choice",
+    prompt: {"ky": "Жаныбарлар катышкан, акырында адеп сабак берген кыска чыгарма кандай аталат?", "ru": "Как называется короткое произведение о животных с нравоучением в конце?", "en": "What is a short story with animals and a moral at the end called?"},
+    options: [
+      {"ky": "Тамсил (басня)", "ru": "Басня", "en": "A fable"},
+      {"ky": "Роман", "ru": "Роман", "en": "A novel"},
+      {"ky": "Поэма", "ru": "Поэма", "en": "A narrative poem"},
+      {"ky": "Драма", "ru": "Драма", "en": "A drama"}
+    ], correct: 0,
+    explain: {"ky": "Тамсилдин аягындагы сабак «мораль» деп аталат.", "ru": "Нравоучение в конце басни называется моралью.", "en": "The lesson at the end of a fable is called the moral."}
+  },
+  {
+    id: "rl25", skill: "genres", difficulty: 2, type: "choice",
+    prompt: {"ky": "Сыйкырдуу окуялар болгон элдик же автордук чыгарма кандай аталат?", "ru": "Как называется народное или авторское произведение с волшебными событиями?", "en": "What is a folk or literary story full of magic called?"},
+    options: [
+      {"ky": "Жомок", "ru": "Сказка", "en": "A fairy tale"},
+      {"ky": "Очерк", "ru": "Очерк", "en": "A sketch"},
+      {"ky": "Ода", "ru": "Ода", "en": "An ode"},
+      {"ky": "Хроника", "ru": "Хроника", "en": "A chronicle"}
+    ], correct: 0,
+    explain: {"ky": "Жомокто сыйкыр, жакшылык жана жамандык күрөшү болот.", "ru": "В сказке есть волшебство и борьба добра со злом.", "en": "Fairy tales have magic and good fighting evil."}
+  },
+  {
+    id: "rl26", skill: "works", difficulty: 1, type: "choice",
+    prompt: {"ky": "Пушкиндин «Руслан и Людмила» кандай чыгарма?", "ru": "Каким произведением является «Руслан и Людмила» Пушкина?", "en": "What kind of work is Pushkin’s \"Ruslan and Ludmila\"?"},
+    options: [
+      {"ky": "Поэма", "ru": "Поэма", "en": "A narrative poem"},
+      {"ky": "Роман", "ru": "Роман", "en": "A novel"},
+      {"ky": "Тамсил", "ru": "Басня", "en": "A fable"},
+      {"ky": "Пьеса", "ru": "Пьеса", "en": "A play"}
+    ], correct: 0,
+    explain: {"ky": "Ыр менен жазылган чоң сюжеттүү чыгарма — поэма.", "ru": "Большое сюжетное произведение в стихах — поэма.", "en": "A long story told in verse is a narrative poem."}
+  },
+  {
+    id: "rl27", skill: "works", difficulty: 2, type: "choice",
+    prompt: {"ky": "«Каштанка» кимдин чыгармасы?", "ru": "Чьё произведение «Каштанка»?", "en": "Who wrote \"Kashtanka\"?"},
+    options: [
+      {"ky": "А. П. Чехов", "ru": "А. П. Чехов", "en": "Anton Chekhov"},
+      {"ky": "Л. Н. Толстой", "ru": "Л. Н. Толстой", "en": "Leo Tolstoy"},
+      {"ky": "И. С. Тургенев", "ru": "И. С. Тургенев", "en": "Ivan Turgenev"},
+      {"ky": "Н. В. Гоголь", "ru": "Н. В. Гоголь", "en": "Nikolai Gogol"}
+    ], correct: 0,
+    explain: {"ky": "«Каштанка» — Чеховдун ит жөнүндөгү аңгемеси.", "ru": "«Каштанка» — рассказ Чехова о собаке.", "en": "\"Kashtanka\" is Chekhov’s story about a dog."}
+  },
+  {
+    id: "rl28", skill: "works", difficulty: 2, type: "choice",
+    prompt: {"ky": "«Вечера на хуторе близ Диканьки» чыгармасынын автору ким?", "ru": "Кто автор «Вечеров на хуторе близ Диканьки»?", "en": "Who wrote \"Evenings on a Farm Near Dikanka\"?"},
+    options: [
+      {"ky": "Н. В. Гоголь", "ru": "Н. В. Гоголь", "en": "Nikolai Gogol"},
+      {"ky": "А. С. Пушкин", "ru": "А. С. Пушкин", "en": "Alexander Pushkin"},
+      {"ky": "М. Ю. Лермонтов", "ru": "М. Ю. Лермонтов", "en": "Mikhail Lermontov"},
+      {"ky": "Ф. М. Достоевский", "ru": "Ф. М. Достоевский", "en": "Fyodor Dostoevsky"}
+    ], correct: 0,
+    explain: {"ky": "Бул Гоголдун алгачкы аңгемелер жыйнагы.", "ru": "Это первый сборник повестей Гоголя.", "en": "It is Gogol’s first collection of stories."}
+  },
+  {
+    id: "rl29", skill: "genres", difficulty: 2, type: "choice",
+    prompt: {"ky": "«Евгений Онегин» кандай жанрда жазылган?", "ru": "В каком жанре написан «Евгений Онегин»?", "en": "What genre is \"Eugene Onegin\"?"},
+    options: [
+      {"ky": "Ыр менен жазылган роман", "ru": "Роман в стихах", "en": "A novel in verse"},
+      {"ky": "Тамсил", "ru": "Басня", "en": "A fable"},
+      {"ky": "Жомок", "ru": "Сказка", "en": "A fairy tale"},
+      {"ky": "Аңгеме", "ru": "Рассказ", "en": "A short story"}
+    ], correct: 0,
+    explain: {"ky": "Пушкин аны «ыр менен жазылган роман» деп атаган.", "ru": "Пушкин сам называл его «романом в стихах».", "en": "Pushkin called it a \"novel in verse\"."}
   }
 ];

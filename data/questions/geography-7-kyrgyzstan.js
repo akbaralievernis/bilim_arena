@@ -160,5 +160,60 @@ export default [
     ],
     correct: 2,
     explain: { ky: 'Ысык-Көл өзүнчө Ысык-Көл облусунда жайгашкан.', ru: 'Иссык-Куль находится в своей, Иссык-Кульской области.', en: 'Issyk-Kul lies in its own region, Issyk-Kul region.' }
+  },
+  {
+    id: "g20", skill: "regions", difficulty: 1, type: "choice",
+    prompt: {"ky": "Кыргызстанда канча облус бар?", "ru": "Сколько областей в Кыргызстане?", "en": "How many regions (oblasts) does Kyrgyzstan have?"},
+    options: [
+      "7",
+      "5",
+      "9",
+      "12"
+    ], correct: 0,
+    explain: {"ky": "Баткен, Жалал-Абад, Ысык-Көл, Нарын, Ош, Талас, Чүй — 7 облус.", "ru": "Баткенская, Джалал-Абадская, Иссык-Кульская, Нарынская, Ошская, Таласская, Чуйская — 7 областей.", "en": "Batken, Jalal-Abad, Issyk-Kul, Naryn, Osh, Talas and Chüy — 7 regions."}
+  },
+  {
+    id: "g21", skill: "regions", difficulty: 2, type: "choice",
+    prompt: {"ky": "Баткен облусунун борбору кайсы шаар?", "ru": "Какой город — центр Баткенской области?", "en": "Which town is the centre of the Batken region?"},
+    options: [
+      {"ky": "Баткен", "ru": "Баткен", "en": "Batken"},
+      {"ky": "Ош", "ru": "Ош", "en": "Osh"},
+      {"ky": "Кызыл-Кыя", "ru": "Кызыл-Кия", "en": "Kyzyl-Kiya"},
+      {"ky": "Сүлүктү", "ru": "Сулюкта", "en": "Sülüktü"}
+    ], correct: 0,
+    explain: {"ky": "Облустун борбору — Баткен шаары.", "ru": "Центр области — город Баткен.", "en": "The regional centre is the town of Batken."}
+  },
+  {
+    id: "g22", skill: "water", difficulty: 2, type: "choice",
+    prompt: {"ky": "Кайсы көл Нарын облусунда жайгашкан?", "ru": "Какое озеро находится в Нарынской области?", "en": "Which lake is in the Naryn region?"},
+    options: [
+      {"ky": "Соң-Көл", "ru": "Сон-Куль", "en": "Song-Köl"},
+      {"ky": "Ысык-Көл", "ru": "Иссык-Куль", "en": "Issyk-Kul"},
+      {"ky": "Сары-Челек", "ru": "Сары-Челек", "en": "Sary-Chelek"},
+      {"ky": "Кара-Суу", "ru": "Кара-Суу", "en": "Kara-Suu"}
+    ], correct: 0,
+    explain: {"ky": "Соң-Көл — Нарын облусундагы бийик тоолуу көл.", "ru": "Сон-Куль — высокогорное озеро Нарынской области.", "en": "Song-Köl is a high mountain lake in the Naryn region."}
+  },
+  {
+    id: "g23", skill: "nature", difficulty: 1, type: "choice",
+    prompt: {"ky": "Арсланбоб эмнеси менен белгилүү?", "ru": "Чем знаменит Арсланбоб?", "en": "What is Arslanbob famous for?"},
+    options: [
+      {"ky": "Жаңгак токою менен", "ru": "Ореховым лесом", "en": "Its walnut forest"},
+      {"ky": "Чөлү менен", "ru": "Пустыней", "en": "Its desert"},
+      {"ky": "Жанар тоосу менен", "ru": "Вулканом", "en": "Its volcano"},
+      {"ky": "Деңиз жээги менен", "ru": "Морским побережьем", "en": "Its seaside"}
+    ], correct: 0,
+    explain: {"ky": "Арсланбобдо дүйнөдөгү эң чоң жаңгак токойлорунун бири бар.", "ru": "В Арсланбобе — один из крупнейших ореховых лесов мира.", "en": "Arslanbob has one of the largest walnut forests in the world."}
+  },
+  {
+    id: "g24", skill: "relief", difficulty: 2, type: "choice",
+    prompt: {"ky": "Ала-Арча улуттук паркы кайсы шаардын жанында?", "ru": "Возле какого города находится национальный парк Ала-Арча?", "en": "Which city is the Ala-Archa national park near?"},
+    options: [
+      {"ky": "Бишкек", "ru": "Бишкек", "en": "Bishkek"},
+      {"ky": "Ош", "ru": "Ош", "en": "Osh"},
+      {"ky": "Нарын", "ru": "Нарын", "en": "Naryn"},
+      {"ky": "Талас", "ru": "Талас", "en": "Talas"}
+    ], correct: 0,
+    explain: {"ky": "Ала-Арча Бишкектен 40 чакырымдай түштүктө.", "ru": "Ала-Арча — примерно в 40 км к югу от Бишкека.", "en": "Ala-Archa is about 40 km south of Bishkek."}
   }
 ];

@@ -77,5 +77,105 @@ export default [
     ],
     correct: 2,
     explain: L('2000 − 1500 = 500 сом, 700 эмес.', '2000 − 1500 = 500 сомов, а не 700.', '2000 − 1500 = 500 som, not 700.')
+  },
+  {
+    id: "fi10", skill: "budget", difficulty: 1, type: "choice",
+    prompt: {"ky": "Үй-бүлөлүк бюджет деген эмне?", "ru": "Что такое семейный бюджет?", "en": "What is a family budget?"},
+    options: [
+      {"ky": "Кирешелер менен чыгашалардын планы", "ru": "План доходов и расходов", "en": "A plan of income and spending"},
+      {"ky": "Банктагы акча гана", "ru": "Только деньги в банке", "en": "Only the money in the bank"},
+      {"ky": "Салыктардын тизмеси", "ru": "Список налогов", "en": "A list of taxes"},
+      {"ky": "Дүкөндүн чеги", "ru": "Чек из магазина", "en": "A shop receipt"}
+    ], correct: 0,
+    explain: {"ky": "Бюджет акча кайдан келип, кайда кетерин көрсөтөт.", "ru": "Бюджет показывает, откуда приходят и куда уходят деньги.", "en": "A budget shows where money comes from and where it goes."}
+  },
+  {
+    id: "fi11", skill: "budget", difficulty: 1, type: "choice",
+    prompt: {"ky": "Кайсысы милдеттүү чыгаша?", "ru": "Какой расход — обязательный?", "en": "Which expense is essential?"},
+    options: [
+      {"ky": "Коммуналдык төлөмдөр", "ru": "Коммунальные платежи", "en": "Utility bills"},
+      {"ky": "Жаңы видео оюн", "ru": "Новая видеоигра", "en": "A new video game"},
+      {"ky": "Кафеге баруу", "ru": "Поход в кафе", "en": "Going to a café"},
+      {"ky": "Сувенир", "ru": "Сувенир", "en": "A souvenir"}
+    ], correct: 0,
+    explain: {"ky": "Үй, жарык, суу үчүн төлөм — биринчи кезекте.", "ru": "Плата за жильё, свет и воду — в первую очередь.", "en": "Rent, electricity and water come first."}
+  },
+  {
+    id: "fi12", skill: "budget", difficulty: 2, type: "input", numeric: true,
+    prompt: {"ky": "Айлык киреше 30 000 сом, чыгаша 26 500 сом. Айдын аягында канча сом калат?", "ru": "Доход за месяц — 30 000 сомов, расходы — 26 500 сомов. Сколько останется?", "en": "Monthly income is 30,000 som and spending is 26,500 som. How much is left?"},
+    answer: ["3500"],
+    explain: {"ky": "30 000 − 26 500 = 3 500.", "ru": "30 000 − 26 500 = 3 500.", "en": "30,000 − 26,500 = 3,500."}
+  },
+  {
+    id: "fi13", skill: "budget", difficulty: 2, type: "choice",
+    prompt: {"ky": "Чыгаша кирешеден көп болсо, бюджет кандай деп аталат?", "ru": "Как называется бюджет, где расходы больше доходов?", "en": "What is a budget called when spending is greater than income?"},
+    options: [
+      {"ky": "Дефициттүү (тартыш)", "ru": "Дефицитный", "en": "In deficit"},
+      {"ky": "Профициттүү (ашыкча)", "ru": "Профицитный", "en": "In surplus"},
+      {"ky": "Тең салмактуу", "ru": "Сбалансированный", "en": "Balanced"},
+      {"ky": "Салыктык", "ru": "Налоговый", "en": "A tax budget"}
+    ], correct: 0,
+    explain: {"ky": "Дефицитте акча жетишпейт — чыгашаны кыскартуу керек.", "ru": "При дефиците денег не хватает — нужно сокращать расходы.", "en": "In a deficit there is not enough money, so spending must be cut."}
+  },
+  {
+    id: "fi14", skill: "saving", difficulty: 1, type: "choice",
+    prompt: {"ky": "Акча чогултуунун эң пайдалуу адаты кайсы?", "ru": "Какая привычка лучше всего помогает копить?", "en": "Which habit helps most with saving money?"},
+    options: [
+      {"ky": "Ар бир кирешеден бир бөлүгүн четке коюу", "ru": "Откладывать часть каждого дохода", "en": "Putting aside part of every income"},
+      {"ky": "Баарын дароо коротуу", "ru": "Тратить всё сразу", "en": "Spending everything at once"},
+      {"ky": "Карызга алып коротуу", "ru": "Тратить в долг", "en": "Spending borrowed money"},
+      {"ky": "Акчаны эсептебей коротуу", "ru": "Тратить, не считая", "en": "Spending without counting"}
+    ], correct: 0,
+    explain: {"ky": "Мисалы, ар бир кирешенин 10%ын жыйноо.", "ru": "Например, откладывать 10% каждого дохода.", "en": "For example, save 10% of every income."}
+  },
+  {
+    id: "fi15", skill: "saving", difficulty: 2, type: "choice",
+    prompt: {"ky": "Банктагы депозит эмне берет?", "ru": "Что даёт вклад (депозит) в банке?", "en": "What does a bank deposit give you?"},
+    options: [
+      {"ky": "Пайыз түрүндө кошумча киреше", "ru": "Доход в виде процентов", "en": "Extra income as interest"},
+      {"ky": "Бекер товарлар", "ru": "Бесплатные товары", "en": "Free goods"},
+      {"ky": "Салыктан бошотуу", "ru": "Освобождение от налогов", "en": "Freedom from taxes"},
+      {"ky": "Кредит алуу милдети", "ru": "Обязанность взять кредит", "en": "A duty to take a loan"}
+    ], correct: 0,
+    explain: {"ky": "Банк акчаңызды колдонгону үчүн пайыз төлөйт.", "ru": "Банк платит проценты за то, что пользуется вашими деньгами.", "en": "The bank pays interest for using your money."}
+  },
+  {
+    id: "fi16", skill: "saving", difficulty: 3, type: "input", numeric: true,
+    prompt: {"ky": "Депозитке 10 000 сом жылдык 10% менен салынды. Бир жылдан кийин канча сом болот?", "ru": "На вклад положили 10 000 сомов под 10% годовых. Сколько будет через год?", "en": "10,000 som is put on deposit at 10% a year. How much will there be after one year?"},
+    answer: ["11000"],
+    explain: {"ky": "10 000 × 10% = 1 000; 10 000 + 1 000 = 11 000.", "ru": "10 000 × 10% = 1 000; 10 000 + 1 000 = 11 000.", "en": "10,000 × 10% = 1,000; 10,000 + 1,000 = 11,000."}
+  },
+  {
+    id: "fi17", skill: "safety", difficulty: 1, type: "choice",
+    prompt: {"ky": "Банк картанын PIN-кодун кимге айтууга болот?", "ru": "Кому можно сообщить PIN-код банковской карты?", "en": "Who can you tell your bank card PIN to?"},
+    options: [
+      {"ky": "Эч кимге", "ru": "Никому", "en": "No one"},
+      {"ky": "Телефон чалган «банк кызматкерине»", "ru": "«Сотруднику банка», который позвонил", "en": "A \"bank worker\" who phones you"},
+      {"ky": "Досуңа", "ru": "Другу", "en": "A friend"},
+      {"ky": "SMS менен сураган адамга", "ru": "Тому, кто просит по SMS", "en": "Someone who asks by text message"}
+    ], correct: 0,
+    explain: {"ky": "Чыныгы банк PIN-кодду эч качан сурабайт.", "ru": "Настоящий банк никогда не спрашивает PIN-код.", "en": "A real bank never asks for your PIN."}
+  },
+  {
+    id: "fi18", skill: "safety", difficulty: 2, type: "choice",
+    prompt: {"ky": "«Сиз утуп алдыңыз! Картаңыздын маалыматын жибериңиз» деген билдирүү келди. Эмне кылуу керек?", "ru": "Пришло сообщение: «Вы выиграли! Пришлите данные карты». Что делать?", "en": "You get a message: \"You have won! Send your card details.\" What should you do?"},
+    options: [
+      {"ky": "Жооп бербей, өчүрүү — бул алдамчылык", "ru": "Не отвечать и удалить — это мошенничество", "en": "Ignore and delete it — it is a scam"},
+      {"ky": "Маалыматты жиберүү", "ru": "Отправить данные", "en": "Send the details"},
+      {"ky": "Шилтемени басуу", "ru": "Перейти по ссылке", "en": "Click the link"},
+      {"ky": "Досторго жөнөтүү", "ru": "Переслать друзьям", "en": "Forward it to friends"}
+    ], correct: 0,
+    explain: {"ky": "Алдамчылар «утуш» менен алдашат. Карта маалыматын эч кимге бербеңиз.", "ru": "Мошенники обманывают «выигрышами». Не сообщайте данные карты никому.", "en": "Scammers use fake prizes. Never share your card details."}
+  },
+  {
+    id: "fi19", skill: "saving", difficulty: 2, type: "choice",
+    prompt: {"ky": "«Финансылык коопсуздук жаздыгы» (запас) эмне үчүн керек?", "ru": "Зачем нужна «финансовая подушка безопасности»?", "en": "Why do you need an emergency fund?"},
+    options: [
+      {"ky": "Күтүлбөгөн чыгашаларга", "ru": "На непредвиденные расходы", "en": "For unexpected expenses"},
+      {"ky": "Ар күнү коротуу үчүн", "ru": "Чтобы тратить каждый день", "en": "To spend every day"},
+      {"ky": "Салык төлөбөө үчүн", "ru": "Чтобы не платить налоги", "en": "To avoid taxes"},
+      {"ky": "Кредит алуу үчүн", "ru": "Чтобы брать кредиты", "en": "To take out loans"}
+    ], correct: 0,
+    explain: {"ky": "Ооруп калсаңыз же иш токтоп калса, запас жардам берет.", "ru": "Запас помогает, если заболели или потеряли работу.", "en": "It helps if you fall ill or lose your job."}
   }
 ];

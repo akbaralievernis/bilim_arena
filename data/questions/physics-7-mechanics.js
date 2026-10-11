@@ -68,5 +68,84 @@ export default [
     options: ['s = 100 м, t = 20 с', 'v = s · t', 'v = 2000 м/с'],
     correct: 1,
     explain: L('Ылдамдык = жол : убакыт: v = 100 : 20 = 5 м/с.', 'Скорость = путь : время: v = 100 : 20 = 5 м/с.', 'Speed = distance ÷ time: v = 100 ÷ 20 = 5 m/s.')
+  },
+  {
+    id: "ph20", skill: "motion", difficulty: 1, type: "input", numeric: true,
+    prompt: {"ky": "Велосипедчи 2 саатта 30 км жол жүрдү. Анын ылдамдыгы канча км/саат?", "ru": "Велосипедист проехал 30 км за 2 часа. Какова его скорость в км/ч?", "en": "A cyclist rode 30 km in 2 hours. What was the speed in km/h?"},
+    answer: ["15"],
+    explain: {"ky": "v = s : t = 30 : 2 = 15 км/саат.", "ru": "v = s : t = 30 : 2 = 15 км/ч.", "en": "v = s ÷ t = 30 ÷ 2 = 15 km/h."}
+  },
+  {
+    id: "ph21", skill: "motion", difficulty: 2, type: "input", numeric: true,
+    prompt: {"ky": "Унаа 60 км/саат ылдамдык менен 3 саат жүрдү. Канча км жол басты?", "ru": "Машина ехала 3 часа со скоростью 60 км/ч. Какой путь она проехала, км?", "en": "A car drove for 3 hours at 60 km/h. How many km did it travel?"},
+    answer: ["180"],
+    explain: {"ky": "s = v × t = 60 × 3 = 180 км.", "ru": "s = v × t = 60 × 3 = 180 км.", "en": "s = v × t = 60 × 3 = 180 km."}
+  },
+  {
+    id: "ph22", skill: "force", difficulty: 1, type: "choice",
+    prompt: {"ky": "Күч кайсы бирдик менен өлчөнөт?", "ru": "В каких единицах измеряют силу?", "en": "What unit is force measured in?"},
+    options: [
+      {"ky": "Ньютон (Н)", "ru": "Ньютон (Н)", "en": "The newton (N)"},
+      {"ky": "Килограмм", "ru": "Килограмм", "en": "The kilogram"},
+      {"ky": "Метр", "ru": "Метр", "en": "The metre"},
+      {"ky": "Ватт", "ru": "Ватт", "en": "The watt"}
+    ], correct: 0,
+    explain: {"ky": "Күчтүн бирдиги Исаак Ньютондун атынан аталган.", "ru": "Единица силы названа в честь Исаака Ньютона.", "en": "The unit of force is named after Isaac Newton."}
+  },
+  {
+    id: "ph23", skill: "force", difficulty: 1, type: "choice",
+    prompt: {"ky": "Бардык нерселерди Жерге тартып турган күч кайсы?", "ru": "Какая сила притягивает все тела к Земле?", "en": "Which force pulls everything towards the Earth?"},
+    options: [
+      {"ky": "Оордук күчү", "ru": "Сила тяжести", "en": "Gravity"},
+      {"ky": "Сүрүлүү күчү", "ru": "Сила трения", "en": "Friction"},
+      {"ky": "Серпилгичтик күчү", "ru": "Сила упругости", "en": "Elastic force"},
+      {"ky": "Архимед күчү", "ru": "Архимедова сила", "en": "Buoyancy"}
+    ], correct: 0,
+    explain: {"ky": "Ошондуктан ыргытылган таш жерге кайра түшөт.", "ru": "Поэтому брошенный камень падает обратно на землю.", "en": "That is why a thrown stone falls back down."}
+  },
+  {
+    id: "ph24", skill: "force", difficulty: 2, type: "choice",
+    prompt: {"ky": "Тайгак муз менен басуу эмне үчүн кыйын?", "ru": "Почему трудно ходить по скользкому льду?", "en": "Why is it hard to walk on slippery ice?"},
+    options: [
+      {"ky": "Сүрүлүү күчү аз", "ru": "Мала сила трения", "en": "There is very little friction"},
+      {"ky": "Оордук күчү жок", "ru": "Нет силы тяжести", "en": "There is no gravity"},
+      {"ky": "Аба басымы чоң", "ru": "Большое давление воздуха", "en": "Air pressure is high"},
+      {"ky": "Муз магниттелет", "ru": "Лёд намагничивается", "en": "Ice is magnetic"}
+    ], correct: 0,
+    explain: {"ky": "Басканда сүрүлүү бутту кармап турат; музда ал өтө аз.", "ru": "При ходьбе ногу удерживает трение; на льду оно очень мало.", "en": "Friction stops your foot slipping; on ice there is very little."}
+  },
+  {
+    id: "ph25", skill: "density", difficulty: 2, type: "input", numeric: true,
+    prompt: {"ky": "Заттын массасы 200 г, көлөмү 100 см³. Анын тыгыздыгы канча г/см³?", "ru": "Масса вещества 200 г, объём 100 см³. Какова плотность в г/см³?", "en": "A substance has a mass of 200 g and a volume of 100 cm³. What is its density in g/cm³?"},
+    answer: ["2"],
+    explain: {"ky": "ρ = m : V = 200 : 100 = 2 г/см³.", "ru": "ρ = m : V = 200 : 100 = 2 г/см³.", "en": "ρ = m ÷ V = 200 ÷ 100 = 2 g/cm³."}
+  },
+  {
+    id: "ph26", skill: "density", difficulty: 1, type: "choice",
+    prompt: {"ky": "Жыгач сууда эмне үчүн калкып жүрөт?", "ru": "Почему дерево плавает в воде?", "en": "Why does wood float on water?"},
+    options: [
+      {"ky": "Жыгачтын тыгыздыгы суунукунан аз", "ru": "Плотность дерева меньше плотности воды", "en": "Wood is less dense than water"},
+      {"ky": "Жыгачта темир жок", "ru": "В дереве нет железа", "en": "Wood contains no iron"},
+      {"ky": "Суу жыгачты өзүнө тартат", "ru": "Вода притягивает дерево", "en": "Water attracts wood"},
+      {"ky": "Жыгач жылуу", "ru": "Дерево тёплое", "en": "Wood is warm"}
+    ], correct: 0,
+    explain: {"ky": "Тыгыздыгы суунукунан аз нерселер калкыйт.", "ru": "Тела с плотностью меньше, чем у воды, плавают.", "en": "Things less dense than water float."}
+  },
+  {
+    id: "ph27", skill: "units", difficulty: 1, type: "input", numeric: true,
+    prompt: {"ky": "1 километрде канча метр бар?", "ru": "Сколько метров в 1 километре?", "en": "How many metres are in 1 kilometre?"},
+    answer: ["1000"],
+    explain: {"ky": "«Кило» — миң: 1 км = 1000 м.", "ru": "«Кило» — тысяча: 1 км = 1000 м.", "en": "\"Kilo\" means a thousand: 1 km = 1000 m."}
+  },
+  {
+    id: "ph28", skill: "units", difficulty: 2, type: "choice",
+    prompt: {"ky": "Эл аралык бирдиктер системасында (СИ) убакыттын бирдиги кайсы?", "ru": "Какая единица времени в Международной системе (СИ)?", "en": "What is the SI unit of time?"},
+    options: [
+      {"ky": "Секунд", "ru": "Секунда", "en": "The second"},
+      {"ky": "Мүнөт", "ru": "Минута", "en": "The minute"},
+      {"ky": "Саат", "ru": "Час", "en": "The hour"},
+      {"ky": "Сутка", "ru": "Сутки", "en": "The day"}
+    ], correct: 0,
+    explain: {"ky": "СИде убакыт секунд менен өлчөнөт.", "ru": "В СИ время измеряется в секундах.", "en": "In SI, time is measured in seconds."}
   }
 ];

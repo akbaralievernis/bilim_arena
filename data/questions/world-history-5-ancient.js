@@ -86,5 +86,110 @@ export default [
     ],
     correct: 1,
     explain: L('Колизей Римде — Италияда.', 'Колизей находится в Риме, в Италии.', 'The Colosseum is in Rome, Italy.')
+  },
+  {
+    id: "wh20", skill: "civilizations", difficulty: 1, type: "choice",
+    prompt: {"ky": "Гиза пирамидалары кайсы байыркы өлкөдө курулган?", "ru": "В какой древней стране построены пирамиды Гизы?", "en": "In which ancient country were the pyramids of Giza built?"},
+    options: [
+      {"ky": "Египет", "ru": "Египет", "en": "Egypt"},
+      {"ky": "Рим", "ru": "Рим", "en": "Rome"},
+      {"ky": "Кытай", "ru": "Китай", "en": "China"},
+      {"ky": "Греция", "ru": "Греция", "en": "Greece"}
+    ], correct: 0,
+    explain: {"ky": "Пирамидалар — Египет фараондорунун мүрзөлөрү.", "ru": "Пирамиды — гробницы египетских фараонов.", "en": "The pyramids are tombs of Egyptian pharaohs."}
+  },
+  {
+    id: "wh21", skill: "civilizations", difficulty: 1, type: "choice",
+    prompt: {"ky": "Байыркы Египеттин падышасы кандай аталган?", "ru": "Как называли правителя Древнего Египта?", "en": "What was the ruler of ancient Egypt called?"},
+    options: [
+      {"ky": "Фараон", "ru": "Фараон", "en": "A pharaoh"},
+      {"ky": "Император", "ru": "Император", "en": "An emperor"},
+      {"ky": "Хан", "ru": "Хан", "en": "A khan"},
+      {"ky": "Консул", "ru": "Консул", "en": "A consul"}
+    ], correct: 0,
+    explain: {"ky": "Египеттиктер фараонду кудайдын уулу деп эсептешкен.", "ru": "Египтяне считали фараона сыном бога.", "en": "Egyptians thought the pharaoh was the son of a god."}
+  },
+  {
+    id: "wh22", skill: "civilizations", difficulty: 2, type: "choice",
+    prompt: {"ky": "Олимпиада оюндары кайсы өлкөдө пайда болгон?", "ru": "Где появились Олимпийские игры?", "en": "Where did the Olympic Games begin?"},
+    options: [
+      {"ky": "Байыркы Грецияда", "ru": "В Древней Греции", "en": "Ancient Greece"},
+      {"ky": "Байыркы Римде", "ru": "В Древнем Риме", "en": "Ancient Rome"},
+      {"ky": "Египетте", "ru": "В Египте", "en": "Egypt"},
+      {"ky": "Персияда", "ru": "В Персии", "en": "Persia"}
+    ], correct: 0,
+    explain: {"ky": "Алгачкы оюндар Олимпия шаарында өткөн.", "ru": "Первые игры прошли в городе Олимпия.", "en": "The first games were held at Olympia."}
+  },
+  {
+    id: "wh23", skill: "civilizations", difficulty: 2, type: "choice",
+    prompt: {"ky": "Улуу Кытай дубалы эмне үчүн курулган?", "ru": "Зачем построили Великую Китайскую стену?", "en": "Why was the Great Wall of China built?"},
+    options: [
+      {"ky": "Көчмөндөрдүн чабуулунан коргонуу үчүн", "ru": "Для защиты от набегов кочевников", "en": "To defend against raids by nomads"},
+      {"ky": "Сууну токтотуу үчүн", "ru": "Чтобы остановить воду", "en": "To hold back water"},
+      {"ky": "Жолду кыскартуу үчүн", "ru": "Чтобы сократить путь", "en": "To make journeys shorter"},
+      {"ky": "Мал багуу үчүн", "ru": "Чтобы пасти скот", "en": "To keep livestock"}
+    ], correct: 0,
+    explain: {"ky": "Дубал түндүк чек араны коргогон.", "ru": "Стена защищала северную границу.", "en": "The wall protected the northern border."}
+  },
+  {
+    id: "wh24", skill: "culture", difficulty: 1, type: "choice",
+    prompt: {"ky": "Байыркы Египеттин жазуусу кандай аталат?", "ru": "Как называется письменность Древнего Египта?", "en": "What is the writing of ancient Egypt called?"},
+    options: [
+      {"ky": "Иероглифтер", "ru": "Иероглифы", "en": "Hieroglyphs"},
+      {"ky": "Кириллица", "ru": "Кириллица", "en": "Cyrillic"},
+      {"ky": "Латын арибы", "ru": "Латиница", "en": "The Latin alphabet"},
+      {"ky": "Руналар", "ru": "Руны", "en": "Runes"}
+    ], correct: 0,
+    explain: {"ky": "Иероглифтер — сүрөт белгилер.", "ru": "Иероглифы — знаки-рисунки.", "en": "Hieroglyphs are picture signs."}
+  },
+  {
+    id: "wh25", skill: "culture", difficulty: 2, type: "choice",
+    prompt: {"ky": "Байыркы гректердин эң башкы кудайы ким?", "ru": "Кто главный бог древних греков?", "en": "Who was the chief god of the ancient Greeks?"},
+    options: [
+      {"ky": "Зевс", "ru": "Зевс", "en": "Zeus"},
+      {"ky": "Юпитер", "ru": "Юпитер", "en": "Jupiter"},
+      {"ky": "Ра", "ru": "Ра", "en": "Ra"},
+      {"ky": "Один", "ru": "Один", "en": "Odin"}
+    ], correct: 0,
+    explain: {"ky": "Зевс Олимп тоосунда жашаган деп эсептелген. Юпитер — римдиктердин кудайы.", "ru": "Считалось, что Зевс жил на Олимпе. Юпитер — бог римлян.", "en": "Zeus was believed to live on Mount Olympus; Jupiter was the Roman god."}
+  },
+  {
+    id: "wh26", skill: "culture", difficulty: 2, type: "choice",
+    prompt: {"ky": "Рим империясынын борбору кайсы шаар болгон?", "ru": "Какой город был столицей Римской империи?", "en": "Which city was the capital of the Roman Empire?"},
+    options: [
+      {"ky": "Рим", "ru": "Рим", "en": "Rome"},
+      {"ky": "Афина", "ru": "Афины", "en": "Athens"},
+      {"ky": "Каир", "ru": "Каир", "en": "Cairo"},
+      {"ky": "Вавилон", "ru": "Вавилон", "en": "Babylon"}
+    ], correct: 0,
+    explain: {"ky": "Империя өз аталышын Рим шаарынан алган.", "ru": "Империя получила название от города Рим.", "en": "The empire was named after the city of Rome."}
+  },
+  {
+    id: "wh27", skill: "dates", difficulty: 1, type: "choice",
+    prompt: {"ky": "Кайсы жыл эртерээк болгон?", "ru": "Какой год был раньше?", "en": "Which year came earlier?"},
+    options: [
+      {"ky": "б.з.ч. 500-жыл", "ru": "500 год до н. э.", "en": "500 BC"},
+      {"ky": "б.з. 500-жылы", "ru": "500 год н. э.", "en": "AD 500"},
+      {"ky": "б.з. 1000-жылы", "ru": "1000 год н. э.", "en": "AD 1000"},
+      {"ky": "б.з. 2000-жылы", "ru": "2000 год н. э.", "en": "AD 2000"}
+    ], correct: 0,
+    explain: {"ky": "Биздин заманга чейинки жылдар биздин замандагы жылдардан мурун.", "ru": "Годы до нашей эры были раньше лет нашей эры.", "en": "Years BC come before years AD."}
+  },
+  {
+    id: "wh28", skill: "dates", difficulty: 2, type: "input", numeric: true,
+    prompt: {"ky": "б.з.ч. 300-жылдан б.з.ч. 100-жылга чейин канча жыл өткөн?", "ru": "Сколько лет прошло с 300 года до н. э. до 100 года до н. э.?", "en": "How many years passed from 300 BC to 100 BC?"},
+    answer: ["200"],
+    explain: {"ky": "Б.з.ч. жылдар азаят: 300 − 100 = 200.", "ru": "Годы до н. э. убывают: 300 − 100 = 200.", "en": "BC years count down: 300 − 100 = 200."}
+  },
+  {
+    id: "wh29", skill: "civilizations", difficulty: 2, type: "choice",
+    prompt: {"ky": "Месопотамия кайсы эки дарыянын ортосунда жайгашкан?", "ru": "Между какими реками находилась Месопотамия?", "en": "Which two rivers was Mesopotamia between?"},
+    options: [
+      {"ky": "Тигр жана Евфрат", "ru": "Тигр и Евфрат", "en": "The Tigris and the Euphrates"},
+      {"ky": "Нил жана Конго", "ru": "Нил и Конго", "en": "The Nile and the Congo"},
+      {"ky": "Хуанхэ жана Янцзы", "ru": "Хуанхэ и Янцзы", "en": "The Yellow River and the Yangtze"},
+      {"ky": "Дунай жана Рейн", "ru": "Дунай и Рейн", "en": "The Danube and the Rhine"}
+    ], correct: 0,
+    explain: {"ky": "«Месопотамия» — «дарыялар аралыгы» деген сөз.", "ru": "«Месопотамия» значит «междуречье».", "en": "\"Mesopotamia\" means \"between the rivers\"."}
   }
 ];

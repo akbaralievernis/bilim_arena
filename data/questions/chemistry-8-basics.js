@@ -69,5 +69,94 @@ export default [
     options: ['Ar(C) = 12', 'Ar(O) = 16', 'Mr(CO₂) = 12 + 16 = 28'],
     correct: 2,
     explain: L('Кычкылтек эки атом: 12 + 2 · 16 = 44.', 'Атомов кислорода два: 12 + 2 · 16 = 44.', 'There are two oxygen atoms: 12 + 2 · 16 = 44.')
+  },
+  {
+    id: "ch11", skill: "symbols", difficulty: 1, type: "choice",
+    prompt: {"ky": "«Fe» символу кайсы элементти билдирет?", "ru": "Какой элемент обозначает символ «Fe»?", "en": "Which element has the symbol \"Fe\"?"},
+    options: [
+      {"ky": "Темир", "ru": "Железо", "en": "Iron"},
+      {"ky": "Фтор", "ru": "Фтор", "en": "Fluorine"},
+      {"ky": "Фосфор", "ru": "Фосфор", "en": "Phosphorus"},
+      {"ky": "Күмүш", "ru": "Серебро", "en": "Silver"}
+    ], correct: 0,
+    explain: {"ky": "Fe — латынча ferrum, б.а. темир.", "ru": "Fe — от латинского ferrum, железо.", "en": "Fe comes from the Latin \"ferrum\", iron."}
+  },
+  {
+    id: "ch12", skill: "symbols", difficulty: 1, type: "choice",
+    prompt: {"ky": "Натрийдин химиялык символу кайсы?", "ru": "Какой химический символ у натрия?", "en": "What is the chemical symbol for sodium?"},
+    options: [
+      "Na",
+      "N",
+      "Ne",
+      "S"
+    ], correct: 0,
+    explain: {"ky": "Na — латынча natrium.", "ru": "Na — от латинского natrium.", "en": "Na comes from the Latin \"natrium\"."}
+  },
+  {
+    id: "ch13", skill: "symbols", difficulty: 2, type: "choice",
+    prompt: {"ky": "Кайсы элемент асыл (инерттүү) газ?", "ru": "Какой элемент — благородный (инертный) газ?", "en": "Which element is a noble (inert) gas?"},
+    options: [
+      {"ky": "Гелий", "ru": "Гелий", "en": "Helium"},
+      {"ky": "Кычкылтек", "ru": "Кислород", "en": "Oxygen"},
+      {"ky": "Азот", "ru": "Азот", "en": "Nitrogen"},
+      {"ky": "Хлор", "ru": "Хлор", "en": "Chlorine"}
+    ], correct: 0,
+    explain: {"ky": "Гелий башка заттар менен дээрлик реакцияга кирбейт.", "ru": "Гелий почти не вступает в реакции.", "en": "Helium hardly reacts with anything."}
+  },
+  {
+    id: "ch14", skill: "formulas", difficulty: 1, type: "choice",
+    prompt: {"ky": "Суунун химиялык формуласы кайсы?", "ru": "Какая химическая формула у воды?", "en": "What is the chemical formula of water?"},
+    options: [
+      "H₂O",
+      "CO₂",
+      "O₂",
+      "NaCl"
+    ], correct: 0,
+    explain: {"ky": "Суу молекуласы: 2 суутек жана 1 кычкылтек атому.", "ru": "Молекула воды: 2 атома водорода и 1 атом кислорода.", "en": "A water molecule has 2 hydrogen atoms and 1 oxygen atom."}
+  },
+  {
+    id: "ch15", skill: "formulas", difficulty: 2, type: "choice",
+    prompt: {"ky": "Ашкана тузунун химиялык формуласы кайсы?", "ru": "Какая формула у поваренной соли?", "en": "What is the formula of table salt?"},
+    options: [
+      "NaCl",
+      "KCl",
+      "CaCO₃",
+      "H₂O"
+    ], correct: 0,
+    explain: {"ky": "Ашкана тузу — натрий хлориди, NaCl.", "ru": "Поваренная соль — хлорид натрия, NaCl.", "en": "Table salt is sodium chloride, NaCl."}
+  },
+  {
+    id: "ch16", skill: "formulas", difficulty: 2, type: "input", numeric: true,
+    prompt: {"ky": "H₂SO₄ молекуласында канча кычкылтек атому бар?", "ru": "Сколько атомов кислорода в молекуле H₂SO₄?", "en": "How many oxygen atoms are in a molecule of H₂SO₄?"},
+    answer: ["4"],
+    explain: {"ky": "O₄ — төрт кычкылтек атому.", "ru": "O₄ — четыре атома кислорода.", "en": "O₄ means four oxygen atoms."}
+  },
+  {
+    id: "ch17", skill: "formulas", difficulty: 3, type: "input", numeric: true,
+    prompt: {"ky": "CO₂ молекуласында бардыгы канча атом бар?", "ru": "Сколько всего атомов в молекуле CO₂?", "en": "How many atoms in total are in a molecule of CO₂?"},
+    answer: ["3"],
+    explain: {"ky": "1 көмүртек + 2 кычкылтек = 3 атом.", "ru": "1 углерод + 2 кислорода = 3 атома.", "en": "1 carbon + 2 oxygen = 3 atoms."}
+  },
+  {
+    id: "ch18", skill: "phenomena", difficulty: 1, type: "choice",
+    prompt: {"ky": "Кайсысы химиялык кубулуш?", "ru": "Какое явление — химическое?", "en": "Which of these is a chemical change?"},
+    options: [
+      {"ky": "Темирдин дат басышы", "ru": "Ржавление железа", "en": "Iron rusting"},
+      {"ky": "Муздун эриши", "ru": "Таяние льда", "en": "Ice melting"},
+      {"ky": "Суунун кайнашы", "ru": "Кипение воды", "en": "Water boiling"},
+      {"ky": "Айнектин сынышы", "ru": "Разбивание стекла", "en": "Glass breaking"}
+    ], correct: 0,
+    explain: {"ky": "Датта жаңы зат пайда болот, калгандарында зат ошол эле бойдон калат.", "ru": "При ржавлении образуется новое вещество, в остальных случаях вещество то же.", "en": "Rust is a new substance; in the others the substance stays the same."}
+  },
+  {
+    id: "ch19", skill: "phenomena", difficulty: 2, type: "multiple",
+    prompt: {"ky": "Химиялык реакция жүргөнүн эмнеден билүүгө болот?", "ru": "По каким признакам видно, что идёт химическая реакция?", "en": "Which signs show that a chemical reaction is happening?"},
+    options: [
+      {"ky": "Газ бөлүнөт", "ru": "Выделяется газ", "en": "A gas is given off"},
+      {"ky": "Түсү өзгөрөт", "ru": "Меняется цвет", "en": "The colour changes"},
+      {"ky": "Чөкмө пайда болот", "ru": "Выпадает осадок", "en": "A precipitate forms"},
+      {"ky": "Нерсенин формасы гана өзгөрөт", "ru": "Меняется только форма предмета", "en": "Only the shape changes"}
+    ], correct: [0, 1, 2],
+    explain: {"ky": "Форманын өзгөрүшү — физикалык кубулуш.", "ru": "Изменение формы — физическое явление.", "en": "A change of shape is a physical change."}
   }
 ];

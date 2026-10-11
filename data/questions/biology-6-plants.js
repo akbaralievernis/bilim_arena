@@ -85,5 +85,104 @@ export default [
     ],
     correct: 1,
     explain: L('Фотосинтезде өсүмдүк CO₂ сиңирет, кычкылтекти бөлүп чыгарат.', 'При фотосинтезе растение поглощает CO₂, а кислород выделяет.', 'In photosynthesis the plant absorbs CO₂ and releases oxygen.')
+  },
+  {
+    id: "bi11", skill: "cell", difficulty: 1, type: "choice",
+    prompt: {"ky": "Клетканын тукум куучулук маалыматы кайсы бөлүгүндө сакталат?", "ru": "В какой части клетки хранится наследственная информация?", "en": "Which part of the cell stores hereditary information?"},
+    options: [
+      {"ky": "Ядро", "ru": "Ядро", "en": "The nucleus"},
+      {"ky": "Цитоплазма", "ru": "Цитоплазма", "en": "The cytoplasm"},
+      {"ky": "Клетка кабыгы", "ru": "Клеточная оболочка", "en": "The cell wall"},
+      {"ky": "Вакуоль", "ru": "Вакуоль", "en": "The vacuole"}
+    ], correct: 0,
+    explain: {"ky": "Ядродо ДНК бар — ал тукум куучулук маалыматты сактайт.", "ru": "В ядре находится ДНК — она хранит наследственную информацию.", "en": "The nucleus contains DNA, which carries hereditary information."}
+  },
+  {
+    id: "bi12", skill: "cell", difficulty: 1, type: "choice",
+    prompt: {"ky": "Өсүмдүк клеткасына жашыл түс берген органоиддер кайсылар?", "ru": "Какие органоиды придают клетке растения зелёный цвет?", "en": "Which organelles make plant cells green?"},
+    options: [
+      {"ky": "Хлоропласттар", "ru": "Хлоропласты", "en": "Chloroplasts"},
+      {"ky": "Митохондриялар", "ru": "Митохондрии", "en": "Mitochondria"},
+      {"ky": "Рибосомалар", "ru": "Рибосомы", "en": "Ribosomes"},
+      {"ky": "Ядро", "ru": "Ядро", "en": "The nucleus"}
+    ], correct: 0,
+    explain: {"ky": "Хлоропласттарда жашыл пигмент — хлорофилл бар.", "ru": "В хлоропластах есть зелёный пигмент — хлорофилл.", "en": "Chloroplasts contain the green pigment chlorophyll."}
+  },
+  {
+    id: "bi13", skill: "cell", difficulty: 1, type: "choice",
+    prompt: {"ky": "Клетканы кайсы курал менен көрүүгө болот?", "ru": "С помощью какого прибора можно увидеть клетку?", "en": "Which instrument lets you see a cell?"},
+    options: [
+      {"ky": "Микроскоп", "ru": "Микроскоп", "en": "A microscope"},
+      {"ky": "Телескоп", "ru": "Телескоп", "en": "A telescope"},
+      {"ky": "Барометр", "ru": "Барометр", "en": "A barometer"},
+      {"ky": "Термометр", "ru": "Термометр", "en": "A thermometer"}
+    ], correct: 0,
+    explain: {"ky": "Клетка өтө кичине, аны микроскоп чоңойтуп көрсөтөт.", "ru": "Клетка очень мала — её увеличивает микроскоп.", "en": "Cells are tiny; a microscope magnifies them."}
+  },
+  {
+    id: "bi14", skill: "photosynthesis", difficulty: 2, type: "choice",
+    prompt: {"ky": "Фотосинтез негизинен өсүмдүктүн кайсы органында жүрөт?", "ru": "В каком органе растения в основном идёт фотосинтез?", "en": "In which organ of a plant does photosynthesis mainly happen?"},
+    options: [
+      {"ky": "Жалбырак", "ru": "Лист", "en": "The leaf"},
+      {"ky": "Тамыр", "ru": "Корень", "en": "The root"},
+      {"ky": "Гүл", "ru": "Цветок", "en": "The flower"},
+      {"ky": "Үрөн", "ru": "Семя", "en": "The seed"}
+    ], correct: 0,
+    explain: {"ky": "Жалбыракта хлоропласттар көп жана ал жарыкка ачык.", "ru": "В листе много хлоропластов, и он открыт свету.", "en": "Leaves have many chloroplasts and face the light."}
+  },
+  {
+    id: "bi15", skill: "photosynthesis", difficulty: 2, type: "choice",
+    prompt: {"ky": "Фотосинтездин натыйжасында өсүмдүктө кандай зат пайда болот?", "ru": "Какое вещество образуется в растении при фотосинтезе?", "en": "Which substance does a plant make during photosynthesis?"},
+    options: [
+      {"ky": "Глюкоза (кант)", "ru": "Глюкоза (сахар)", "en": "Glucose (sugar)"},
+      {"ky": "Туз", "ru": "Соль", "en": "Salt"},
+      {"ky": "Темир", "ru": "Железо", "en": "Iron"},
+      {"ky": "Азот", "ru": "Азот", "en": "Nitrogen"}
+    ], correct: 0,
+    explain: {"ky": "Жарыктын энергиясы менен CO₂ жана суудан глюкоза жана кычкылтек пайда болот.", "ru": "С энергией света из CO₂ и воды образуются глюкоза и кислород.", "en": "Using light energy, CO₂ and water become glucose and oxygen."}
+  },
+  {
+    id: "bi16", skill: "plants", difficulty: 1, type: "choice",
+    prompt: {"ky": "Өсүмдүктү топурактан суу жана минералдар менен камсыз кылган орган?", "ru": "Какой орган снабжает растение водой и минералами из почвы?", "en": "Which organ takes in water and minerals from the soil?"},
+    options: [
+      {"ky": "Тамыр", "ru": "Корень", "en": "The root"},
+      {"ky": "Жалбырак", "ru": "Лист", "en": "The leaf"},
+      {"ky": "Гүл", "ru": "Цветок", "en": "The flower"},
+      {"ky": "Мөмө", "ru": "Плод", "en": "The fruit"}
+    ], correct: 0,
+    explain: {"ky": "Тамыр топурактан суу соруп, өсүмдүктү бекемдейт.", "ru": "Корень всасывает воду из почвы и закрепляет растение.", "en": "The root absorbs water and anchors the plant."}
+  },
+  {
+    id: "bi17", skill: "plants", difficulty: 1, type: "choice",
+    prompt: {"ky": "Сабак өсүмдүктө кандай милдет аткарат?", "ru": "Какую работу выполняет стебель?", "en": "What does the stem do?"},
+    options: [
+      {"ky": "Суу жана заттарды өткөрөт, жалбырактарды кармайт", "ru": "Проводит воду и вещества, держит листья", "en": "Carries water and nutrients and holds up the leaves"},
+      {"ky": "Үрөн пайда кылат", "ru": "Образует семена", "en": "Makes seeds"},
+      {"ky": "Чаңдашат", "ru": "Опыляет цветки", "en": "Pollinates flowers"},
+      {"ky": "Топурактан минерал гана алат", "ru": "Только берёт минералы из почвы", "en": "Only takes minerals from the soil"}
+    ], correct: 0,
+    explain: {"ky": "Сабак — тамыр менен жалбырактын ортосундагы «жол».", "ru": "Стебель — «дорога» между корнем и листьями.", "en": "The stem is the road between the roots and the leaves."}
+  },
+  {
+    id: "bi18", skill: "plants", difficulty: 2, type: "choice",
+    prompt: {"ky": "Үрөн өсүмдүктүн кайсы бөлүгүнөн пайда болот?", "ru": "Из какой части растения развиваются семена?", "en": "Which part of a plant do seeds develop from?"},
+    options: [
+      {"ky": "Гүлдөн", "ru": "Из цветка", "en": "The flower"},
+      {"ky": "Тамырдан", "ru": "Из корня", "en": "The root"},
+      {"ky": "Жалбырактан", "ru": "Из листа", "en": "The leaf"},
+      {"ky": "Сабактан", "ru": "Из стебля", "en": "The stem"}
+    ], correct: 0,
+    explain: {"ky": "Чаңдашкандан кийин гүлдөн мөмө жана үрөн пайда болот.", "ru": "После опыления из цветка развиваются плод и семена.", "en": "After pollination the flower develops into fruit and seeds."}
+  },
+  {
+    id: "bi19", skill: "photosynthesis", difficulty: 3, type: "choice",
+    prompt: {"ky": "Өсүмдүктөр түнкүсүн, жарык жок кезде, эмне кылат?", "ru": "Что делают растения ночью, когда нет света?", "en": "What do plants do at night, when there is no light?"},
+    options: [
+      {"ky": "Дем алат: кычкылтек сиңирип, CO₂ бөлүп чыгарат", "ru": "Дышат: поглощают кислород и выделяют CO₂", "en": "They breathe: take in oxygen and give out CO₂"},
+      {"ky": "Фотосинтез жүргүзөт", "ru": "Продолжают фотосинтез", "en": "They keep photosynthesising"},
+      {"ky": "Эч нерсе кылбайт", "ru": "Ничего не делают", "en": "Nothing at all"},
+      {"ky": "Кычкылтек гана бөлүп чыгарат", "ru": "Выделяют только кислород", "en": "They only give out oxygen"}
+    ], correct: 0,
+    explain: {"ky": "Дем алуу күнү-түнү жүрөт, фотосинтез — жарыкта гана.", "ru": "Дыхание идёт днём и ночью, фотосинтез — только на свету.", "en": "Plants breathe day and night; photosynthesis needs light."}
   }
 ];

@@ -112,5 +112,71 @@ export default [
     options: ['Every day I go to school.', 'Yesterday I go to the park.', 'Tomorrow I will read a book.'],
     correct: 1,
     explain: { ky: 'Yesterday — өткөн чак: Yesterday I went to the park.', ru: 'Yesterday — прошедшее время: Yesterday I went to the park.', en: '"Yesterday" needs the past tense: Yesterday I went to the park.' }
+  },
+  {
+    id: "e30", skill: "food", difficulty: 1, type: "choice",
+    prompt: {"ky": "«Нан» англисче кандай?", "ru": "Как по-английски «хлеб»?", "en": "How do you say \"нан / хлеб\" in English?"},
+    options: [
+      "bread",
+      "milk",
+      "apple",
+      "water"
+    ], correct: 0,
+    explain: {"ky": "bread — нан", "ru": "bread — хлеб", "en": "bread = нан / хлеб"}
+  },
+  {
+    id: "e31", skill: "food", difficulty: 1, type: "choice",
+    prompt: {"ky": "«Milk» деген эмне?", "ru": "Что означает «milk»?", "en": "What does \"milk\" mean?"},
+    options: [
+      {"ky": "Сүт", "ru": "Молоко", "en": "A white drink from cows"},
+      {"ky": "Суу", "ru": "Вода", "en": "Water"},
+      {"ky": "Чай", "ru": "Чай", "en": "Tea"},
+      {"ky": "Ширин суусундук", "ru": "Сок", "en": "Juice"}
+    ], correct: 0,
+    explain: {"ky": "milk — сүт", "ru": "milk — молоко", "en": "Milk is a white drink we get from cows."}
+  },
+  {
+    id: "e32", skill: "school", difficulty: 1, type: "choice",
+    prompt: {"ky": "«Китеп» англисче кандай?", "ru": "Как по-английски «книга»?", "en": "How do you say \"китеп / книга\" in English?"},
+    options: [
+      "book",
+      "pen",
+      "desk",
+      "bag"
+    ], correct: 0,
+    explain: {"ky": "book — китеп", "ru": "book — книга", "en": "book = китеп / книга"}
+  },
+  {
+    id: "e33", skill: "school", difficulty: 2, type: "choice",
+    prompt: {"ky": "«Teacher» деген ким?", "ru": "Кто такой «teacher»?", "en": "Who is a \"teacher\"?"},
+    options: [
+      {"ky": "Мугалим", "ru": "Учитель", "en": "A person who teaches"},
+      {"ky": "Окуучу", "ru": "Ученик", "en": "A pupil"},
+      {"ky": "Дарыгер", "ru": "Врач", "en": "A doctor"},
+      {"ky": "Айдоочу", "ru": "Водитель", "en": "A driver"}
+    ], correct: 0,
+    explain: {"ky": "teacher — мугалим", "ru": "teacher — учитель", "en": "A teacher teaches pupils."}
+  },
+  {
+    id: "e34", skill: "verbs", difficulty: 1, type: "choice",
+    prompt: {"ky": "«Окуу» (китеп окуу) англисче кандай?", "ru": "Как по-английски «читать»?", "en": "How do you say \"окуу / читать\" in English?"},
+    options: [
+      "read",
+      "write",
+      "run",
+      "sing"
+    ], correct: 0,
+    explain: {"ky": "read — окуу", "ru": "read — читать", "en": "read = окуу / читать"}
+  },
+  {
+    id: "e35", skill: "verbs", difficulty: 2, type: "choice",
+    prompt: {"ky": "Туура сөздү тандаңыз: «I ___ to school every day.»", "ru": "Выберите правильное слово: «I ___ to school every day.»", "en": "Choose the right word: \"I ___ to school every day.\""},
+    options: [
+      "go",
+      "goes",
+      "going",
+      "went"
+    ], correct: 0,
+    explain: {"ky": "I менен учур чакта: go. He/she менен — goes.", "ru": "С I в настоящем времени: go. С he/she — goes.", "en": "With \"I\" in the present simple we say \"go\"; with he/she — \"goes\"."}
   }
 ];

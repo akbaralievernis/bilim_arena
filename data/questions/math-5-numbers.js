@@ -115,5 +115,17 @@ export default [
     prompt: { ky: '5 + (8 − 2) × 3 эсептөөнүн кадамдарын иреттеңиз', ru: 'Расставьте шаги вычисления 5 + (8 − 2) × 3', en: 'Order the steps for 5 + (8 − 2) × 3' },
     items: ['8 − 2 = 6', '6 × 3 = 18', '5 + 18 = 23'],
     explain: { ky: 'Кашаа → көбөйтүү → кошуу.', ru: 'Скобки → умножение → сложение.', en: 'Brackets → multiplication → addition.' }
+  },
+  {
+    id: "m5-30", skill: "order", difficulty: 2, type: "input", numeric: true,
+    prompt: {"ky": "48 : 6 + 7 × 3 = ?", "ru": "48 : 6 + 7 × 3 = ?", "en": "48 ÷ 6 + 7 × 3 = ?"},
+    answer: ["29"],
+    explain: {"ky": "Адегенде бөлүү жана көбөйтүү: 8 + 21 = 29.", "ru": "Сначала деление и умножение: 8 + 21 = 29.", "en": "Divide and multiply first: 8 + 21 = 29."}
+  },
+  {
+    id: "m5-31", skill: "word", difficulty: 2, type: "input", numeric: true,
+    prompt: {"ky": "Китепте 240 бет бар. Айбек күнүнө 30 бет окуйт. Канча күндө окуп бүтөт?", "ru": "В книге 240 страниц. Айбек читает 30 страниц в день. За сколько дней он прочитает книгу?", "en": "A book has 240 pages. Aibek reads 30 pages a day. How many days will it take him?"},
+    answer: ["8"],
+    explain: {"ky": "240 : 30 = 8.", "ru": "240 : 30 = 8.", "en": "240 ÷ 30 = 8."}
   }
 ];

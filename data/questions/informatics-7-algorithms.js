@@ -131,5 +131,62 @@ export default [
       { ky: 'Кайнак сууну куюу', ru: 'Залить кипятком', en: 'Pour in the boiling water' }
     ],
     explain: { ky: 'Ар бир кадам мурунку кадамдын жыйынтыгына таянат.', ru: 'Каждый шаг опирается на результат предыдущего.', en: 'Each step depends on the result of the previous one.' }
+  },
+  {
+    id: "a30", skill: "sequence", difficulty: 1, type: "choice",
+    prompt: {"ky": "Алгоритм деген эмне?", "ru": "Что такое алгоритм?", "en": "What is an algorithm?"},
+    options: [
+      {"ky": "Маселени чечүүнүн так кадамдарынын ырааттуулугу", "ru": "Точная последовательность шагов для решения задачи", "en": "An exact sequence of steps that solves a task"},
+      {"ky": "Компьютердин бөлүгү", "ru": "Часть компьютера", "en": "A part of a computer"},
+      {"ky": "Программалоо тили", "ru": "Язык программирования", "en": "A programming language"},
+      {"ky": "Файлдын түрү", "ru": "Тип файла", "en": "A file type"}
+    ], correct: 0,
+    explain: {"ky": "Алгоритмди адам да, компьютер да аткара алат.", "ru": "Алгоритм может выполнять и человек, и компьютер.", "en": "Both people and computers can follow an algorithm."}
+  },
+  {
+    id: "a31", skill: "condition", difficulty: 1, type: "choice",
+    prompt: {"ky": "«Жамгыр жааса, кол чатыр ал» — бул кандай алгоритм?", "ru": "«Если идёт дождь, возьми зонт» — какой это алгоритм?", "en": "\"If it rains, take an umbrella\" — what kind of algorithm is this?"},
+    options: [
+      {"ky": "Тармактануучу (шарттуу)", "ru": "Разветвляющийся (с условием)", "en": "Branching (with a condition)"},
+      {"ky": "Сызыктуу", "ru": "Линейный", "en": "Linear"},
+      {"ky": "Циклдик", "ru": "Циклический", "en": "A loop"},
+      {"ky": "Кокустук", "ru": "Случайный", "en": "Random"}
+    ], correct: 0,
+    explain: {"ky": "«Эгер … болсо» — шарт, андан кийин эки жол бар.", "ru": "«Если …» — условие, после него два пути.", "en": "\"If\" is a condition that splits the path in two."}
+  },
+  {
+    id: "a32", skill: "loop", difficulty: 1, type: "choice",
+    prompt: {"ky": "«5 жолу кайтала» — бул эмне?", "ru": "«Повтори 5 раз» — что это?", "en": "\"Repeat 5 times\" — what is this?"},
+    options: [
+      {"ky": "Цикл", "ru": "Цикл", "en": "A loop"},
+      {"ky": "Шарт", "ru": "Условие", "en": "A condition"},
+      {"ky": "Өзгөрмө", "ru": "Переменная", "en": "A variable"},
+      {"ky": "Файл", "ru": "Файл", "en": "A file"}
+    ], correct: 0,
+    explain: {"ky": "Бир эле буйрукту бир нече жолу аткаруу — цикл.", "ru": "Повторение одних и тех же команд — цикл.", "en": "Doing the same commands again and again is a loop."}
+  },
+  {
+    id: "a33", skill: "loop", difficulty: 2, type: "input", numeric: true,
+    prompt: {"ky": "x = 0. «3 жолу кайтала: x = x + 2». Акырында x канчага барабар?", "ru": "x = 0. «Повтори 3 раза: x = x + 2». Чему равен x в конце?", "en": "x = 0. \"Repeat 3 times: x = x + 2\". What is x at the end?"},
+    answer: ["6"],
+    explain: {"ky": "0 → 2 → 4 → 6.", "ru": "0 → 2 → 4 → 6.", "en": "0 → 2 → 4 → 6."}
+  },
+  {
+    id: "a34", skill: "condition", difficulty: 2, type: "input", numeric: true,
+    prompt: {"ky": "a = 7. Эгер a > 5 болсо, b = a − 5, болбосо b = a + 5. b канча?", "ru": "a = 7. Если a > 5, то b = a − 5, иначе b = a + 5. Чему равен b?", "en": "a = 7. If a > 5 then b = a − 5, else b = a + 5. What is b?"},
+    answer: ["2"],
+    explain: {"ky": "7 > 5 — шарт аткарылды: 7 − 5 = 2.", "ru": "7 > 5 — условие выполнено: 7 − 5 = 2.", "en": "7 > 5 is true, so b = 7 − 5 = 2."}
+  },
+  {
+    id: "a35", skill: "sequence", difficulty: 2, type: "input", numeric: true,
+    prompt: {"ky": "x = 3; y = x × 4; x = y − 2. Акырында x канча?", "ru": "x = 3; y = x × 4; x = y − 2. Чему равен x в конце?", "en": "x = 3; y = x × 4; x = y − 2. What is x at the end?"},
+    answer: ["10"],
+    explain: {"ky": "y = 12, анан x = 12 − 2 = 10.", "ru": "y = 12, затем x = 12 − 2 = 10.", "en": "y = 12, then x = 12 − 2 = 10."}
+  },
+  {
+    id: "a36", skill: "loop", difficulty: 3, type: "input", numeric: true,
+    prompt: {"ky": "s = 0. i 1ден 4кө чейин: s = s + i. Акырында s канча?", "ru": "s = 0. Для i от 1 до 4: s = s + i. Чему равен s в конце?", "en": "s = 0. For i from 1 to 4: s = s + i. What is s at the end?"},
+    answer: ["10"],
+    explain: {"ky": "1 + 2 + 3 + 4 = 10.", "ru": "1 + 2 + 3 + 4 = 10.", "en": "1 + 2 + 3 + 4 = 10."}
   }
 ];
