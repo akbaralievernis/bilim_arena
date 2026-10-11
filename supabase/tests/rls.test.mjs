@@ -143,5 +143,20 @@ await expectOk('удаление класса удаляет задания (cas
   return db.query('select * from assignments');
 }), rows(0));
 
+console.log('Журнал ошибок');
+const report = (msg = 'TypeError: x is undefined') => db.query(
+  'insert into client_errors (page, message, stack, lang, ua, version) values ($1, $2, $3, $4, $5, $6)',
+  ['/board.html', msg, 'at board.js:10', 'ky', 'Chrome', 'ba-v29']);
+await expectOk('посетитель без входа сообщает об ошибке', () => asAnonRole(() => report()), (r) => r.affectedRows === 1);
+await expectOk('ученик тоже может сообщить', () => as('S2', true, () => report()), (r) => r.affectedRows === 1);
+await expectDenied('журнал не читается без входа', () => asAnonRole(() => db.query('select * from client_errors')));
+await expectDenied('журнал не читает даже учитель', () => as('T1', false, () => db.query('select * from client_errors')));
+await expectDenied('стереть журнал нельзя', () => asAnonRole(() => db.query('delete from client_errors')));
+await expectDenied('слишком длинное сообщение отклоняется', () => asAnonRole(() => report('x'.repeat(600))));
+await expectOk('после 300 отчётов за 10 минут новые отклоняются', () => asAnonRole(async () => {
+  for (let i = 0; i < 300; i++) { try { await report(); } catch { /* сработала защита */ } }
+  try { await report(); return false; } catch (e) { return /too many/.test(e.message); }
+}), (r) => r === true);
+
 console.log(`\nИтог: ${pass} ok, ${fail} ошибок`);
 process.exit(fail ? 1 : 0);

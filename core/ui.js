@@ -197,6 +197,8 @@ function registerOffline() {
 
 /** Стартовая подготовка страницы: язык + тема. Вызывается первой. */
 export async function bootstrap() {
+  // Журнал сбоев (core/errors.js) — подгружается отдельно и ничего не задерживает
+  import('./errors.js').then((m) => m.startErrorReporting()).catch(() => {});
   await initTheme();
   await initI18n();
   document.body.classList.remove('boot');

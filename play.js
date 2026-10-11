@@ -283,6 +283,9 @@ async function connect(code, name) {
   };
 
   $('#joinBtn').addEventListener('click', tryJoin);
+  // Кнопка оживает, только когда страница готова: на медленном телефоне
+  // нажатие до загрузки скриптов иначе просто терялось бы
+  $('#joinBtn').disabled = false;
   $('#nameInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') tryJoin(); });
   $('#codeInput').addEventListener('input', (e) => {
     e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');

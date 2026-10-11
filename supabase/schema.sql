@@ -197,3 +197,40 @@ create policy user_data_own on public.user_data for all to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy user_data_teacher on public.user_data for select to authenticated
   using (key in ('progress', 'errors') and public.teaches_student(user_id));
+
+-- ─── Журнал ошибок сайта ────────────────────────────────────────────────────
+-- Браузер сообщает о сбоях (core/errors.js): страница без параметров, текст
+-- ошибки, язык, браузер. Имён и id пользователей здесь нет. Записать может
+-- любой посетитель, прочитать — только владелец проекта (Table Editor).
+create table if not exists public.client_errors (
+  id          bigint generated always as identity primary key,
+  created_at  timestamptz not null default now(),
+  page        text not null check (char_length(page) <= 200),
+  message     text not null check (char_length(message) between 1 and 500),
+  stack       text check (char_length(stack) <= 2000),
+  lang        text check (char_length(lang) <= 5),
+  ua          text check (char_length(ua) <= 300),
+  version     text check (char_length(version) <= 20)
+);
+create index if not exists client_errors_created_idx on public.client_errors (created_at);
+alter table public.client_errors enable row level security;
+
+drop policy if exists client_errors_insert on public.client_errors;
+create policy client_errors_insert on public.client_errors for insert to anon, authenticated
+  with check (true);
+-- Политики чтения нет: через API журнал не читается никем
+
+-- Защита от потока: не больше 300 отчётов за 10 минут на весь сайт;
+-- записи старше 30 дней удаляются
+create or replace function public.client_errors_guard()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if (select count(*) from public.client_errors where created_at > now() - interval '10 minutes') >= 300 then
+    raise exception 'too many error reports' using errcode = 'P0001';
+  end if;
+  delete from public.client_errors where created_at < now() - interval '30 days';
+  return new;
+end $$;
+drop trigger if exists client_errors_guard on public.client_errors;
+create trigger client_errors_guard before insert on public.client_errors
+  for each row execute function public.client_errors_guard();

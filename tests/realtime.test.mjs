@@ -43,3 +43,17 @@ test('signalling servers: own first, public as backup, test overrides', async ()
   assert.deepEqual(signalServers('?signal=own', own).map((s) => s.name), ['own']);
   assert.equal(signalServers('?signal=local', own)[0].options.port, 8787);
 });
+
+test('error reports: no URL parameters, noise ignored', async () => {
+  const { buildReport } = await import('../core/errors.js');
+  const err = new Error('boom at https://site.test/play.html?room=ABCD&name=Айбек');
+  err.stack = 'Error: boom\n    at render (https://site.test/play.js?v=15:10:5)';
+  const r = buildReport(err, { page: 'https://site.test/play.html?room=ABCD', lang: 'ky', ua: 'Chrome' });
+  assert.equal(r.page, '/play.html');
+  assert.ok(!r.message.includes('ABCD') && !r.message.includes('Айбек'));
+  assert.ok(!r.stack.includes('?v=15'));
+  assert.equal(buildReport(new Error('ResizeObserver loop limit exceeded')), null);
+  assert.equal(buildReport('Script error.'), null);
+  assert.equal(buildReport(new Error('NotAllowedError: Permission denied')), null);
+  assert.equal(buildReport(''), null);
+});

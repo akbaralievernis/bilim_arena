@@ -227,4 +227,10 @@
   }
 
   window.BALang = { lang, LANGS, add, t, pick, setLang, translate: translateTree };
+
+  // Журнал сбоев сайта (core/errors.js) — и для отдельных игр
+  try {
+    const here = document.currentScript && document.currentScript.src;
+    if (here) import(new URL('../core/errors.js', here).href).then((m) => m.startErrorReporting()).catch(() => {});
+  } catch (e) { /* без журнала игра работает так же */ }
 })();

@@ -249,13 +249,15 @@ async function openRoom() {
     state.room = await createRoom({
       onJoin: async (player) => {
         state.players.set(player.id, { ...player, team: null });
-        renderPlayers();
+        renderPlayersSoon();
         sfx.tap();
-        pushToPhones();
+        // Экран — только новому телефону: при входе 100 учеников рассылка
+        // всем на каждый вход давала бы ~10 000 лишних сообщений
+        pushToPhone(player.id);
         // Синхронизация без сервера: ученик получает задания учителя
-        state.room?.send(player.id, { type: 'sync-assignments', ...(await packAssignments()) });
+        state.room?.send(player.id, { type: 'sync-assignments', ...(await assignmentsPack()) });
       },
-      onLeave: () => renderPlayers(),
+      onLeave: () => renderPlayersSoon(),
       onMessage: (playerId, msg) => {
         // Результаты домашки с телефона ученика попадают в аналитику учителя
         if (msg.type === 'sync-submissions') {
@@ -313,6 +315,28 @@ function renderPlayers() {
       answered ? icon('check', { size: 16, label: t('game_answered') }) : null, p.name);
   }));
   $('#startGameBtn').disabled = list.length === 0;
+}
+
+/** Список учеников перерисовывается один раз за кадр, даже если вошли сразу 30 */
+let renderQueued = false;
+function renderPlayersSoon() {
+  if (renderQueued) return;
+  renderQueued = true;
+  requestAnimationFrame(() => { renderQueued = false; renderPlayers(); });
+}
+
+/** Задания для телефонов собираются раз в 30 с, а не для каждого вошедшего */
+let packCache = null;
+function assignmentsPack() {
+  if (!packCache || Date.now() - packCache.at > 30_000) packCache = { at: Date.now(), value: packAssignments() };
+  return packCache.value;
+}
+
+/** Экран одного телефона (новый ученик или вернувшийся после обрыва) */
+function pushToPhone(playerId) {
+  if (!state.room) return;
+  const spec = state.game ? state.game.controllerSpec(playerId) : { screen: 'wait' };
+  state.room.send(playerId, { type: 'screen', spec });
 }
 
 /** Отправляет каждому телефону его персональный экран */
