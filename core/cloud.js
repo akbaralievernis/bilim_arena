@@ -12,6 +12,7 @@
 
 import { SUPABASE } from './config.js';
 import { store, KEYS } from './store.js';
+import { mergeLog } from './merge.js';
 import { getProfile, saveProfile, invalidateProfile } from './profile.js';
 import { invalidateProgress } from './progress.js';
 import { allAssignments, allSubmissions } from './assignments.js';
@@ -285,6 +286,7 @@ async function syncPersonal() {
   const remote = Object.fromEntries(rows.map((r) => [r.key, r]));
   const changed = [];
   const upserts = [];
+  const lastSync = (await store.get(LAST, 0)) || 0;
 
   for (const key of keys) {
     const local = await store.get(key, null);
@@ -293,14 +295,21 @@ async function syncPersonal() {
 
     if (r && (local === null || r.updated_ms > localMs)) {
       let value = r.value;
-      if (Array.isArray(value) && Array.isArray(local)) value = mergeLog(local, value);
+      // Локальных изменений после прошлой синхронизации не было — облако побеждает
+      // целиком (так доходят удаления с другого устройства); иначе объединяем
+      const localChanged = localMs > lastSync;
+      if (localChanged && Array.isArray(value) && Array.isArray(local)) value = mergeLog(local, value);
       await store.set(key, value, { silent: true });
       meta[key] = r.updated_ms;
       changed.push(key);
       if (Array.isArray(value) && value.length !== r.value.length) upserts.push({ key, value, updated_ms: Date.now() });
     } else if (local !== null && (!r || localMs > r.updated_ms)) {
       let value = local;
-      if (r && Array.isArray(local) && Array.isArray(r.value)) value = mergeLog(local, r.value);
+      // Облачная версия уже была на этом устройстве (синхронизация была позже) —
+      // значит, всё, чего нет локально, здесь удалили: локальная версия побеждает целиком.
+      // Иначе в облаке могли появиться записи с другого устройства — объединяем.
+      const remoteSeenHere = r && lastSync >= r.updated_ms;
+      if (r && !remoteSeenHere && Array.isArray(local) && Array.isArray(r.value)) value = mergeLog(local, r.value);
       const ms = localMs || Date.now();
       meta[key] = ms;
       upserts.push({ key, value, updated_ms: ms });
@@ -315,20 +324,6 @@ async function syncPersonal() {
   if (changed.includes(KEYS.profile)) invalidateProfile();
   if (changed.includes(KEYS.progress)) invalidateProgress();
   return changed;
-}
-
-/** Объединение журналов без дублей, по времени, не длиннее 500 записей */
-function mergeLog(a, b) {
-  const seen = new Set();
-  const out = [];
-  for (const item of [...a, ...b]) {
-    const id = JSON.stringify(item);
-    if (seen.has(id)) continue;
-    seen.add(id);
-    out.push(item);
-  }
-  out.sort((x, y) => (x?.at || 0) - (y?.at || 0));
-  return out.slice(-500);
 }
 
 /**

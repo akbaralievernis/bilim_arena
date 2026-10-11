@@ -1,0 +1,22 @@
+/* Отчёты учителя (reports.html) */
+.rep-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; width: 100%; text-align: left; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: inherit; font: inherit; cursor: pointer; }
+.rep-row:hover { border-color: #CDD2E4; }
+.rep-row b { overflow-wrap: anywhere; }
+.rep-row .rep-sub { grid-column: 1 / -1; }
+.rep-pct { font-weight: 800; font-variant-numeric: tabular-nums; }
+.rep-pct.low { color: #B42318; }
+.rep-pct.mid { color: #B54708; }
+.rep-pct.high { color: #0E7A4E; }
+.rep-table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+.rep-table th, .rep-table td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.rep-table th { font-size: 0.8125rem; color: var(--muted, #5B6583); font-weight: 600; }
+.rep-table td.num, .rep-table th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rep-table-wrap { overflow-x: auto; }
+.rep-weak { display: grid; gap: 6px; }
+.rep-weak-row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+@media print {
+  .no-print, .tabbar, header, .topbar, #header, .skip-link { display: none !important; }
+  body { background: #fff; padding: 0 !important; }
+  .card { box-shadow: none; border: 1px solid #ddd; }
+  .rep-row { break-inside: avoid; }
+}

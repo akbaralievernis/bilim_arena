@@ -29,6 +29,7 @@ import { getLab, labsFor } from './data/labs/index.js';
 import InvestigationGame, { PHASE } from './games/investigation/game.js';
 import { CASES, loadCase } from './data/investigations/index.js';
 import { packAssignments, mergeSubmissions } from './core/sync.js';
+import { recordStage } from './core/lessons.js';
 
 const GAMES = {
   quickvote: QuickVoteGame, territory: TerritoryGame, investigation: InvestigationGame,
@@ -95,6 +96,7 @@ const state = {
   game: null,
   players: new Map(),   // playerId -> { id, name, team }
   lessonStats: { answered: 0, correct: 0, bySkill: {} },
+  lessonId: null,        // запись урока в журнале (core/lessons.js)
   repeatQuestions: null, // вопросы для повторного прохождения по ошибкам
   review: null           // { ids, skills } — повторение по ошибкам класса
 };
@@ -648,6 +650,17 @@ function showResults(game) {
     const acc = state.lessonStats.bySkill[skill] || (state.lessonStats.bySkill[skill] = { ok: 0, total: 0 });
     acc.ok += s.ok; acc.total += s.total;
   });
+
+  // Журнал урока: кто как ответил — для истории уроков и отчётов по ученикам
+  recordStage({
+    lessonId: state.lessonId,
+    subject: state.subject,
+    topic: game.ctx?.topic || state.topic,
+    mode: state.mode,
+    gameId: game.meta?.id,
+    log: game.log,
+    players: r.players
+  }).then((id) => { if (id) state.lessonId = id; }).catch((e) => console.warn('[lessons]', e));
 
   const isCase = !!r.caseId;
   const lang = getLang();

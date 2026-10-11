@@ -111,6 +111,7 @@ const TEACHER_NAV = [
   { href: 'homework.html', key: 'nav_assignments', tab: 'tab_tasks', icon: 'tasks' },
   { href: 'questions.html', key: 'nav_builder', tab: 'tab_questions', icon: 'pen' },
   { href: 'board.html', key: 'board_mode', tab: 'tab_board', icon: 'board' },
+  { href: 'reports.html', key: 'nav_reports', icon: 'progress', noTab: true },
   { href: 'index.html', key: 'nav_student_view', tab: 'tab_student', icon: 'home' }
 ];
 
@@ -177,7 +178,7 @@ export function mountHeader(target, { role = 'student', active = '' } = {}) {
 
   // Нижняя панель для телефона
   const tabbar = el('nav', { class: `tabbar ${teacher ? 'tabbar-5' : ''}`, 'aria-label': t('nav_main') },
-    items.map((it) => navLink(it, active, { tab: true })));
+    items.filter((it) => !it.noTab).map((it) => navLink(it, active, { tab: true })));
   document.body.append(tabbar);
   document.body.classList.add('has-tabbar');
   document.body.classList.toggle('teacher-mode', teacher);

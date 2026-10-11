@@ -10,6 +10,7 @@ import { bootstrap, mountHeader, el, $, toast } from './core/ui.js';
 import { raceUrl } from './core/race.js';
 import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
+import { lessonHistory } from './core/lessons.js';
 import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, skillTitle } from './core/curriculum.js';
 import { store, KEYS } from './core/store.js';
 import { SUPABASE } from './core/config.js';
@@ -71,10 +72,7 @@ function startLesson() {
   const params = new URLSearchParams({
     subject: state.subject, topic: state.topic, duration: String(state.duration)
   });
-  // Сохраняем урок в журнал — потом он попадёт в «Сабактар»
-  store.push(KEYS.lessons, {
-    at: Date.now(), subject: state.subject, topic: state.topic, duration: state.duration
-  }, 50);
+  // Результаты урока сохраняет доска после каждого этапа (core/lessons.js)
   location.href = `./board.html?${params}`;
 }
 
@@ -176,25 +174,32 @@ async function renderResults() {
   const lang = getLang();
   const errors = await store.get(KEYS.errors, []);
   const history = await store.get(KEYS.history, []);
-  const lessons = await store.get(KEYS.lessons, []);
+  const lessons = await lessonHistory();
+  const lessonWrong = lessons.reduce((s, l) => s + ((l.answered || 0) - (l.correct || 0)), 0);
 
-  const answered = history.reduce((s, h) => s + (h.total || 0), 0);
-  const correct = history.reduce((s, h) => s + (h.correct || 0), 0);
+  // Игры на этом устройстве + уроки на доске
+  const answered = history.reduce((s, h) => s + (h.total || 0), 0) + lessons.reduce((s, l) => s + (l.answered || 0), 0);
+  const correct = history.reduce((s, h) => s + (h.correct || 0), 0) + lessons.reduce((s, l) => s + (l.correct || 0), 0);
   const avg = answered ? Math.round((correct / answered) * 100) : 0;
 
   $('#resultStats').replaceChildren(
     stat(lessons.length, t('nav_lessons')),
     stat(history.length, t('nav_games')),
     stat(`${avg}%`, t('analytics_class_average')),
-    stat(errors.length, t('results_wrong'))
+    stat(errors.length + lessonWrong, t('results_wrong'))
   );
 
-  // Частые ошибки по навыкам — именно это нужно учителю для повторения
+  // Частые ошибки по навыкам — именно это нужно учителю для повторения:
+  // ошибки уроков на доске + ошибки, записанные на этом устройстве
   const counts = {};
   errors.forEach((e) => {
     const key = `${e.topic}::${e.skill}`;
     counts[key] = (counts[key] || 0) + 1;
   });
+  lessons.forEach((l) => Object.entries(l.bySkill || {}).forEach(([key, s]) => {
+    const wrong = (s.total || 0) - (s.ok || 0);
+    if (wrong > 0) counts[key] = (counts[key] || 0) + wrong;
+  }));
   const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 6);
 
   $('#mistakeList').replaceChildren(...(top.length ? top.map(([key, n]) => {
@@ -217,15 +222,18 @@ async function renderResults() {
     location.href = `./board.html?subject=${topic.subject}&topic=${topicId}&duration=20&mode=review`;
   };
 
+  const two = (n) => String(n).padStart(2, '0');
+  const day = (ms) => { const d = new Date(ms); return `${two(d.getDate())}.${two(d.getMonth() + 1)}.${d.getFullYear()}`; };
   $('#lessonHistory').replaceChildren(...(lessons.length
-    ? lessons.slice(-6).reverse().map((l) => {
+    ? lessons.slice(0, 6).map((l) => {
       const topic = getTopic(l.topic);
+      const pct = l.answered ? Math.round((l.correct / l.answered) * 100) : 0;
       return el('div', { class: 'row between', style: 'padding:.4em 0' },
-        el('span', {}, topic ? pick(topic.title, lang) : l.topic),
-        el('span', { class: 'muted small' }, new Date(l.at).toLocaleDateString())
+        el('span', {}, topic ? pick(topic.title, lang) : (l.topic || '—')),
+        el('span', { class: 'muted small' }, `${day(l.at)} · ${t('rep_students_n', { n: Object.keys(l.students || {}).length })} · ${pct}%`)
       );
     })
-    : [el('p', { class: 'muted' }, t('empty_none'))]));
+    : [el('p', { class: 'muted' }, t('rep_lessons_empty'))]));
 }
 
 const stat = (value, label) => el('div', { class: 'stat' }, el('b', {}, String(value)), el('span', {}, label));
