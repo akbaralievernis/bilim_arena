@@ -45,7 +45,7 @@ export const RACE_URL = 'https://bilimarenarace.vercel.app';
  * сервер не отвечает, сайт сам переходит на общий.
  */
 export const SIGNAL = {
-  host: '',          // например 'bilimarena-signal.<аккаунт>.workers.dev'
+  host: 'bilimarena-signal.bilimarena-signal.workers.dev',
   key: 'bilimarena'
 };
 
