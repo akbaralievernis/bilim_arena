@@ -6,14 +6,14 @@
  * Прогресс, XP и данные Supabase хранятся в localStorage/облаке — кэш их не трогает.
  */
 const PREFIX = 'ba-';
-const VERSION = 'ba-v30';
+const VERSION = 'ba-v31';
 const CORE = [
   './', './index.html', './home.css', './home.js',
   './board.html', './board.js', './play.html', './play.js',
   './teacher.html', './teacher.js', './progress.html', './progress.js',
   './practice.html', './practice.js',
   './tasks.html', './tasks.js', './homework.html', './homework.js',
-  './questions.html', './questions.js', './speak.html', './speak.js', './account.html', './account.js', './games.html', './games.js', './profile.html', './profile.js', './race.html', './race.js', './reports.html', './reports.js', './reports.css',
+  './questions.html', './questions.js', './speak.html', './speak.js', './account.html', './account.js', './games.html', './games.js', './profile.html', './profile.js', './race.html', './race.js', './reports.html', './reports.js', './reports.css', './privacy.html', './terms.html', './legal.js', './data/legal.js',
   './manifest.webmanifest', './assets/logo.svg', './assets/icon-192.png', './assets/icon-512.png',
   './assets/icon-maskable-512.png', './assets/apple-touch-icon.png',
   // Ядро платформы

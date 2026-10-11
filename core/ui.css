@@ -854,3 +854,14 @@ button.option:not([disabled]):hover { border-color: var(--primary); }
 .ready-card { display: grid; gap: 8px; }
 .ready-card .ready-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; }
 .ready-preview { display: grid; gap: 4px; margin: 0; padding-left: 1.2em; }
+
+/* Купуялык жана колдонуу шарттары (privacy.html, terms.html) */
+.legal { max-width: 760px; margin: 0 auto; display: grid; gap: 4px; }
+.legal h1 { margin-bottom: 0; }
+.legal .lead { font-size: 1.0625rem; }
+.legal-section { margin-top: 18px; }
+.legal-section h2 { font-size: 1.25rem; margin: 0 0 8px; }
+.legal-section p { margin: 0 0 8px; line-height: 1.6; }
+.legal-list { margin: 0 0 8px; padding-left: 1.3em; display: grid; gap: 6px; line-height: 1.55; }
+.legal-links { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: center; margin-top: 12px; }
+.legal-links a { color: inherit; opacity: 0.75; font-size: 0.875rem; }
