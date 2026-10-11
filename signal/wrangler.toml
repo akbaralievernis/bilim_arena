@@ -1,0 +1,19 @@
+# Bilim Arena — сервер знакомства для доски и телефонов (Cloudflare Workers).
+# Развернуть: npx wrangler login (один раз), затем npm run deploy.
+name = "bilimarena-signal"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+[vars]
+PEER_KEY = "bilimarena"
+# Сайт, с которого разрешено подключаться (и localhost для разработки)
+ALLOWED_ORIGINS = "https://akbaralievernis.github.io,http://localhost:8765,http://127.0.0.1:8765"
+
+[[durable_objects.bindings]]
+name = "HUB"
+class_name = "SignalHub"
+
+# Бесплатный тариф Cloudflare поддерживает только Durable Objects на SQLite
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SignalHub"]

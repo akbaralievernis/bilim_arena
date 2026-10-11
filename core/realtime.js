@@ -12,6 +12,7 @@
  */
 
 import { iceServers } from './turn.js';
+import { SIGNAL } from './config.js';
 
 const PEER_CDN = 'https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js';
 // SRI: браузер выполнит файл с CDN, только если он байт в байт совпадает с проверенным
@@ -32,6 +33,23 @@ async function peerOptions() {
     debug: 0,
     config: { iceServers: await iceServers(), ...(relayOnly ? { iceTransportPolicy: 'relay' } : {}) }
   };
+}
+
+/**
+ * Серверы знакомства по порядку: свой (core/config.js → SIGNAL), затем общий
+ * PeerJS. Для проверки: ?signal=public — только общий, ?signal=own — только
+ * свой, ?signal=local — сервер из signal/, запущенный на этом компьютере.
+ */
+const PUBLIC_SIGNAL = { name: 'public', options: {} };
+export function signalServers(search = window.location.search, config = SIGNAL) {
+  const mode = new URLSearchParams(search).get('signal');
+  const own = config?.host
+    ? { name: 'own', options: { host: config.host, port: config.port || 443, path: config.path || '/', secure: config.secure !== false, key: config.key || 'bilimarena' } }
+    : null;
+  if (mode === 'local') return [{ name: 'local', options: { host: '127.0.0.1', port: 8787, path: '/', secure: false, key: config?.key || 'bilimarena' } }];
+  if (mode === 'public') return [PUBLIC_SIGNAL];
+  if (mode === 'own') return [own || PUBLIC_SIGNAL];
+  return own ? [own, PUBLIC_SIGNAL] : [PUBLIC_SIGNAL];
 }
 
 let peerLib = null;
@@ -108,9 +126,15 @@ export const roomCode = (len = 4) =>
 const peerIdFor = (code) => ROOM_PREFIX + String(code).toUpperCase();
 
 /** Ссылка для QR-кода: открывает контроллер с уже вписанным кодом */
-export function joinUrl(code) {
+export function joinUrl(code, server = null) {
   const base = window.location.href.replace(/[^/]*$/, '');
-  return `${base}play.html?room=${String(code).toUpperCase()}`;
+  const params = new URLSearchParams({ room: String(code).toUpperCase() });
+  // Комната на общем сервере (свой не ответил) — телефон сразу идёт туда
+  if (server === 'public' && SIGNAL?.host) params.set('s', 'public');
+  // Режимы проверки переходят на телефон вместе со ссылкой
+  const here = new URLSearchParams(window.location.search);
+  for (const k of ['signal', 'relay']) if (here.get(k)) params.set(k, here.get(k));
+  return `${base}play.html?${params}`;
 }
 
 // ─── Доска (хост) ─────────────────────────────────────────────────────────────
@@ -123,35 +147,45 @@ export function joinUrl(code) {
  * @param {(playerId:string, msg:object)=>void} handlers.onMessage
  */
 export async function createRoom({ onJoin, onLeave, onMessage } = {}) {
-  const [Peer, options] = await Promise.all([loadPeer(), peerOptions()]);
+  const [Peer, baseOptions] = await Promise.all([loadPeer(), peerOptions()]);
   const conns = new Map();   // playerId -> connection
   const players = new Map(); // playerId -> { id, name }
   const secrets = new Map(); // playerId -> секрет телефона, занявшего это место
 
   let code = null;
   let peer = null;
+  let server = null;
+  let lastError = null;
 
-  // Код может быть занят другим классом — пробуем несколько раз
-  for (let attempt = 0; attempt < 5; attempt++) {
-    code = roomCode();
-    try {
-      peer = await new Promise((resolve, reject) => {
-        const p = new Peer(peerIdFor(code), options);
-        const timer = setTimeout(() => reject(new Error('timeout')), 15000);
-        p.on('open', () => { clearTimeout(timer); resolve(p); });
-        p.on('error', (err) => {
-          clearTimeout(timer);
-          reject(new Error(err?.type === 'unavailable-id' ? 'code-taken' : (err?.type || 'peer-error')));
+  // Свой сервер знакомства не отвечает — комната создаётся на общем
+  for (const candidate of signalServers()) {
+    const options = { ...baseOptions, ...candidate.options };
+    // Код может быть занят другим классом — пробуем несколько раз
+    for (let attempt = 0; attempt < 5 && !peer; attempt++) {
+      code = roomCode();
+      let p = null;
+      try {
+        peer = await new Promise((resolve, reject) => {
+          p = new Peer(peerIdFor(code), options);
+          const timer = setTimeout(() => reject(new Error('timeout')), candidate.name === 'public' ? 15000 : 8000);
+          p.on('open', () => { clearTimeout(timer); resolve(p); });
+          p.on('error', (err) => {
+            clearTimeout(timer);
+            reject(new Error(err?.type === 'unavailable-id' ? 'code-taken' : (err?.type || 'peer-error')));
+          });
         });
-      });
-      break;
-    } catch (err) {
-      try { peer?.destroy(); } catch { /* уже закрыт */ }
-      peer = null;
-      if (err.message !== 'code-taken') throw err;
+        server = candidate.name;
+      } catch (err) {
+        try { p?.destroy(); } catch { /* уже закрыт */ }
+        peer = null;
+        lastError = err;
+        if (err.message !== 'code-taken') break; // сервер недоступен — следующий
+      }
     }
+    if (peer) break;
+    console.warn('[room] сервер знакомства не ответил:', candidate.name, lastError?.message);
   }
-  if (!peer) throw new Error('room-create-failed');
+  if (!peer) throw lastError || new Error('room-create-failed');
 
   // Сервер знакомства (PeerJS) нужен только НОВЫМ телефонам: по нему они находят
   // доску. Если доска потеряла с ним связь (вкладка ушла в фон, моргнул Wi-Fi),
@@ -224,6 +258,8 @@ export async function createRoom({ onJoin, onLeave, onMessage } = {}) {
 
   return {
     code,
+    /** Какой сервер знакомства у комнаты: 'own' | 'public' | 'local' */
+    server,
     get playerCount() { return players.size; },
     players: () => [...players.values()],
     online: (id) => !!conns.get(id)?.open,
@@ -269,8 +305,33 @@ export async function createRoom({ onJoin, onLeave, onMessage } = {}) {
  * Подключение к комнате. Сам переподключается, если связь оборвалась
  * (телефон заблокировался, Wi-Fi моргнул).
  */
-export async function joinRoom({ code, name, playerId, secret, onMessage, onStatus } = {}) {
-  const [Peer, options] = await Promise.all([loadPeer(), peerOptions()]);
+export async function joinRoom({ code, name, playerId, secret, onMessage, onStatus, server = null } = {}) {
+  const [Peer, baseOptions] = await Promise.all([loadPeer(), peerOptions()]);
+  let servers = signalServers();
+  // Подсказка из QR: комната на общем сервере — начинаем с него
+  if (server) servers = [...servers.filter((s) => s.name === server), ...servers.filter((s) => s.name !== server)];
+
+  let lastError = null;
+  for (const candidate of servers) {
+    try {
+      const quickMiss = candidate !== servers[servers.length - 1];
+      return await joinVia(Peer, { ...baseOptions, ...candidate.options }, { code, name, playerId, secret, onMessage, onStatus, quickMiss });
+    } catch (err) {
+      lastError = err;
+      // Доска нашлась, но канал не открылся — другой сервер не поможет
+      if (err.message === 'connect-timeout') throw err;
+      console.warn('[join] нет комнаты на сервере', candidate.name, err.message);
+    }
+  }
+  throw lastError || new Error('room-not-found');
+}
+
+/**
+ * Подключение через один сервер знакомства.
+ * quickMiss — есть запасной сервер: если комнаты здесь нет (два ответа
+ * «адресата нет» подряд), сразу сдаёмся, чтобы проверить следующий.
+ */
+async function joinVia(Peer, options, { code, name, playerId, secret, onMessage, onStatus, quickMiss = false }) {
   const id = playerId || `s_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
   // Секрет телефона: только он может вернуться на это место после обрыва
   const key = typeof secret === 'string' && secret ? secret : randomSecret();
@@ -284,7 +345,8 @@ export async function joinRoom({ code, name, playerId, secret, onMessage, onStat
 
   const peer = await new Promise((resolve, reject) => {
     const p = new Peer(undefined, options);
-    const timer = setTimeout(() => reject(new Error('timeout')), 20000);
+    // Свой сервер отвечает быстро; если молчит — не держим ученика, есть запасной
+    const timer = setTimeout(() => { try { p.destroy(); } catch { /* закрыт */ } reject(new Error('timeout')); }, quickMiss ? 8000 : 20000);
     p.on('open', () => { clearTimeout(timer); resolve(p); });
     p.on('error', (err) => {
       clearTimeout(timer);
@@ -296,10 +358,15 @@ export async function joinRoom({ code, name, playerId, secret, onMessage, onStat
   // Если доска нашлась, но канал не успел открыться — это плохая связь.
   let boardFound = false;
   let unavailable = 0;
+  let missNow = null; // быстрый отказ: комнаты на этом сервере нет
 
   peer.on('disconnected', () => { if (!destroyed) { try { peer.reconnect(); } catch { /* закрыт */ } } });
   peer.on('error', (err) => {
-    if (err?.type === 'peer-unavailable') { unavailable += 1; scheduleRetry(); }
+    if (err?.type === 'peer-unavailable') {
+      unavailable += 1;
+      if (quickMiss && !boardFound && unavailable >= 2 && missNow) { missNow(); return; }
+      scheduleRetry();
+    }
     else console.warn('[join]', err?.type || err);
   });
 
@@ -339,6 +406,7 @@ export async function joinRoom({ code, name, playerId, secret, onMessage, onStat
         () => reject(new Error(boardFound || unavailable === 0 ? 'connect-timeout' : 'room-not-found')),
         25000
       );
+      missNow = () => { clearTimeout(timer); reject(new Error('room-not-found')); };
       bind(peer.connect(target, { reliable: true }), () => { clearTimeout(timer); resolve(); });
     });
   } catch (err) {

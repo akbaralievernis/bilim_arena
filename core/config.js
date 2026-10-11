@@ -39,6 +39,16 @@ export const RACE_URL = 'https://bilimarenarace.vercel.app';
  * Вариант 2 (используется) — готовый список серверов: servers: [{ urls, username, credential }]
  *   из Metered → Credentials → Get credential → Show ICE Servers Array.
  */
+/**
+ * SIGNAL — свой сервер знакомства доски и телефонов (папка signal/, Cloudflare
+ * Workers). Пусто — используется общий бесплатный сервер PeerJS. Если свой
+ * сервер не отвечает, сайт сам переходит на общий.
+ */
+export const SIGNAL = {
+  host: '',          // например 'bilimarena-signal.<аккаунт>.workers.dev'
+  key: 'bilimarena'
+};
+
 // Metered.ca, бесплатный тариф (500 МБ/мес). Логин и пароль TURN по замыслу
 // публичны: Metered выдаёт их для вставки в сайт, ими можно только
 // пересылать трафик (расходовать квоту), а не войти в аккаунт.

@@ -1,0 +1,14 @@
+{
+  "name": "bilim-arena",
+  "private": true,
+  "description": "Билим Арена — сайт без сборки; этот файл только для проверок (тесты и автотесты в браузере)",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "test:e2e": "playwright test",
+    "signal:dev": "npm --prefix signal run dev"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0"
+  }
+}

@@ -10,3 +10,12 @@ mafia-src/node_modules/
 
 # Тесты Supabase
 supabase/tests/node_modules/
+
+# Cloudflare (локальная разработка сервера знакомства)
+.wrangler/
+signal/.wrangler/
+.dev.vars
+
+# Автотесты Playwright
+test-results/
+playwright-report/

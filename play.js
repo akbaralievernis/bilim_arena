@@ -212,6 +212,7 @@ async function connect(code, name) {
     const savedSecret = await store.get('play_player_secret');
     conn.room = await joinRoom({
       code, name,
+      server: new URLSearchParams(location.search).get('s'),
       playerId: saved,
       secret: savedSecret,
       onMessage: (msg) => {

@@ -31,3 +31,15 @@ test('rate limit: normal play passes, floods are dropped, then closed', () => {
   t = 11000; // a new 10-second window
   assert.equal(limit(), 'ok');
 });
+
+test('signalling servers: own first, public as backup, test overrides', async () => {
+  const { signalServers } = await import('../core/realtime.js');
+  const own = { host: 'sig.example.workers.dev', key: 'bilimarena' };
+  assert.deepEqual(signalServers('', own).map((s) => s.name), ['own', 'public']);
+  assert.equal(signalServers('', own)[0].options.secure, true);
+  assert.equal(signalServers('', own)[0].options.port, 443);
+  assert.deepEqual(signalServers('', { host: '' }).map((s) => s.name), ['public']);
+  assert.deepEqual(signalServers('?signal=public', own).map((s) => s.name), ['public']);
+  assert.deepEqual(signalServers('?signal=own', own).map((s) => s.name), ['own']);
+  assert.equal(signalServers('?signal=local', own)[0].options.port, 8787);
+});

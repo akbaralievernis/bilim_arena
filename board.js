@@ -295,7 +295,7 @@ async function openRoom() {
     return;
   }
 
-  const url = joinUrl(state.room.code);
+  const url = joinUrl(state.room.code, state.room.server);
   $('#roomCode').textContent = state.room.code;
   $('#joinUrlText').textContent = url.replace(/^https?:\/\//, '');
   const ok = await renderQR($('#qrBox'), url, 260);
