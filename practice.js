@@ -4,8 +4,9 @@
  * Тот же игровой движок, что и на доске, но в режиме «соло»:
  * прогресс, ошибки и XP сохраняются в профиле ученика.
  * Перед игрой всегда показывается цель и правила, после — разбор ошибок.
- * Два режима: тренировка (объяснение после каждого ответа, повтор ошибок)
- * и итоговая проверка (только невиданные вопросы, разбор в конце).
+ * Путь по теме: диагностика → разбор слабых навыков → тренировка (объяснение
+ * после каждого ответа, повтор ошибок) → итоговая проверка (только невиданные
+ * вопросы, разбор в конце). «Изучено» — только по итоговой проверке.
  */
 
 import { bootstrap, mountHeader, el, $, sfx, confetti, toast } from './core/ui.js';
@@ -14,8 +15,10 @@ import { t, pick, getLang } from './core/i18n.js';
 import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, getQuestions, skillTitle } from './core/curriculum.js';
 import { BaseGame } from './core/engine.js';
 import { renderQuestion } from './core/quiz-ui.js';
-import { topicState, getProgress, questionMemory, recordCheck } from './core/progress.js';
-import { pickPractice, pickCheck, dueCount, unseenCount, CHECK_MIN } from './core/selection.js';
+import { getProgress, questionMemory, recordCheck, topicStatus, topicPath, recordDiagnostic, recordExplained } from './core/progress.js';
+import { pickPractice, pickCheck, pickDiagnostic, pickExamples, weakSkillsOf, dueCount, unseenCount, CHECK_MIN } from './core/selection.js';
+import { masterySettings } from './core/mastery.js';
+import { store, KEYS } from './core/store.js';
 import { getProfile } from './core/profile.js';
 import { resultView } from './core/results.js';
 
@@ -46,10 +49,30 @@ const ROUND = 10; // вопросов в раунде
 
 /** Все вопросы темы (банк + вопросы учителя) */
 const topicPool = (topic) => getQuestions({ topic, count: 10000 });
-const screens = ['pickScreen', 'introScreen', 'playScreen', 'resultScreen'];
+const screens = ['pickScreen', 'introScreen', 'explainScreen', 'playScreen', 'resultScreen'];
 const show = (id) => screens.forEach((s) => $('#' + s).classList.toggle('hidden', s !== id));
 
-const STATE_ICON = { learned: 'check', review: 'warn', new: 'target' };
+/** Статус темы (core/mastery.js) → класс, значок, подпись */
+const STATUS_VIEW = {
+  mastered: { cls: 'learned', icon: 'check', key: 'mastery_learned' },
+  ready: { cls: 'ready', icon: 'target', key: 'mastery_ready' },
+  learning: { cls: 'review', icon: 'warn', key: 'mastery_review' },
+  insufficient: { cls: 'insufficient', icon: 'info', key: 'mastery_insufficient' },
+  new: { cls: 'new', icon: 'target', key: 'mastery_new' }
+};
+const statusBadge = (status) => {
+  const v = STATUS_VIEW[status] || STATUS_VIEW.new;
+  return el('span', { class: `state ${v.cls}` }, icon(v.icon, { size: 16 }), t(v.key));
+};
+
+/** Правильный ответ вопроса банка — для разбора */
+function answerOf(q, lang) {
+  if (q.type === 'input') return (q.answer || [])[0] || '';
+  if (q.type === 'multiple') return (q.correct || []).map((i) => pick(q.options?.[i], lang)).join(', ');
+  if (q.type === 'match') return (q.pairs || []).map(([a, b]) => `${pick(a, lang)} → ${pick(b, lang)}`).join('; ');
+  if (q.type === 'sort') return (q.items || []).map((x) => pick(x, lang)).join(' → ');
+  return pick(q.options?.[q.correct ?? 0], lang);
+}
 const stat = (v, l) => el('div', { class: 'stat' }, el('b', {}, String(v)), el('span', {}, l));
 
 // ─── Выбор темы ───────────────────────────────────────────────────────────────
@@ -65,16 +88,17 @@ async function renderPicker() {
   }, `${pick(s.title, lang)}`)));
 
   const topics = topicsOf(state.subject);
+  const settings = await masterySettings();
   const cards = [];
   for (const tp of topics) {
-    const st = await topicState(tp.id);
+    const { status } = await topicStatus(tp.id, settings);
     cards.push(el('button', {
       class: 'subject-card card', type: 'button', style: 'text-align:left',
       onclick: () => openIntro(tp.id)
     },
       el('div', { class: 'row between' },
         el('b', {}, pick(tp.title, lang)),
-        el('span', { class: `state ${st}` }, icon(STATE_ICON[st], { size: 16 }), t('mastery_' + (st === 'learned' ? 'learned' : st === 'review' ? 'review' : 'new')))
+        statusBadge(status)
       ),
       el('div', { class: 'small muted' }, `${t('grade', { n: tp.grade })} · ${pick(tp.section, lang)}`),
       el('div', { class: 'chips' }, tp.skills.slice(0, 3).map((sk) => el('span', { class: 'chip small' }, pick(sk.title, lang))))
@@ -106,10 +130,33 @@ async function openIntro(topicId) {
     stat(rec ? `${Math.round((rec.correct / rec.answered) * 100)}%` : '—', t('knowledge_map'))
   );
 
-  // Что ждёт в каждом режиме — честно, до начала
-  const [pool, mem] = await Promise.all([topicPool(topicId), questionMemory()]);
+  // Что ждёт на каждом шаге — честно, до начала
+  const [pool, mem, path, settings] = await Promise.all([topicPool(topicId), questionMemory(), topicPath(topicId), masterySettings()]);
+  const ms = await topicStatus(topicId, settings);
   const due = dueCount(pool, mem, topicId);
   const unseen = unseenCount(pool, mem, topicId);
+  const weak = weakSkillsOf(path.diag);
+  const diagSet = pickDiagnostic(pool, mem, topicId, topic.skills.map((s) => s.id));
+
+  $('#topicStatus').replaceChildren(statusBadge(ms.status));
+  $('#topicStatusNote').textContent = {
+    new: t('path_status_new'),
+    insufficient: t('path_status_insufficient', { n: ms.need }),
+    learning: ms.checkPct != null
+      ? t('path_status_check_failed', { p: ms.checkPct, th: settings.threshold })
+      : t('path_status_learning', { p: ms.pct, th: settings.threshold }),
+    ready: t('path_status_ready', { p: ms.pct }),
+    mastered: t('path_status_mastered', { p: ms.checkPct })
+  }[ms.status];
+
+  $('#diagNote').textContent = path.diagAt
+    ? t('path_diag_done', { k: Object.keys(path.diag || {}).length - weak.length, n: Object.keys(path.diag || {}).length })
+    : diagSet.length >= 2 ? t('questions_n', { n: diagSet.length }) : t('path_diag_none');
+  $('#diagBtn').disabled = diagSet.length < 2;
+  $('#explainNote').textContent = weak.length
+    ? t('path_weak', { list: weak.map((s) => skillTitle(topicId, s, lang)).join(', ') })
+    : path.diagAt ? t('path_no_weak') : t('path_explain_all_hint');
+
   $('#practiceNote').textContent = due ? t('mode_due_n', { n: due }) : t('mode_due_none');
   const last = pr.checks?.[topicId]?.at(-1);
   $('#checkNote').textContent = [
@@ -119,7 +166,54 @@ async function openIntro(topicId) {
   ].filter(Boolean).join(' · ');
   $('#checkBtn').disabled = unseen < CHECK_MIN;
 
+  // Какие шаги пройдены и какой следующий
+  const done = {
+    stepDiag: !!path.diagAt,
+    stepExplain: !!path.explainedAt,
+    stepPractice: ms.status === 'ready' || ms.status === 'mastered',
+    stepCheck: ms.status === 'mastered'
+  };
+  const next = ms.status === 'mastered' ? null
+    : ms.status === 'new' && !path.diagAt && diagSet.length >= 2 ? 'stepDiag'
+      : weak.length && !path.explainedAt ? 'stepExplain'
+        : ms.status === 'ready' && unseen >= CHECK_MIN ? 'stepCheck' : 'stepPractice';
+  const BTN = { stepDiag: '#diagBtn', stepExplain: '#explainBtn', stepPractice: '#startBtn', stepCheck: '#checkBtn' };
+  Object.entries(BTN).forEach(([step, btn]) => {
+    $('#' + step).classList.toggle('done', done[step]);
+    $('#' + step).classList.toggle('next', step === next);
+    $(btn).classList.toggle('primary', step === next);
+  });
+
   show('introScreen');
+}
+
+// ─── Разбор: примеры с решением ───────────────────────────────────────────────
+
+async function openExplain() {
+  const lang = getLang();
+  const topic = getTopic(state.topic);
+  const [pool, mem, path, errors] = await Promise.all([
+    topicPool(state.topic), questionMemory(), topicPath(state.topic), store.get(KEYS.errors, [])
+  ]);
+  const weak = weakSkillsOf(path.diag);
+  const skills = weak.length ? weak : topic.skills.map((s) => s.id);
+  const mistakeIds = errors.filter((e) => e.topic === state.topic).map((e) => e.questionId).reverse();
+  const groups = pickExamples(pool, mem, state.topic, skills, mistakeIds, { perSkill: skills.length > 2 ? 1 : 2 });
+
+  $('#explainIntro').textContent = weak.length ? t('path_explain_weak') : t('path_explain_all');
+  const blocks = groups.filter((g) => g.questions.length).map((g) => el('section', { class: 'stack' },
+    el('h2', {}, skillTitle(state.topic, g.skill, lang)),
+    ...g.questions.map((q) => el('div', { class: 'card plain stack example' },
+      el('b', {}, pick(q.prompt, lang)),
+      el('span', { class: 'example-answer' }, `${q.errorHunt ? t('path_error_here') : t('game_correct_answer')}: ${answerOf(q, lang)}`),
+      q.explain ? el('p', { class: 'small' }, pick(q.explain, lang)) : null
+    ))
+  ));
+  $('#explainList').replaceChildren(...(blocks.length ? blocks : [el('div', { class: 'card center muted' }, t('path_no_examples'))]));
+  // Вопросы, показанные с ответом, больше не попадут в итоговую проверку
+  await recordExplained({ topic: state.topic, questionIds: groups.flatMap((g) => g.questions.map((q) => q.id)) });
+  show('explainScreen');
+  $('#explainScreen h1').focus?.();
 }
 
 // ─── Игра ─────────────────────────────────────────────────────────────────────
@@ -135,7 +229,9 @@ async function startGame(onlyWrong = false, mode = 'practice') {
   }
   if (!questions.length) {
     const [pool, mem] = await Promise.all([topicPool(state.topic), questionMemory()]);
-    if (mode === 'check') {
+    if (mode === 'diag') {
+      questions = pickDiagnostic(pool, mem, state.topic, getTopic(state.topic).skills.map((s) => s.id));
+    } else if (mode === 'check') {
       const chosen = pickCheck(pool, mem, state.topic, { count: ROUND });
       if (!chosen.enough) {
         toast(t('mode_check_short', { n: chosen.available, min: CHECK_MIN }), { icon: 'ℹ️', ms: 5000 });
@@ -143,7 +239,8 @@ async function startGame(onlyWrong = false, mode = 'practice') {
       }
       questions = chosen.questions;
     } else {
-      questions = pickPractice(pool, mem, state.topic, { count: ROUND }).questions;
+      const focus = weakSkillsOf((await topicPath(state.topic)).diag);
+      questions = pickPractice(pool, mem, state.topic, { count: ROUND, focus }).questions;
     }
   }
   state.mode = mode;
@@ -177,7 +274,7 @@ function renderGame(game, kind) {
   // Один рендерер для всех типов: выбор, ввод, сопоставление, сортировка…
   $('#inputWrap').classList.add('hidden');
   $('#options').classList.remove('hidden');
-  const hide = state.mode === 'check'; // в проверке не показываем, верно ли
+  const hide = state.mode !== 'practice'; // в проверке и диагностике не показываем, верно ли
   renderQuestion($('#options'), game.current, {
     reveal: reveal && !hide,
     given: answered?.value ?? null,
@@ -186,8 +283,8 @@ function renderGame(game, kind) {
   });
 
   const explain = $('#explain');
-  if (state.mode === 'check') {
-    // Проверка: без подсказок — правильный ответ и объяснение только в конце
+  if (hide) {
+    // Проверка и диагностика: без подсказок — правильный ответ и объяснение только в конце
     explain.classList.toggle('hidden', !reveal);
     if (reveal) {
       explain.replaceChildren(el('b', {}, t('mode_check_answered')));
@@ -228,13 +325,26 @@ async function showResults(game) {
     await recordCheck({ topic: state.topic, correct: r.correctAnswers, total: r.totalAnswers });
     toast(t('mode_check_done'), { icon: '✅' });
   }
+  if (state.mode === 'diag') await recordDiagnostic({ topic: state.topic, bySkill: r.bySkill });
+
+  // Следующий шаг пути — одной кнопкой
+  const ms = await topicStatus(state.topic);
+  const nextStep = state.mode === 'diag'
+    ? { text: weakSkillsOf(r.bySkill).length ? t('path_after_diag_weak') : t('path_after_diag_ok'), label: weakSkillsOf(r.bySkill).length ? t('path_explain_start') : t('mode_practice_start'), go: () => (weakSkillsOf(r.bySkill).length ? openExplain() : startGame(false, 'practice')) }
+    : ms.status === 'ready' ? { text: t('path_after_ready'), label: t('mode_check_start'), go: () => openIntro(state.topic) }
+      : null;
+  const extra = nextStep ? el('div', { class: 'card plain stack' },
+    el('b', {}, nextStep.text),
+    el('button', { class: 'btn primary', type: 'button', onclick: nextStep.go }, nextStep.label)) : null;
 
   $('#resultScreen').replaceChildren(resultView({
     accuracy: r.accuracy, xp, correct: r.correctAnswers, total: r.totalAnswers, timeSec: r.durationSec,
     skills: Object.entries(r.bySkill).map(([skill, s]) => ({ title: skillTitle(state.topic, skill, lang), ...s })),
     mistakes: r.mistakes,
+    extra,
     onRepeatMistakes: () => startGame(true),
-    onAgain: () => startGame(false, state.mode)
+    onAgain: state.mode === 'diag' ? null : () => startGame(false, state.mode),
+    other: { label: t('path_title'), onClick: () => openIntro(state.topic) }
   }));
   show('resultScreen');
   $('#resultScreen h1').focus();
@@ -257,6 +367,10 @@ async function showResults(game) {
 
   $('#startBtn').addEventListener('click', () => startGame(false, 'practice'));
   $('#checkBtn').addEventListener('click', () => startGame(false, 'check'));
+  $('#diagBtn').addEventListener('click', () => startGame(false, 'diag'));
+  $('#explainBtn').addEventListener('click', openExplain);
+  $('#explainDoneBtn').addEventListener('click', () => startGame(false, 'practice'));
+  $('#explainBackBtn').addEventListener('click', () => openIntro(state.topic));
   $('#backBtn').addEventListener('click', () => renderPicker());
   $('#sendBtn').addEventListener('click', () => {
     const v = $('#answerInput').value.trim();

@@ -11,7 +11,7 @@
   <title>Отчёттор — Билим Арена</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
-  <link rel="stylesheet" href="./core/ui.css?v=14" />
+  <link rel="stylesheet" href="./core/ui.css?v=15" />
   <link rel="stylesheet" href="./home.css?v=14" />
   <link rel="stylesheet" href="./reports.css?v=1" />
 </head>
@@ -43,6 +43,22 @@
 
     <!-- Ученики -->
     <section class="stack hidden" id="studentsScreen">
+      <!-- Когда тема считается освоенной — решает учитель -->
+      <details class="card no-print">
+        <summary><b data-i18n="rep_mastery_title">Тема качан өздөштүрүлдү деп эсептелет</b></summary>
+        <p class="small muted" data-i18n="rep_mastery_hint">«Өздөштүрүлдү» — «Текшерүү» түрүндөгү тапшырманын жыйынтыгы боюнча гана. Жооптор аз болсо, отчет «маалымат аз» деп жазат.</p>
+        <div class="form-grid">
+          <label class="field">
+            <span class="label" data-i18n="rep_mastery_threshold">Босого, %</span>
+            <input class="input" id="mThreshold" type="number" min="50" max="100" step="5" />
+          </label>
+          <label class="field">
+            <span class="label" data-i18n="rep_mastery_min">Жыйынтык үчүн эң аз жооп</span>
+            <input class="input" id="mMinAnswers" type="number" min="3" max="50" />
+          </label>
+        </div>
+        <div><button class="btn primary" id="mSaveBtn" type="button" data-i18n="save">Сактоо</button></div>
+      </details>
       <label class="field no-print">
         <span class="label" data-i18n="qb_search">Издөө</span>
         <input class="input" id="studentSearch" type="search" autocomplete="off" />
@@ -57,6 +73,6 @@
     </section>
   </main>
   <div id="toasts"></div>
-  <script type="module" src="./reports.js?v=1"></script>
+  <script type="module" src="./reports.js?v=2"></script>
 </body>
 </html>

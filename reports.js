@@ -9,6 +9,17 @@ import { t, pick, getLang } from './core/i18n.js';
 import { getTopic, getSubject, skillTitle } from './core/curriculum.js';
 import { setRole } from './core/profile.js';
 import { lessonHistory, getLesson, deleteLesson, studentSummaries, studentReport, weakFrom } from './core/lessons.js';
+import { masterySettings, saveMasterySettings } from './core/mastery.js';
+
+/** Статус освоения темы → класс и подпись */
+const STATUS_VIEW = {
+  mastered: ['learned', 'mastery_learned'],
+  ready: ['ready', 'mastery_ready'],
+  learning: ['review', 'mastery_review'],
+  insufficient: ['insufficient', 'mastery_insufficient'],
+  new: ['new', 'mastery_new']
+};
+const statusBadge = (status) => el('span', { class: `state ${STATUS_VIEW[status][0]}` }, t(STATUS_VIEW[status][1]));
 
 const screens = ['lessonsScreen', 'lessonScreen', 'studentsScreen', 'studentScreen'];
 const show = (id) => {
@@ -134,8 +145,18 @@ let summaries = [];
 
 async function renderStudents() {
   summaries = await studentSummaries();
+  const m = await masterySettings();
+  $('#mThreshold').value = m.threshold;
+  $('#mMinAnswers').value = m.minAnswers;
   show('studentsScreen');
   drawStudentList();
+}
+
+async function saveMastery() {
+  const m = await saveMasterySettings({ threshold: $('#mThreshold').value, minAnswers: $('#mMinAnswers').value });
+  $('#mThreshold').value = m.threshold;
+  $('#mMinAnswers').value = m.minAnswers;
+  toast(t('rep_mastery_saved'), { icon: '✅' });
 }
 
 function drawStudentList() {
@@ -175,6 +196,22 @@ async function openStudent(name) {
         el('div', { class: 'stat' }, el('b', {}, String(r.homework)), el('span', {}, t('rep_homework_col')))
       )
     ),
+    ...(r.topicRows.length ? [
+      el('h3', {}, t('rep_topics_status')),
+      el('p', { class: 'small muted' }, t('rep_mastery_rule', { th: r.settings.threshold, n: r.settings.minAnswers })),
+      el('div', { class: 'rep-table-wrap' }, el('table', { class: 'rep-table' },
+        el('thead', {}, el('tr', {},
+          el('th', {}, t('rep_topic')), el('th', { class: 'num' }, t('rep_answers_col')), el('th', { class: 'num' }, '%'),
+          el('th', { class: 'num' }, t('rep_last_check')), el('th', {}, t('rep_status')))),
+        el('tbody', {}, ...r.topicRows.map((row) => el('tr', {},
+          el('td', {}, pick(getTopic(row.topic)?.title, getLang()) || row.topic),
+          el('td', { class: 'num' }, String(row.answered)),
+          el('td', { class: 'num' }, pctBadge(row.pct)),
+          el('td', { class: 'num' }, row.checkPct == null ? '—' : pctBadge(row.checkPct)),
+          el('td', {}, statusBadge(row.status), row.status === 'insufficient' ? el('div', { class: 'small muted' }, t('rep_need_more', { n: row.need })) : null)
+        )))
+      ))
+    ] : []),
     el('h3', {}, t('rep_weak')),
     weakList(r.weak),
     ...(weakTopic ? [el('div', { class: 'row no-print' },
@@ -218,6 +255,7 @@ async function openStudent(name) {
   $('#lessonBackBtn').addEventListener('click', renderLessons);
   $('#studentBackBtn').addEventListener('click', renderStudents);
   $('#studentSearch').addEventListener('input', drawStudentList);
+  $('#mSaveBtn').addEventListener('click', saveMastery);
   $('#printBtn').addEventListener('click', () => window.print());
   // Результаты учеников пришли из облака — обновить открытый список
   window.addEventListener('ba:synced', () => {

@@ -62,16 +62,18 @@ export const unseenCount = (pool, mem, topic) => pool.filter((q) => !mem[memKey(
  * Тренировка.
  * @returns {{ questions, review, fresh }} review — сколько ошибок на повторение, fresh — сколько новых
  */
-export function pickPractice(pool, mem, topic, { count = 10, now = Date.now(), maxReview = Math.ceil(count * 0.4) } = {}) {
+export function pickPractice(pool, mem, topic, { count = 10, now = Date.now(), maxReview = Math.ceil(count * 0.4), focus = [] } = {}) {
   const rec = (q) => mem[memKey(topic, q.id)];
   const due = pool.filter((q) => isDue(rec(q), now)).sort((a, b) => rec(a).due - rec(b).due);
-  const unseen = pool.filter((q) => !rec(q));
+  // Слабые навыки (по диагностике) — первыми среди новых вопросов
+  const weakFirst = (arr) => [...arr.filter((q) => focus.includes(q.skill)), ...arr.filter((q) => !focus.includes(q.skill))];
+  const unseen = weakFirst(shuffle(pool.filter((q) => !rec(q))));
   const seen = pool.filter((q) => rec(q) && !isDue(rec(q), now)).sort((a, b) => rec(a).at - rec(b).at);
 
   const review = due.slice(0, maxReview);
   const order = [
     ...review,
-    ...shuffle(unseen.filter((q) => !reservedForCheck(q.id))),
+    ...unseen.filter((q) => !reservedForCheck(q.id)),
     ...seen,
     ...due.slice(maxReview),
     ...shuffle(unseen.filter((q) => reservedForCheck(q.id)))
@@ -95,3 +97,44 @@ export function seenIds(mem, topic) {
   const prefix = `${topic}::`;
   return Object.keys(mem).filter((k) => k.startsWith(prefix)).map((k) => k.slice(prefix.length));
 }
+
+/**
+ * Диагностика: по 1–2 новых вопроса на каждый навык темы, сначала лёгкие.
+ * Запас итоговой проверки берётся, только если у навыка других новых нет.
+ */
+export function pickDiagnostic(pool, mem, topic, skills, { perSkill = 2, max = 8 } = {}) {
+  const fresh = pool.filter((q) => !mem[memKey(topic, q.id)]);
+  const easyFirst = (arr) => shuffle(arr).sort((a, b) => (a.difficulty || 1) - (b.difficulty || 1));
+  const out = [];
+  for (let round = 0; round < perSkill; round++) {
+    for (const skill of skills) {
+      if (out.length >= max) break;
+      const left = fresh.filter((q) => q.skill === skill && !out.includes(q));
+      const pickFrom = [...easyFirst(left.filter((q) => !reservedForCheck(q.id))), ...(round === 0 ? easyFirst(left.filter((q) => reservedForCheck(q.id))) : [])];
+      if (pickFrom[0]) out.push(pickFrom[0]);
+    }
+  }
+  return shuffle(out);
+}
+
+/** Навыки, где диагностика показала меньше 70 % */
+export const weakSkillsOf = (bySkill = {}) =>
+  Object.entries(bySkill).filter(([, s]) => s.total && s.ok / s.total < 0.7).map(([skill]) => skill);
+
+/**
+ * Примеры для разбора: сначала вопросы, где ученик ошибся, затем новые
+ * (не из запаса проверки). Показанный с ответом вопрос больше не «новый».
+ */
+export function pickExamples(pool, mem, topic, skills, mistakeIds = [], { perSkill = 2 } = {}) {
+  const out = [];
+  for (const skill of skills) {
+    const ofSkill = pool.filter((q) => q.skill === skill);
+    const missed = ofSkill.filter((q) => mistakeIds.includes(q.id));
+    const fresh = shuffle(ofSkill.filter((q) => !mem[memKey(topic, q.id)] && !reservedForCheck(q.id)));
+    out.push({ skill, questions: [...missed, ...fresh].slice(0, perSkill) });
+  }
+  return out;
+}
+
+/** Запись «вопрос показан с ответом» — не ошибка и не повторение, но уже не новый */
+export const shownRecord = (rec, now = Date.now()) => ({ n: 0, ok: 0, miss: 0, box: 0, due: 0, ...rec, shown: true, at: rec?.at || now });

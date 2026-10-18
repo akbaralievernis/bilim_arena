@@ -13,6 +13,7 @@
 
 import { store, KEYS } from './store.js';
 import { allAssignments, allSubmissions } from './assignments.js';
+import { masteryStatus, masterySettings } from './mastery.js';
 
 const LIMIT = 100;           // уроков в журнале (старые удаляются)
 const WEAK = 0.7;            // меньше 70% верных — навык нужно повторить
@@ -192,5 +193,29 @@ export async function studentReport(key) {
     })
     .sort((a, b) => b.lastAt - a.lastAt);
 
-  return { ...summary, weak: weakFrom(summary.bySkill, 6), lessonRows: lessons, homeworkRows: homework };
+  // Темы: все ответы (уроки + задания) и итоговые проверки (задания в режиме «Проверка»)
+  const settings = await masterySettings();
+  const byTopic = new Map();
+  const topicOf = (id) => {
+    if (!byTopic.has(id)) byTopic.set(id, { topic: id, answered: 0, correct: 0, checks: [] });
+    return byTopic.get(id);
+  };
+  Object.entries(summary.bySkill).forEach(([k, v]) => {
+    const { topic } = splitSkillKey(k);
+    if (!topic) return;
+    const row = topicOf(topic);
+    row.answered += v.total;
+    row.correct += v.ok;
+  });
+  (await allSubmissions()).filter((s) => studentKey(s.studentName) === key).forEach((s) => {
+    const a = assignments.get(s.assignmentId);
+    if (!a?.check || !a.topic) return;
+    topicOf(a.topic).checks.push(...(s.history || []).map((h) => ({ at: h.at, correct: h.correct, total: h.total })));
+  });
+  const topicRows = [...byTopic.values()].map((row) => {
+    row.checks.sort((a, b) => a.at - b.at);
+    return { ...row, ...masteryStatus(row, settings) };
+  });
+
+  return { ...summary, weak: weakFrom(summary.bySkill, 6), lessonRows: lessons, homeworkRows: homework, topicRows, settings };
 }

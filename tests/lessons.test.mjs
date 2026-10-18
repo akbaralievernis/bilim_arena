@@ -88,3 +88,32 @@ test('cloud merge keeps one copy of a lesson — the freshest one', async () => 
   // Записи без id (журнал ошибок) объединяются как раньше — по содержимому
   assert.equal(mergeLog([{ at: 1, skill: 'a' }], [{ at: 1, skill: 'a' }, { at: 2, skill: 'b' }]).length, 2);
 });
+
+test('student report: topic status — mastered only by a check task, "not enough data" for few answers', async () => {
+  await store.set(KEYS.assignments, [
+    { id: 'p1', topic: 'math-6-fractions' },
+    { id: 'c1', topic: 'math-6-fractions', check: true },
+    { id: 'k1', topic: 'kyrgyz-6-parts-of-speech' }
+  ]);
+  await store.set('submissions', [
+    { assignmentId: 'p1', studentName: 'Нурай', best: 100, attempts: 1, lastAt: 1, skillStats: { compare: { ok: 10, total: 10 } }, history: [{ at: 1, correct: 10, total: 10 }] },
+    { assignmentId: 'k1', studentName: 'Нурай', best: 100, attempts: 1, lastAt: 2, skillStats: { noun: { ok: 3, total: 3 } }, history: [{ at: 2, correct: 3, total: 3 }] }
+  ]);
+  let r = await studentReport('нурай');
+  const status = (topic) => r.topicRows.find((x) => x.topic === topic)?.status;
+  assert.equal(status('math-6-fractions'), 'ready', '100 % in practice is not mastery');
+  assert.equal(status('kyrgyz-6-parts-of-speech'), 'insufficient');
+  assert.equal(r.topicRows.find((x) => x.topic === 'kyrgyz-6-parts-of-speech').need, 5);
+
+  const subs = await store.get('submissions');
+  subs.push({ assignmentId: 'c1', studentName: 'Нурай', best: 90, attempts: 1, lastAt: 3, skillStats: { compare: { ok: 9, total: 10 } }, history: [{ at: 3, correct: 9, total: 10 }] });
+  await store.set('submissions', subs);
+  r = await studentReport('нурай');
+  assert.equal(status('math-6-fractions'), 'mastered');
+  assert.equal(r.topicRows.find((x) => x.topic === 'math-6-fractions').checkPct, 90);
+
+  // Учитель поднял порог — та же проверка уже не «изучено»
+  await store.set(KEYS.settings, { mastery: { threshold: 95, minAnswers: 8 } });
+  r = await studentReport('нурай');
+  assert.equal(status('math-6-fractions'), 'learning');
+});

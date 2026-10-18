@@ -93,3 +93,49 @@ test('teacher review: only pairs with a teacher question, reviewed pairs are hid
   const after = pairsToReview(list, new Set(pairs.map((p) => p.key)));
   assert.equal(after.length, 0);
 });
+
+const { pickDiagnostic, pickExamples, weakSkillsOf } = await import('../core/selection.js');
+const { masteryStatus } = await import('../core/mastery.js');
+
+test('mastery: "mastered" only after a final check, "not enough data" when answers are few', () => {
+  const s = { threshold: 80, minAnswers: 8 };
+  assert.equal(masteryStatus({}, s).status, 'new');
+  assert.deepEqual(masteryStatus({ answered: 3, correct: 3 }, s), { status: 'insufficient', pct: 100, checkPct: null, need: 5 });
+  assert.equal(masteryStatus({ answered: 20, correct: 19 }, s).status, 'ready', 'great practice is not mastery yet');
+  assert.equal(masteryStatus({ answered: 20, correct: 10 }, s).status, 'learning');
+  assert.equal(masteryStatus({ answered: 20, correct: 19, checks: [{ at: 1, correct: 6, total: 10 }] }, s).status, 'learning', 'a failed check wins over practice');
+  assert.equal(masteryStatus({ answered: 2, correct: 1, checks: [{ at: 1, correct: 8, total: 10 }] }, s).status, 'mastered');
+  assert.equal(masteryStatus({ answered: 2, correct: 1, checks: [{ at: 1, correct: 8, total: 10 }] }, { threshold: 90, minAnswers: 8 }).status, 'learning', 'the teacher threshold applies');
+  // Слишком короткая «проверка» (меньше 5 вопросов) выводом не считается
+  assert.equal(masteryStatus({ answered: 3, correct: 3, checks: [{ at: 1, correct: 3, total: 3 }] }, s).status, 'insufficient');
+});
+
+test('diagnostic: every skill covered, check reserve only as a last resort', () => {
+  const skills = ['a', 'b', 'c'];
+  const bank = Array.from({ length: 30 }, (_, i) => ({ id: `d${i}`, skill: skills[i % 3], difficulty: (i % 3) + 1 }));
+  const set = pickDiagnostic(bank, {}, T, skills, { perSkill: 2, max: 8 });
+  assert.ok(set.length >= 3 && set.length <= 6);
+  assert.equal(new Set(ids(set)).size, set.length);
+  skills.forEach((sk) => {
+    assert.ok(set.some((q) => q.skill === sk), `skill ${sk} covered`);
+    const hasFree = bank.some((q) => q.skill === sk && !reservedForCheck(q.id));
+    if (hasFree) assert.ok(set.filter((q) => q.skill === sk).every((q) => !reservedForCheck(q.id)), `skill ${sk} keeps the reserve`);
+  });
+});
+
+test('weak skills and worked examples: own mistakes first', () => {
+  assert.deepEqual(weakSkillsOf({ a: { ok: 2, total: 2 }, b: { ok: 1, total: 2 }, c: { ok: 0, total: 0 } }), ['b']);
+  const bank = [{ id: 'x1', skill: 'b' }, { id: 'x2', skill: 'b' }, { id: 'x3', skill: 'b' }, { id: 'y1', skill: 'a' }];
+  const mem = { [memKey(T, 'x2')]: schedule(undefined, false) };
+  const [group] = pickExamples(bank, mem, T, ['b'], ['x2'], { perSkill: 2 });
+  assert.equal(group.questions[0].id, 'x2');
+  assert.equal(group.questions.length, 2);
+  assert.ok(group.questions.every((q) => q.skill === 'b'));
+});
+
+test('practice puts weak skills first among new questions', () => {
+  const bank = Array.from({ length: 40 }, (_, i) => ({ id: `w${i}`, skill: i < 30 ? 'strong' : 'weak' }));
+  const { questions } = pickPractice(bank, {}, T, { count: 5, focus: ['weak'] });
+  const weakFree = bank.filter((q) => q.skill === 'weak' && !reservedForCheck(q.id)).length;
+  assert.equal(questions.filter((q) => q.skill === 'weak').length, Math.min(5, weakFree));
+});

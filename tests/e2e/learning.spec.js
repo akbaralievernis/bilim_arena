@@ -96,3 +96,36 @@ test('teacher sees a pasted question that repeats the bank and decides', async (
   // Ничего не удалено
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('BA2_questions') || '[]').length)).toBe(2);
 });
+
+test('topic path: diagnostic, then worked examples for weak skills, then practice is suggested', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('BA2_lang', '"ru"'));
+  const topic = 'kyrgyz-6-parts-of-speech';
+  await page.goto(`/practice.html?topic=${topic}`);
+  await expect(page.locator('#topicStatus')).toContainText('Не изучено');
+  await expect(page.locator('#stepDiag')).toHaveClass(/next/);
+
+  await page.locator('#diagBtn').click();
+  // Диагностика без подсказок: отвечаем всегда первым вариантом
+  for (let i = 0; i < 8; i++) {
+    if (await page.locator('#resultScreen').isVisible()) break;
+    await expect(page.locator('#counter')).toHaveText(new RegExp(`^${i + 1} / `), { timeout: 20_000 });
+    await answerOnce(page);
+    expect(await page.locator('#options .correct, #options .wrong').count()).toBe(0);
+  }
+  await expect(page.locator('#resultScreen')).toBeVisible({ timeout: 20_000 });
+  const path = await page.evaluate((t) => JSON.parse(localStorage.getItem('BA2_progress')).path[t], topic);
+  expect(path.diagAt).toBeTruthy();
+  expect(Object.keys(path.diag).length).toBeGreaterThan(1);
+
+  await page.goto(`/practice.html?topic=${topic}`);
+  await expect(page.locator('#stepDiag')).toHaveClass(/done/);
+  await page.locator('#explainBtn').click();
+  await expect(page.locator('#explainScreen')).toBeVisible();
+  await expect(page.locator('#explainList .example').first()).toBeVisible();
+
+  await page.goto(`/practice.html?topic=${topic}`);
+  await expect(page.locator('#stepExplain')).toHaveClass(/done/);
+  // После 8 ответов вывода ещё нет либо тема «нужно повторить» — но не «изучено»
+  await expect(page.locator('#topicStatus')).not.toContainText('Изучено');
+  await expect(page.locator('#stepPractice')).toHaveClass(/next/);
+});

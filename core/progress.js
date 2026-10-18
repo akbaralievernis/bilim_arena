@@ -9,7 +9,8 @@
 
 import { store, KEYS } from './store.js';
 import { getTopic, skillTitle } from './curriculum.js';
-import { schedule, memKey } from './selection.js';
+import { schedule, memKey, shownRecord } from './selection.js';
+import { masteryStatus, masterySettings } from './mastery.js';
 
 const XP_PER_LEVEL_BASE = 100;
 const XP_GROWTH = 1.25;
@@ -35,7 +36,8 @@ const blank = () => ({
   badges: [],
   dailyGoal: 100,
   qs: {},       // 'topicId::questionId' -> память о вопросе (core/selection.js)
-  checks: {}    // topicId -> [{ at, correct, total }] — итоговые проверки
+  checks: {},   // topicId -> [{ at, correct, total }] — итоговые проверки
+  path: {}      // topicId -> { diagAt, diag: { skill: { ok, total } }, explainedAt } — путь по теме
 });
 
 let cached = null;
@@ -129,7 +131,8 @@ export async function getProgress() {
     topics: d.topics,
     skills: d.skills,
     games: d.games,
-    checks: d.checks
+    checks: d.checks,
+    path: d.path
   };
 }
 
@@ -186,6 +189,35 @@ export async function questionMemory() {
   return (await read()).qs;
 }
 
+/** Путь по теме: диагностика, разбор */
+export async function topicPath(topic) {
+  return (await read()).path[topic] || {};
+}
+
+export async function recordDiagnostic({ topic, bySkill }) {
+  const d = await read();
+  d.path[topic] = { ...d.path[topic], diagAt: Date.now(), diag: bySkill };
+  await write(d);
+}
+
+/** Разбор просмотрен; показанные с ответом вопросы больше не попадут в итоговую проверку */
+export async function recordExplained({ topic, questionIds = [] }) {
+  const d = await read();
+  d.path[topic] = { ...d.path[topic], explainedAt: Date.now() };
+  questionIds.forEach((id) => {
+    const key = memKey(topic, id);
+    d.qs[key] = shownRecord(d.qs[key]);
+  });
+  await write(d);
+}
+
+/** Статус освоения темы (core/mastery.js) */
+export async function topicStatus(topicId, settings = null) {
+  const d = await read();
+  const t = d.topics[topicId] || {};
+  return masteryStatus({ answered: t.answered || 0, correct: t.correct || 0, checks: d.checks[topicId] || [] }, settings || await masterySettings());
+}
+
 /** Итоговая проверка по теме — хранится отдельно от тренировок */
 export async function recordCheck({ topic, correct, total }) {
   const d = await read();
@@ -232,23 +264,23 @@ export async function recordGame({ gameId, topic, score, correct = 0, total = 0 
 
 /**
  * Состояние темы: 'learned' | 'review' | 'new'
- * learned — доля верных ответов ≥ 80% при достаточном количестве ответов
+ * learned — итоговая проверка сдана (core/mastery.js)
  */
 export async function topicState(topicId) {
-  const d = await read();
-  const t = d.topics[topicId];
-  if (!t || t.answered < MASTERY_MIN_ANSWERS) return t ? 'review' : 'new';
-  return t.correct / t.answered >= MASTERY_THRESHOLD ? 'learned' : 'review';
+  const { status } = await topicStatus(topicId);
+  return status === 'mastered' ? 'learned' : status === 'new' ? 'new' : 'review';
 }
 
 /** Карта знаний по предметам: процент освоения */
 export async function knowledgeMap(topicsList) {
   const d = await read();
+  const settings = await masterySettings();
   const bySubject = {};
   for (const topic of topicsList) {
     const rec = d.topics[topic.id];
     const mastery = rec && rec.answered ? rec.correct / rec.answered : 0;
-    const state = !rec ? 'new' : (rec.answered >= MASTERY_MIN_ANSWERS && mastery >= MASTERY_THRESHOLD ? 'learned' : 'review');
+    const { status } = masteryStatus({ answered: rec?.answered, correct: rec?.correct, checks: d.checks[topic.id] }, settings);
+    const state = status === 'mastered' ? 'learned' : status === 'new' ? 'new' : 'review';
     const s = bySubject[topic.subject] || (bySubject[topic.subject] = { total: 0, learned: 0, review: 0, new: 0, sum: 0 });
     s.total += 1;
     s[state] += 1;

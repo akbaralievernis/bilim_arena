@@ -11,7 +11,7 @@
   <title>Машыгуу — Билим Арена</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
-  <link rel="stylesheet" href="./core/ui.css?v=14" />
+  <link rel="stylesheet" href="./core/ui.css?v=15" />
   <link rel="stylesheet" href="./home.css?v=14" />
 </head>
 
@@ -50,24 +50,53 @@
         </div>
       </div>
       <div class="stats" id="introStats"></div>
-      <div class="grid two">
-        <div class="card plain stack">
-          <div class="label" data-i18n="mode_practice">Машыгуу</div>
+      <!-- Путь по теме: диагностика → разбор → тренировка → итоговая проверка -->
+      <div class="card plain stack path-status">
+        <div class="row between">
+          <b data-i18n="path_title">Тема боюнча жол</b>
+          <span class="state" id="topicStatus"></span>
+        </div>
+        <p class="small muted" id="topicStatusNote"></p>
+      </div>
+      <ol class="grid two path-steps">
+        <li class="card plain stack path-step" id="stepDiag">
+          <div class="label"><span class="path-mark" aria-hidden="true"></span>1 · <span data-i18n="path_diag">Диагностика</span></div>
+          <p class="small" data-i18n="path_diag_text">Ар бир көндүмгө 1–2 суроо, жардамсыз: эмнени билериңди көрсөтөт.</p>
+          <p class="small muted" id="diagNote"></p>
+          <button class="btn big block" id="diagBtn" type="button" data-i18n="path_diag_start">Диагностиканы баштоо</button>
+        </li>
+        <li class="card plain stack path-step" id="stepExplain">
+          <div class="label"><span class="path-mark" aria-hidden="true"></span>2 · <span data-i18n="path_explain">Талдоо</span></div>
+          <p class="small" data-i18n="path_explain_text">Алсыз көндүмдөр боюнча чыгарылышы менен мисалдар.</p>
+          <p class="small muted" id="explainNote"></p>
+          <button class="btn big block" id="explainBtn" type="button" data-i18n="path_explain_start">Мисалдарды көрүү</button>
+        </li>
+        <li class="card plain stack path-step" id="stepPractice">
+          <div class="label"><span class="path-mark" aria-hidden="true"></span>3 · <span data-i18n="mode_practice">Машыгуу</span></div>
           <p class="small" data-i18n="mode_practice_text">Ар бир жооптон кийин түшүндүрмө. Алгач кайталоо убагы келген каталар.</p>
           <p class="small muted" id="practiceNote"></p>
-          <button class="btn primary big block" id="startBtn" type="button" data-i18n="mode_practice_start">Машыгууну баштоо</button>
-        </div>
-        <div class="card plain stack">
-          <div class="label" data-i18n="mode_check">Жыйынтык текшерүү</div>
+          <button class="btn big block" id="startBtn" type="button" data-i18n="mode_practice_start">Машыгууну баштоо</button>
+        </li>
+        <li class="card plain stack path-step" id="stepCheck">
+          <div class="label"><span class="path-mark" aria-hidden="true"></span>4 · <span data-i18n="mode_check">Жыйынтык текшерүү</span></div>
           <p class="small" data-i18n="mode_check_text">Сен көрө элек суроолор гана, жардамсыз. Талдоо — аягында.</p>
           <p class="small muted" id="checkNote"></p>
           <button class="btn big block" id="checkBtn" type="button" data-i18n="mode_check_start">Текшерүүнү баштоо</button>
-        </div>
-      </div>
+        </li>
+      </ol>
       <button class="btn ghost block" id="backBtn" type="button" data-i18n="back">Артка</button>
     </section>
 
     <!-- Игра -->
+    <!-- Разбор: примеры с решением по слабым навыкам -->
+    <section class="card pad-lg stack hidden" id="explainScreen">
+      <h1 data-i18n="path_explain">Талдоо</h1>
+      <p class="muted" id="explainIntro"></p>
+      <div class="stack" id="explainList"></div>
+      <button class="btn primary big block" id="explainDoneBtn" type="button" data-i18n="path_to_practice">Машыгууга өтүү</button>
+      <button class="btn ghost block" id="explainBackBtn" type="button" data-i18n="back">Артка</button>
+    </section>
+
     <section class="stack hidden" id="playScreen">
       <div class="row between">
         <span class="chip" id="counter"></span>
@@ -91,6 +120,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./practice.js?v=16"></script>
+  <script type="module" src="./practice.js?v=17"></script>
 </body>
 </html>
