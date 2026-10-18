@@ -6,21 +6,21 @@
  * Прогресс, XP и данные Supabase хранятся в localStorage/облаке — кэш их не трогает.
  */
 const PREFIX = 'ba-';
-const VERSION = 'ba-v35';
+const VERSION = 'ba-v36';
 const CORE = [
   './', './index.html', './home.css', './home.js',
   './board.html', './board.js', './play.html', './play.js',
   './teacher.html', './teacher.js', './progress.html', './progress.js',
   './practice.html', './practice.js',
   './tasks.html', './tasks.js', './homework.html', './homework.js',
-  './questions.html', './questions.js', './speak.html', './speak.js', './account.html', './account.js', './games.html', './games.js', './profile.html', './profile.js', './race.html', './race.js', './reports.html', './reports.js', './reports.css', './privacy.html', './terms.html', './legal.js', './data/legal.js',
+  './questions.html', './questions.js', './speak.html', './speak.js', './account.html', './account.js', './games.html', './games.js', './profile.html', './profile.js', './race.html', './race.js', './reports.html', './reports.js', './reports.css', './privacy.html', './terms.html', './legal.js', './data/legal.js', './tests.html', './tests.js', './print.html', './print.js', './print.css',
   './manifest.webmanifest', './assets/logo.svg', './assets/icon-192.png', './assets/icon-512.png',
   './assets/icon-maskable-512.png', './assets/apple-touch-icon.png',
   // Ядро платформы
   './core/ui.css', './core/board.css', './core/ui.js', './core/i18n.js',
   './core/store.js', './core/profile.js', './core/curriculum.js',
   './core/progress.js', './core/engine.js', './core/realtime.js',
-  './core/questions.js', './core/assignments.js', './core/quiz-ui.js', './core/sync.js', './core/speech.js', './core/config.js', './core/cloud.js', './core/icons.js', './core/art.js', './core/catalog.js', './core/results.js', './core/race.js', './core/turn.js', './core/import.js', './core/lessons.js', './core/merge.js', './core/errors.js', './core/selection.js', './core/duplicates.js', './core/mastery.js',
+  './core/questions.js', './core/assignments.js', './core/quiz-ui.js', './core/sync.js', './core/speech.js', './core/config.js', './core/cloud.js', './core/icons.js', './core/art.js', './core/catalog.js', './core/results.js', './core/race.js', './core/turn.js', './core/import.js', './core/lessons.js', './core/merge.js', './core/errors.js', './core/selection.js', './core/duplicates.js', './core/mastery.js', './core/tests.js',
   './locales/ky.js', './locales/ru.js', './locales/en.js',
   './games/quickvote/game.js', './games/territory/game.js',
   './games/investigation/game.js', './games/errorhunt/game.js', './games/timeline/game.js', './games/codelock/game.js', './games/formula/game.js', './games/city/game.js', './games/lab/game.js',

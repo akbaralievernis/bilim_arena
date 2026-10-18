@@ -25,8 +25,11 @@ const CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/+esm';
 /** Какие личные данные синхронизируются у каждой роли */
 const PERSONAL = {
   student: [KEYS.profile, KEYS.progress, KEYS.errors, KEYS.history],
-  teacher: [KEYS.profile, 'questions', KEYS.lessons]
+  teacher: [KEYS.profile, 'questions', KEYS.lessons, 'tests']
 };
+/** Ключи, которые база может ещё не принимать (миграция не применена) — тогда они остаются на устройстве */
+const OPTIONAL_KEYS = ['tests'];
+let unsupported = new Set();
 /** Всё, что относится к пользователю на этом устройстве (очищается при смене аккаунта) */
 const LOCAL_USER_KEYS = [KEYS.profile, KEYS.progress, KEYS.errors, KEYS.history, 'questions', KEYS.lessons,
   KEYS.assignments, 'submissions', KEYS.classes];
@@ -278,7 +281,7 @@ export const lastSyncAt = () => store.get(LAST, null);
  */
 async function syncPersonal() {
   const c = await getClient();
-  const keys = PERSONAL[role];
+  const keys = PERSONAL[role].filter((k) => !unsupported.has(k));
   const meta = await store.get(META, {});
   const { data: rows, error } = await c.from('user_data').select('key, value, updated_ms').eq('user_id', user.id).in('key', keys);
   if (error) throw error;
@@ -317,7 +320,15 @@ async function syncPersonal() {
   }
 
   if (upserts.length) {
-    const { error: e2 } = await c.from('user_data').upsert(upserts.map((u) => ({ ...u, user_id: user.id })));
+    const send = (rows) => c.from('user_data').upsert(rows.map((u) => ({ ...u, user_id: user.id })));
+    let { error: e2 } = await send(upserts);
+    // 23514 — нарушение check: база ещё не знает новый ключ. Остальное синхронизируем как обычно
+    if (e2?.code === '23514' && upserts.some((u) => OPTIONAL_KEYS.includes(u.key))) {
+      OPTIONAL_KEYS.forEach((k) => unsupported.add(k));
+      const rest = upserts.filter((u) => !OPTIONAL_KEYS.includes(u.key));
+      OPTIONAL_KEYS.forEach((k) => delete meta[k]);
+      ({ error: e2 } = rest.length ? await send(rest) : { error: null });
+    }
     if (e2) throw e2;
   }
   await store.set(META, meta, { silent: true });

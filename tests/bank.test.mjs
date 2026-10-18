@@ -67,3 +67,22 @@ test('getQuestions: shown questions come back only when new ones run out', async
   assert.equal(third.length, 5);
   assert.equal(third.filter((q) => seenAll.includes(q.id)).length, 3);
 });
+
+test('no option equals the right answer in value (1/2 and 2/4 both offered)', () => {
+  const val = (o) => {
+    const s = String(typeof o === 'object' ? o.ru ?? o.ky : o).replace(',', '.').replace(/\s/g, '');
+    const m = s.match(/^(-?\d+)\/(\d+)$/);
+    if (m) return Number(m[1]) / Number(m[2]);
+    return /^-?\d+(\.\d+)?$/.test(s) ? Number(s) : null;
+  };
+  const bad = [];
+  for (const q of all) {
+    if (q.type !== 'choice' || q.errorHunt || q.vote) continue;
+    const right = val(q.options[q.correct ?? 0]);
+    if (right == null) continue;
+    q.options.forEach((o, i) => {
+      if (i !== (q.correct ?? 0) && val(o) != null && Math.abs(val(o) - right) < 1e-9) bad.push(`${q.topic}/${q.id}: ${o}`);
+    });
+  }
+  assert.deepEqual(bad, []);
+});

@@ -207,6 +207,10 @@ export async function studentReport(key) {
     row.answered += v.total;
     row.correct += v.ok;
   });
+  (await readLessons()).filter((l) => l.mode === 'paper-check' && l.topic && l.students?.[key]).forEach((l) => {
+    const st = l.students[key];
+    topicOf(l.topic).checks.push({ at: l.at, correct: st.correct, total: st.answered });
+  });
   (await allSubmissions()).filter((s) => studentKey(s.studentName) === key).forEach((s) => {
     const a = assignments.get(s.assignmentId);
     if (!a?.check || !a.topic) return;

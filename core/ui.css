@@ -892,3 +892,10 @@ button.option:not([disabled]):hover { border-color: var(--primary); }
 }
 .option.correct::after { content: '✓'; color: var(--ok-ink); }
 .option.wrong::after { content: '✗'; color: var(--bad-ink); }
+
+/* ─── Тесты учителя (tests.html) ──────────────────────────────────────────── */
+.tst-scroll { max-height: 60vh; overflow-y: auto; padding-right: 4px; }
+.tst-scroll .q-row .q-text b { white-space: normal; }
+.tst-selected { list-style: none; margin: 0; padding: 0; }
+.tst-result-row { display: grid; grid-template-columns: minmax(8em, 1.2fr) minmax(7em, 0.8fr) minmax(10em, 2fr) auto auto; gap: 8px; align-items: center; }
+@media (max-width: 700px) { .tst-result-row { grid-template-columns: 1fr 1fr; } }

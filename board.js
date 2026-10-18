@@ -161,7 +161,7 @@ function renderSetup() {
   }
 
   state.plan = state.review
-    ? [{ id: 'review', key: 'lesson_stage_practice', game: 'quickvote', questions: Math.min(12, state.review.ids.length + (state.review.skills.length ? 4 : 0)) || 4, minutes: 10, difficulty: [1, 2, 3] }]
+    ? [{ id: 'review', key: 'lesson_stage_practice', game: 'quickvote', questions: state.review.all ? state.review.ids.length : Math.min(12, state.review.ids.length + (state.review.skills.length ? 4 : 0)) || 4, minutes: 10, difficulty: [1, 2, 3] }]
     : FORMAT_GAMES.includes(state.mode)
       ? [{ id: state.mode, key: 'lesson_stage_practice', game: state.mode, questions: Math.min(GAMES[state.mode].meta.questions || 8, counts?.[state.mode] || 0), minutes: 10, difficulty: [1, 2, 3] }]
       : buildPlan(state.duration);
@@ -377,7 +377,12 @@ async function startStage(stageIndex, customQuestions = null) {
     const extra = state.review.skills.length
       ? await getQuestions({ topic: state.topic, count: 4, skills: state.review.skills, avoid: usedIds() })
       : [];
-    questions = [...new Map([...wrong, ...extra].map((q) => [q.id, q])).values()].slice(0, 12);
+    questions = [...new Map([...wrong, ...extra].map((q) => [q.id, q])).values()];
+    if (state.review.all) {
+      // Порядок теста, заданный учителем
+      const order = new Map(state.review.ids.map((id, i) => [String(id), i]));
+      questions.sort((a, b) => (order.get(String(a.id)) ?? 1e9) - (order.get(String(b.id)) ?? 1e9));
+    } else questions = questions.slice(0, 12);
   }
 
   if (!questions) {
@@ -891,7 +896,8 @@ function finishLesson() {
   if (params.get('mode') === 'review') {
     state.review = {
       ids: (params.get('questions') || '').split(',').filter(Boolean),
-      skills: (params.get('skills') || '').split(',').filter(Boolean)
+      skills: (params.get('skills') || '').split(',').filter(Boolean),
+      all: !!params.get('test') // тест учителя (tests.html): все вопросы по порядку, без обрезки
     };
   }
   if (FORMAT_GAMES.includes(params.get('game'))) state.mode = params.get('game');

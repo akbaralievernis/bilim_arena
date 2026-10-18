@@ -133,6 +133,12 @@ await expectDenied('учитель не видит профиль ученика
 await expectDenied('чужой учитель не видит прогресс', () => as('T2', false, () => db.query('select * from user_data')));
 await expectDenied('другой ученик не видит прогресс', () => as('S2', true, () => db.query('select * from user_data')));
 await expectDenied('роль anon не видит ничего', () => asAnonRole(() => db.query('select * from user_data')));
+await expectOk('учитель сохраняет свои тесты', () => as('T1', false, () =>
+  db.query(`insert into user_data (key, value, updated_ms) values ('tests', '[{"id":"t1"}]', 1)`)), () => true);
+await expectDenied('чужой учитель не видит тесты', () => as('T2', false, () =>
+  db.query(`select * from user_data where key = 'tests'`)));
+await expectDenied('ученик не видит тесты учителя', () => as('S1', true, () =>
+  db.query(`select * from user_data where key = 'tests'`)));
 
 console.log('Удаление');
 await expectOk('учитель удаляет ученика из класса', () => as('T1', false, () =>

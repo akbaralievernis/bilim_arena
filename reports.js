@@ -73,7 +73,9 @@ async function renderLessons() {
       el('b', {}, topicLine(l.topic, l.subject) || '—'),
       pctBadge(pctOf(l.correct, l.answered)),
       el('span', { class: 'rep-sub small muted' },
-        `${fmtDateTime(l.at)} · ${t('rep_students_n', { n: students })} · ${t('rep_answers', { c: l.correct, n: l.answered })} · ${t('rep_stage_n', { n: l.stages.length })}`)
+        [l.mode === 'paper-check' ? t('rep_paper_check') : l.mode === 'paper' ? t('rep_paper') : null,
+          fmtDateTime(l.at), t('rep_students_n', { n: students }), t('rep_answers', { c: l.correct, n: l.answered }), t('rep_stage_n', { n: l.stages.length })]
+          .filter(Boolean).join(' · '))
     );
   }));
 }

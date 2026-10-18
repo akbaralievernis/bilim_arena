@@ -126,7 +126,7 @@ export default [
   {
     id: 'f12', skill: 'add-sub', difficulty: 1, type: 'choice',
     prompt: { ky: '3/4 − 1/4 = ?', ru: '3/4 − 1/4 = ?', en: '3/4 − 1/4 = ?' },
-    options: ['1/2', '2/4', '1/4', '3/8'], correct: 0,
+    options: ['1/2', '1/8', '1/4', '3/8'], correct: 0,
     explain: {
       ky: '3/4 − 1/4 = 2/4, кыскартсак 1/2 болот.',
       ru: '3/4 − 1/4 = 2/4, после сокращения получается 1/2.',
@@ -167,7 +167,7 @@ export default [
   {
     id: 'f16', skill: 'multiply-divide', difficulty: 1, type: 'choice',
     prompt: { ky: '1/2 × 2/3 = ?', ru: '1/2 × 2/3 = ?', en: '1/2 × 2/3 = ?' },
-    options: ['1/3', '2/5', '3/4', '2/6'], correct: 0,
+    options: ['1/3', '2/5', '3/4', '2/3'], correct: 0,
     explain: {
       ky: 'Алымдарды жана бөлүмдөрдү өз-өзүнчө көбөйтөбүз: 2/6 = 1/3.',
       ru: 'Числители и знаменатели перемножаем отдельно: 2/6 = 1/3.',
@@ -197,7 +197,7 @@ export default [
   {
     id: 'f19', skill: 'multiply-divide', difficulty: 2, type: 'choice',
     prompt: { ky: '2/5 : 2 = ?', ru: '2/5 : 2 = ?', en: '2/5 ÷ 2 = ?' },
-    options: ['1/5', '4/5', '2/10', '5/2'], correct: 0,
+    options: ['1/5', '4/5', '1/10', '5/2'], correct: 0,
     explain: {
       ky: '2/5 : 2 = 2/10 = 1/5.',
       ru: '2/5 : 2 = 2/10 = 1/5.',
@@ -207,7 +207,7 @@ export default [
   {
     id: 'f20', skill: 'multiply-divide', difficulty: 3, type: 'choice',
     prompt: { ky: '2/3 × 3/4 = ?', ru: '2/3 × 3/4 = ?', en: '2/3 × 3/4 = ?' },
-    options: ['1/2', '6/7', '5/12', '6/12'], correct: 0,
+    options: ['1/2', '6/7', '5/12', '5/7'], correct: 0,
     explain: {
       ky: '2×3 = 6, 3×4 = 12, 6/12 = 1/2.',
       ru: '2×3 = 6, 3×4 = 12, значит 6/12 = 1/2.',

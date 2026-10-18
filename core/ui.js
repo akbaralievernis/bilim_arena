@@ -103,7 +103,8 @@ const STUDENT_NAV = [
 /** Страницы, которые относятся к одному из разделов меню */
 const SECTION = {
   'practice.html': 'games.html', 'speak.html': 'games.html',
-  'tasks.html': 'profile.html', 'account.html': 'profile.html'
+  'tasks.html': 'profile.html', 'account.html': 'profile.html',
+  'tests.html': 'questions.html', 'print.html': 'questions.html'
 };
 
 const TEACHER_NAV = [

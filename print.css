@@ -1,0 +1,57 @@
+/* Bilim Arena — печатный тест (print.html). На экране — как листы, на бумаге — A4, чёрным. */
+
+.p-sheet {
+  background: #fff; color: #111; border: 1px solid var(--line); border-radius: 8px;
+  padding: 18mm 16mm; margin: 16px auto; max-width: 210mm;
+  font-size: 11.5pt; line-height: 1.45;
+}
+.p-head { border-bottom: 2px solid #111; padding-bottom: 8px; margin-bottom: 12px; }
+.p-title-row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.p-title { font-size: 15pt; }
+.p-variant { font-size: 13pt; white-space: nowrap; }
+.p-meta { color: #444; font-size: 10pt; margin: 2px 0 8px; }
+.p-fields { display: flex; flex-wrap: wrap; gap: 6px 22px; }
+.p-field { display: inline-flex; align-items: baseline; gap: 4px; }
+.p-line { display: inline-block; min-width: 9em; border-bottom: 1px solid #111; height: 1.1em; }
+
+.p-questions { margin: 0; padding-left: 1.6em; }
+.p-q { margin: 0 0 12px; break-inside: avoid; page-break-inside: avoid; }
+.p-prompt { font-weight: 600; margin-bottom: 4px; }
+.p-hint { font-size: 9.5pt; color: #444; font-style: italic; margin-bottom: 2px; }
+.p-options { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 18px; }
+.p-options.p-lines { grid-template-columns: 1fr; }
+.p-match { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.p-match ol { list-style: none; margin: 0; padding: 0; }
+.p-answer { margin-top: 4px; font-size: 10.5pt; }
+
+.p-grid-wrap { margin-top: 18px; break-before: page; page-break-before: always; }
+.p-grid { border-collapse: collapse; margin-top: 8px; }
+.p-grid th { text-align: right; padding: 3px 10px 3px 0; font-weight: 700; }
+.p-grid td { padding: 3px 0; }
+.p-bubble {
+  display: inline-grid; place-items: center; width: 1.7em; height: 1.7em; margin-right: 8px;
+  border: 1.5px solid #111; border-radius: 50%; font-size: 9pt; font-weight: 700;
+}
+.p-box { display: inline-block; width: 9em; height: 1.6em; border: 1.5px solid #111; border-radius: 4px; }
+.p-foot { margin-top: 14px; font-size: 8.5pt; color: #666; text-align: right; }
+
+.p-key h2 { font-size: 14pt; margin: 0 0 4px; }
+.p-key-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; margin-top: 10px; }
+.p-key-table { border-collapse: collapse; width: 100%; }
+.p-key-table caption { font-weight: 800; text-align: left; padding-bottom: 4px; }
+.p-key-table th, .p-key-table td { border: 1px solid #999; padding: 2px 6px; font-size: 10pt; }
+.p-key-table th { width: 2.4em; text-align: right; }
+
+@media (max-width: 600px) {
+  .p-sheet { padding: 16px; }
+  .p-options, .p-match { grid-template-columns: 1fr; }
+}
+
+@media print {
+  @page { size: A4; margin: 12mm; }
+  .no-print, .tabbar, .topbar, #header, .skip-link, #toasts { display: none !important; }
+  body { background: #fff !important; }
+  main.wrap { padding: 0 !important; max-width: none; }
+  .p-sheet { border: 0; border-radius: 0; margin: 0; padding: 0; max-width: none; break-after: page; page-break-after: always; }
+  .p-sheet:last-child { break-after: auto; page-break-after: auto; }
+}
