@@ -162,17 +162,6 @@ export default [
     explain: { ky: 'Ысык-Көл өзүнчө Ысык-Көл облусунда жайгашкан.', ru: 'Иссык-Куль находится в своей, Иссык-Кульской области.', en: 'Issyk-Kul lies in its own region, Issyk-Kul region.' }
   },
   {
-    id: "g20", skill: "regions", difficulty: 1, type: "choice",
-    prompt: {"ky": "Кыргызстанда канча облус бар?", "ru": "Сколько областей в Кыргызстане?", "en": "How many regions (oblasts) does Kyrgyzstan have?"},
-    options: [
-      "7",
-      "5",
-      "9",
-      "12"
-    ], correct: 0,
-    explain: {"ky": "Баткен, Жалал-Абад, Ысык-Көл, Нарын, Ош, Талас, Чүй — 7 облус.", "ru": "Баткенская, Джалал-Абадская, Иссык-Кульская, Нарынская, Ошская, Таласская, Чуйская — 7 областей.", "en": "Batken, Jalal-Abad, Issyk-Kul, Naryn, Osh, Talas and Chüy — 7 regions."}
-  },
-  {
     id: "g21", skill: "regions", difficulty: 2, type: "choice",
     prompt: {"ky": "Баткен облусунун борбору кайсы шаар?", "ru": "Какой город — центр Баткенской области?", "en": "Which town is the centre of the Batken region?"},
     options: [
@@ -184,36 +173,47 @@ export default [
     explain: {"ky": "Облустун борбору — Баткен шаары.", "ru": "Центр области — город Баткен.", "en": "The regional centre is the town of Batken."}
   },
   {
-    id: "g22", skill: "water", difficulty: 2, type: "choice",
-    prompt: {"ky": "Кайсы көл Нарын облусунда жайгашкан?", "ru": "Какое озеро находится в Нарынской области?", "en": "Which lake is in the Naryn region?"},
+    id: "g30", skill: "relief", difficulty: 2, type: "choice",
+    prompt: {"ky": "Кайсы өрөөн Кыргызстандын түштүгүндө жайгашкан?", "ru": "Какая долина находится на юге Кыргызстана?", "en": "Which valley is in the south of Kyrgyzstan?"},
     options: [
-      {"ky": "Соң-Көл", "ru": "Сон-Куль", "en": "Song-Köl"},
-      {"ky": "Ысык-Көл", "ru": "Иссык-Куль", "en": "Issyk-Kul"},
-      {"ky": "Сары-Челек", "ru": "Сары-Челек", "en": "Sary-Chelek"},
-      {"ky": "Кара-Суу", "ru": "Кара-Суу", "en": "Kara-Suu"}
+      {"ky": "Фергана өрөөнү", "ru": "Ферганская долина", "en": "The Fergana Valley"},
+      {"ky": "Чүй өрөөнү", "ru": "Чуйская долина", "en": "The Chüy Valley"},
+      {"ky": "Талас өрөөнү", "ru": "Таласская долина", "en": "The Talas Valley"},
+      {"ky": "Ысык-Көл ойдуңу", "ru": "Иссык-Кульская котловина", "en": "The Issyk-Kul basin"}
     ], correct: 0,
-    explain: {"ky": "Соң-Көл — Нарын облусундагы бийик тоолуу көл.", "ru": "Сон-Куль — высокогорное озеро Нарынской области.", "en": "Song-Köl is a high mountain lake in the Naryn region."}
+    explain: {"ky": "Ош, Жалал-Абад жана Баткен облустары Фергана өрөөнүнүн чет жакасында.", "ru": "Ошская, Джалал-Абадская и Баткенская области — по краю Ферганской долины.", "en": "The Osh, Jalal-Abad and Batken regions lie along the edge of the Fergana Valley."}
   },
   {
-    id: "g23", skill: "nature", difficulty: 1, type: "choice",
-    prompt: {"ky": "Арсланбоб эмнеси менен белгилүү?", "ru": "Чем знаменит Арсланбоб?", "en": "What is Arslanbob famous for?"},
+    id: "g31", skill: "water", difficulty: 2, type: "choice",
+    prompt: {"ky": "Чүй дарыясы Кыргызстандан кайсы өлкөгө агып өтөт?", "ru": "В какую страну течёт река Чу из Кыргызстана?", "en": "Into which country does the Chüy River flow from Kyrgyzstan?"},
     options: [
-      {"ky": "Жаңгак токою менен", "ru": "Ореховым лесом", "en": "Its walnut forest"},
-      {"ky": "Чөлү менен", "ru": "Пустыней", "en": "Its desert"},
-      {"ky": "Жанар тоосу менен", "ru": "Вулканом", "en": "Its volcano"},
-      {"ky": "Деңиз жээги менен", "ru": "Морским побережьем", "en": "Its seaside"}
+      {"ky": "Казакстан", "ru": "Казахстан", "en": "Kazakhstan"},
+      {"ky": "Кытай", "ru": "Китай", "en": "China"},
+      {"ky": "Тажикстан", "ru": "Таджикистан", "en": "Tajikistan"},
+      {"ky": "Өзбекстан", "ru": "Узбекистан", "en": "Uzbekistan"}
     ], correct: 0,
-    explain: {"ky": "Арсланбобдо дүйнөдөгү эң чоң жаңгак токойлорунун бири бар.", "ru": "В Арсланбобе — один из крупнейших ореховых лесов мира.", "en": "Arslanbob has one of the largest walnut forests in the world."}
+    explain: {"ky": "Чүй дарыясынын бир бөлүгү чек ара боюнча агып, андан ары Казакстанга кетет.", "ru": "Часть реки Чу идёт по границе, затем она уходит в Казахстан.", "en": "Part of the Chüy runs along the border and then flows into Kazakhstan."}
   },
   {
-    id: "g24", skill: "relief", difficulty: 2, type: "choice",
-    prompt: {"ky": "Ала-Арча улуттук паркы кайсы шаардын жанында?", "ru": "Возле какого города находится национальный парк Ала-Арча?", "en": "Which city is the Ala-Archa national park near?"},
+    id: "g32", skill: "water", difficulty: 2, type: "choice",
+    prompt: {"ky": "Ысык-Көлдүн суусу кандай?", "ru": "Какая вода в Иссык-Куле?", "en": "What is the water of Issyk-Kul like?"},
     options: [
-      {"ky": "Бишкек", "ru": "Бишкек", "en": "Bishkek"},
+      {"ky": "Бир аз туздуу", "ru": "Слегка солёная", "en": "Slightly salty"},
+      {"ky": "Таптакыр тузсуз", "ru": "Совсем пресная", "en": "Completely fresh"},
+      {"ky": "Өлүк деңиздикиндей өтө туздуу", "ru": "Очень солёная, как в Мёртвом море", "en": "Very salty, like the Dead Sea"},
+      {"ky": "Кычкыл", "ru": "Кислая", "en": "Acidic"}
+    ], correct: 0,
+    explain: {"ky": "Ысык-Көлдүн суусу бир аз туздуу, ошондуктан кышында тоңбойт.", "ru": "Вода Иссык-Куля слегка солёная, поэтому зимой он не замерзает.", "en": "Issyk-Kul is slightly salty, which is why it does not freeze in winter."}
+  },
+  {
+    id: "g33", skill: "regions", difficulty: 1, type: "choice",
+    prompt: {"ky": "Ош облусунун борбору кайсы шаар?", "ru": "Какой город — центр Ошской области?", "en": "Which city is the centre of the Osh region?"},
+    options: [
       {"ky": "Ош", "ru": "Ош", "en": "Osh"},
-      {"ky": "Нарын", "ru": "Нарын", "en": "Naryn"},
-      {"ky": "Талас", "ru": "Талас", "en": "Talas"}
+      {"ky": "Өзгөн", "ru": "Узген", "en": "Özgön"},
+      {"ky": "Кара-Суу", "ru": "Кара-Суу", "en": "Kara-Suu"},
+      {"ky": "Ноокат", "ru": "Ноокат", "en": "Nookat"}
     ], correct: 0,
-    explain: {"ky": "Ала-Арча Бишкектен 40 чакырымдай түштүктө.", "ru": "Ала-Арча — примерно в 40 км к югу от Бишкека.", "en": "Ala-Archa is about 40 km south of Bishkek."}
+    explain: {"ky": "Ош — облустун борбору жана өлкөнүн экинчи чоң шаары.", "ru": "Ош — центр области и второй по величине город страны.", "en": "Osh is the regional centre and the country’s second-largest city."}
   }
 ];

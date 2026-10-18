@@ -299,8 +299,10 @@ const shuffle = (arr) => {
  * @param {string[]} opts.types   — 'choice' | 'input' | 'order' | 'truefalse'
  * @param {function} opts.filter  — отбор под формат игры (например, только «поиск ошибки»)
  * @param {boolean} opts.strict   — не добирать вопросы другого формата
+ * @param {Iterable<string>} opts.avoid — id уже показанных вопросов: они идут
+ *   только если новых не хватает (сколько повторилось — считает вызывающий)
  */
-export async function getQuestions({ topic, count = 10, skills, difficulty, types, ids, filter, strict = false, includeCustom = true } = {}) {
+export async function getQuestions({ topic, count = 10, skills, difficulty, types, ids, filter, strict = false, includeCustom = true, avoid } = {}) {
   // Явный список вопросов (домашнее задание с ручным выбором)
   if (ids?.length) {
     const bank = await loadBank(topic);
@@ -319,12 +321,13 @@ export async function getQuestions({ topic, count = 10, skills, difficulty, type
   if (difficulty?.length) list = list.filter((q) => difficulty.includes(q.difficulty ?? 1));
   if (types?.length) list = list.filter((q) => types.includes(q.type || 'choice'));
 
-  // Если отфильтровали слишком сильно — добираем из общего набора темы
-  if (list.length < count && !strict) {
-    const rest = pool.filter((q) => !list.includes(q));
-    list = list.concat(shuffle(rest).slice(0, count - list.length));
-  }
-  return shuffle(list).slice(0, count);
+  // Порядок: новые подходящие → новые из остальной темы (если не strict)
+  // → уже показанные подходящие → уже показанные из остальной темы
+  const seen = new Set(avoid || []);
+  const rest = strict ? [] : pool.filter((q) => !list.includes(q));
+  const fresh = (arr) => shuffle(arr.filter((q) => !seen.has(q.id)));
+  const again = (arr) => shuffle(arr.filter((q) => seen.has(q.id)));
+  return shuffle([...fresh(list), ...fresh(rest), ...again(list), ...again(rest)].slice(0, count));
 }
 
 /** Варианты ответа в перемешанном порядке (правильный не всегда первый) */

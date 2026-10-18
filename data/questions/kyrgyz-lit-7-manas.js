@@ -77,17 +77,6 @@ export default [
     explain: L('Сейтек — Манастын небереси, Семетейдин уулу.', 'Сейтек — внук Манаса, сын Семетея.', 'Seitek is the grandson of Manas, son of Semetei.')
   },
   {
-    id: "kl20", skill: "characters", difficulty: 1, type: "choice",
-    prompt: {"ky": "Манастын жубайы ким?", "ru": "Как зовут жену Манаса?", "en": "Who is the wife of Manas?"},
-    options: [
-      {"ky": "Каныкей", "ru": "Каныкей", "en": "Kanykei"},
-      {"ky": "Айчүрөк", "ru": "Айчурек", "en": "Aichürök"},
-      {"ky": "Чыйырды", "ru": "Чыйырды", "en": "Chiyirdy"},
-      {"ky": "Акылай", "ru": "Акылай", "en": "Akylai"}
-    ], correct: 0,
-    explain: {"ky": "Каныкей — акылман аял, Семетейдин энеси.", "ru": "Каныкей — мудрая жена Манаса, мать Семетея.", "en": "Kanykei is Manas’s wise wife and Semetei’s mother."}
-  },
-  {
     id: "kl21", skill: "characters", difficulty: 1, type: "choice",
     prompt: {"ky": "Манастын энеси ким?", "ru": "Как зовут мать Манаса?", "en": "Who is the mother of Manas?"},
     options: [
@@ -143,17 +132,6 @@ export default [
     explain: {"ky": "Үч муундун баатырлары: ата, бала, небере.", "ru": "Герои трёх поколений: отец, сын, внук.", "en": "Heroes of three generations: father, son and grandson."}
   },
   {
-    id: "kl26", skill: "narrators", difficulty: 1, type: "choice",
-    prompt: {"ky": "«Манас» эпосун айтуучу адам ким деп аталат?", "ru": "Как называют сказителя эпоса «Манас»?", "en": "What is a person who recites \"Manas\" called?"},
-    options: [
-      {"ky": "Манасчы", "ru": "Манасчы", "en": "A manaschi"},
-      {"ky": "Акын", "ru": "Акын", "en": "An akyn"},
-      {"ky": "Комузчу", "ru": "Комузист", "en": "A komuz player"},
-      {"ky": "Жомокчу", "ru": "Сказочник", "en": "A storyteller of tales"}
-    ], correct: 0,
-    explain: {"ky": "Манасчылар эпосту жатка айтышат.", "ru": "Манасчы рассказывают эпос наизусть.", "en": "A manaschi recites the epic from memory."}
-  },
-  {
     id: "kl27", skill: "narrators", difficulty: 2, type: "choice",
     prompt: {"ky": "Белгилүү манасчылардын бири ким?", "ru": "Кто из них — известный манасчы?", "en": "Which of these is a famous manaschi?"},
     options: [
@@ -174,5 +152,27 @@ export default [
       {"ky": "Кожожаш", "ru": "Кожожаш", "en": "Kojojash"}
     ], correct: 0,
     explain: {"ky": "1995-жыл — «Манас-1000» мааракеси.", "ru": "1995 год — юбилей «Манас-1000».", "en": "1995 was the \"Manas 1000\" anniversary."}
+  },
+  {
+    id: "kl30", skill: "characters", difficulty: 2, type: "choice",
+    prompt: {"ky": "Манастын эң жакын досу, кытай тектүү баатыр ким?", "ru": "Кто ближайший друг Манаса — богатырь китайского происхождения?", "en": "Who is Manas’s closest friend, a hero of Chinese origin?"},
+    options: [
+      {"ky": "Алмамбет", "ru": "Алмамбет", "en": "Almambet"},
+      {"ky": "Чубак", "ru": "Чубак", "en": "Chubak"},
+      {"ky": "Сыргак", "ru": "Сыргак", "en": "Syrgak"},
+      {"ky": "Коңурбай", "ru": "Конурбай", "en": "Konurbai"}
+    ], correct: 0,
+    explain: {"ky": "Алмамбет кытай ханзадасы болгон, кийин Манастын досу жана кеңешчиси болот.", "ru": "Алмамбет был китайским царевичем, потом стал другом и советником Манаса.", "en": "Almambet was a Chinese prince who became Manas’s friend and adviser."}
+  },
+  {
+    id: "kl31", skill: "narrators", difficulty: 2, type: "choice",
+    prompt: {"ky": "Саякбай Каралаев ким болгон?", "ru": "Кем был Саякбай Каралаев?", "en": "Who was Sayakbai Karalaev?"},
+    options: [
+      {"ky": "Улуу манасчы", "ru": "Великий манасчы", "en": "A great manaschi (Manas reciter)"},
+      {"ky": "Комузчу", "ru": "Комузист", "en": "A komuz player"},
+      {"ky": "Жазуучу", "ru": "Писатель", "en": "A writer"},
+      {"ky": "Сүрөтчү", "ru": "Художник", "en": "A painter"}
+    ], correct: 0,
+    explain: {"ky": "Саякбай Каралаевдин айтуусунда эпостун үч бөлүгү тең жазылып алынган.", "ru": "В исполнении Саякбая Каралаева записаны все три части эпоса.", "en": "All three parts of the epic were recorded from Sayakbai Karalaev."}
   }
 ];

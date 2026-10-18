@@ -114,17 +114,6 @@ export default [
     explain: { ky: 'Yesterday — өткөн чак: Yesterday I went to the park.', ru: 'Yesterday — прошедшее время: Yesterday I went to the park.', en: '"Yesterday" needs the past tense: Yesterday I went to the park.' }
   },
   {
-    id: "e30", skill: "food", difficulty: 1, type: "choice",
-    prompt: {"ky": "«Нан» англисче кандай?", "ru": "Как по-английски «хлеб»?", "en": "How do you say \"нан / хлеб\" in English?"},
-    options: [
-      "bread",
-      "milk",
-      "apple",
-      "water"
-    ], correct: 0,
-    explain: {"ky": "bread — нан", "ru": "bread — хлеб", "en": "bread = нан / хлеб"}
-  },
-  {
     id: "e31", skill: "food", difficulty: 1, type: "choice",
     prompt: {"ky": "«Milk» деген эмне?", "ru": "Что означает «milk»?", "en": "What does \"milk\" mean?"},
     options: [
@@ -136,47 +125,58 @@ export default [
     explain: {"ky": "milk — сүт", "ru": "milk — молоко", "en": "Milk is a white drink we get from cows."}
   },
   {
-    id: "e32", skill: "school", difficulty: 1, type: "choice",
-    prompt: {"ky": "«Китеп» англисче кандай?", "ru": "Как по-английски «книга»?", "en": "How do you say \"китеп / книга\" in English?"},
+    id: "e40", skill: "animals", difficulty: 1, type: "choice",
+    prompt: {"ky": "«Ит» англисче кандай?", "ru": "Как по-английски «собака»?", "en": "How do you say \"ит / собака\" in English?"},
     options: [
-      "book",
-      "pen",
+      "dog",
+      "cat",
+      "cow",
+      "fox"
+    ], correct: 0,
+    explain: {"ky": "dog — ит", "ru": "dog — собака", "en": "dog = ит / собака"}
+  },
+  {
+    id: "e41", skill: "food", difficulty: 2, type: "choice",
+    prompt: {"ky": "«Egg» деген эмне?", "ru": "Что означает «egg»?", "en": "What does \"egg\" mean?"},
+    options: [
+      {"ky": "Жумуртка", "ru": "Яйцо", "en": "Something a hen lays"},
+      {"ky": "Сүт", "ru": "Молоко", "en": "Milk"},
+      {"ky": "Нан", "ru": "Хлеб", "en": "Bread"},
+      {"ky": "Алма", "ru": "Яблоко", "en": "An apple"}
+    ], correct: 0,
+    explain: {"ky": "egg — жумуртка", "ru": "egg — яйцо", "en": "An egg is laid by a hen."}
+  },
+  {
+    id: "e42", skill: "school", difficulty: 1, type: "choice",
+    prompt: {"ky": "«Парта» англисче кандай?", "ru": "Как по-английски «парта»?", "en": "How do you say \"парта\" (a school desk) in English?"},
+    options: [
       "desk",
-      "bag"
+      "chair",
+      "board",
+      "door"
     ], correct: 0,
-    explain: {"ky": "book — китеп", "ru": "book — книга", "en": "book = китеп / книга"}
+    explain: {"ky": "desk — парта", "ru": "desk — парта", "en": "desk = парта"}
   },
   {
-    id: "e33", skill: "school", difficulty: 2, type: "choice",
-    prompt: {"ky": "«Teacher» деген ким?", "ru": "Кто такой «teacher»?", "en": "Who is a \"teacher\"?"},
+    id: "e43", skill: "verbs", difficulty: 1, type: "choice",
+    prompt: {"ky": "«Жазуу» англисче кандай?", "ru": "Как по-английски «писать»?", "en": "How do you say \"жазуу / писать\" in English?"},
     options: [
-      {"ky": "Мугалим", "ru": "Учитель", "en": "A person who teaches"},
-      {"ky": "Окуучу", "ru": "Ученик", "en": "A pupil"},
-      {"ky": "Дарыгер", "ru": "Врач", "en": "A doctor"},
-      {"ky": "Айдоочу", "ru": "Водитель", "en": "A driver"}
-    ], correct: 0,
-    explain: {"ky": "teacher — мугалим", "ru": "teacher — учитель", "en": "A teacher teaches pupils."}
-  },
-  {
-    id: "e34", skill: "verbs", difficulty: 1, type: "choice",
-    prompt: {"ky": "«Окуу» (китеп окуу) англисче кандай?", "ru": "Как по-английски «читать»?", "en": "How do you say \"окуу / читать\" in English?"},
-    options: [
-      "read",
       "write",
+      "read",
       "run",
-      "sing"
+      "swim"
     ], correct: 0,
-    explain: {"ky": "read — окуу", "ru": "read — читать", "en": "read = окуу / читать"}
+    explain: {"ky": "write — жазуу", "ru": "write — писать", "en": "write = жазуу / писать"}
   },
   {
-    id: "e35", skill: "verbs", difficulty: 2, type: "choice",
-    prompt: {"ky": "Туура сөздү тандаңыз: «I ___ to school every day.»", "ru": "Выберите правильное слово: «I ___ to school every day.»", "en": "Choose the right word: \"I ___ to school every day.\""},
+    id: "e44", skill: "verbs", difficulty: 2, type: "choice",
+    prompt: {"ky": "Туура сөздү тандаңыз: «She ___ English.»", "ru": "Выберите правильное слово: «She ___ English.»", "en": "Choose the right word: \"She ___ English.\""},
     options: [
-      "go",
-      "goes",
-      "going",
-      "went"
+      "speaks",
+      "speak",
+      "speaking",
+      "to speak"
     ], correct: 0,
-    explain: {"ky": "I менен учур чакта: go. He/she менен — goes.", "ru": "С I в настоящем времени: go. С he/she — goes.", "en": "With \"I\" in the present simple we say \"go\"; with he/she — \"goes\"."}
+    explain: {"ky": "He/she/it менен учур чакта этишке -s кошулат: speaks.", "ru": "С he/she/it в настоящем времени к глаголу добавляется -s: speaks.", "en": "With he/she/it the present simple adds -s: speaks."}
   }
 ];

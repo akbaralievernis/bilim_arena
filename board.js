@@ -98,8 +98,15 @@ const state = {
   lessonStats: { answered: 0, correct: 0, bySkill: {} },
   lessonId: null,        // запись урока в журнале (core/lessons.js)
   repeatQuestions: null, // вопросы для повторного прохождения по ошибкам
-  review: null           // { ids, skills } — повторение по ошибкам класса
+  review: null,          // { ids, skills } — повторение по ошибкам класса
+  used: { topic: null, ids: new Set() } // вопросы, уже показанные на этом уроке
 };
+
+/** id вопросов, уже бывших на этом уроке (по смене темы — заново) */
+function usedIds() {
+  if (state.used.topic !== state.topic) state.used = { topic: state.topic, ids: new Set() };
+  return state.used.ids;
+}
 
 // ─── Экраны ───────────────────────────────────────────────────────────────────
 const screens = ['setupScreen', 'lobbyScreen', 'gameScreen', 'resultScreen', 'summaryScreen'];
@@ -368,21 +375,26 @@ async function startStage(stageIndex, customQuestions = null) {
       ? await getQuestions({ topic: state.topic, ids: state.review.ids })
       : [];
     const extra = state.review.skills.length
-      ? await getQuestions({ topic: state.topic, count: 4, skills: state.review.skills })
+      ? await getQuestions({ topic: state.topic, count: 4, skills: state.review.skills, avoid: usedIds() })
       : [];
     questions = [...new Map([...wrong, ...extra].map((q) => [q.id, q])).values()].slice(0, 12);
   }
 
   if (!questions) {
+    // Новый этап — новые вопросы: уже показанные на уроке идут, только если новых не хватает
+    const used = usedIds();
     questions = await getQuestions(GameClass.questionFilter
-      ? { topic: state.topic, count: stage.questions, filter: GameClass.questionFilter, strict: true }
-      : { topic: state.topic, count: stage.questions, difficulty: stage.difficulty });
+      ? { topic: state.topic, count: stage.questions, filter: GameClass.questionFilter, strict: true, avoid: used }
+      : { topic: state.topic, count: stage.questions, difficulty: stage.difficulty, avoid: used });
+    const repeats = questions.filter((q) => used.has(q.id)).length;
+    if (repeats) toast(t('lesson_repeats_warning', { n: repeats }), { icon: 'ℹ️', ms: 5000 });
   }
 
   if (!questions.length) {
-    toast('Суроолор табылган жок', { icon: '⚠️' });
+    toast(t('lesson_no_questions'), { icon: '⚠️' });
     return;
   }
+  questions.forEach((q) => usedIds().add(q.id));
 
   state.game?.destroy();
   state.game = new GameClass({
@@ -815,8 +827,7 @@ function showResults(game) {
 
   $('#repeatBtn').onclick = async () => {
     // Новая игра ровно по тем вопросам, где класс ошибся
-    const all = await getQuestions({ topic: state.topic, count: 50 });
-    const wrong = all.filter((q) => wrongIds.includes(q.id));
+    const wrong = wrongIds.length ? await getQuestions({ topic: state.topic, ids: wrongIds }) : [];
     const weakSkills = r.weakSkills.map((w) => w.skill);
     const extra = weakSkills.length
       ? await getQuestions({ topic: state.topic, count: 4, skills: weakSkills })
@@ -902,7 +913,7 @@ function finishLesson() {
   $('#pauseBtn').replaceChildren(icon('pause'));
   $('#exitBtn').replaceChildren(icon('close'));
   $('#summaryIcon').replaceChildren(icon('trophy', { size: 44 }));
-  $('#startLessonBtn').onclick = () => { state.stageIndex = 0; openRoom(); };
+  $('#startLessonBtn').onclick = () => { state.stageIndex = 0; state.used = { topic: null, ids: new Set() }; openRoom(); };
   $('#startGameBtn').onclick = () => startStage(0);
   $('#skipBtn').onclick = () => {
     if (!state.game) return;

@@ -69,17 +69,6 @@ export default [
     explain: L('«Тарас Бульба» — Н. В. Гоголдун повести.', '«Тарас Бульба» — повесть Н. В. Гоголя.', '"Taras Bulba" is by N. V. Gogol.')
   },
   {
-    id: "rl20", skill: "authors", difficulty: 1, type: "choice",
-    prompt: {"ky": "«Сказка о рыбаке и рыбке» жомогун ким жазган?", "ru": "Кто написал «Сказку о рыбаке и рыбке»?", "en": "Who wrote \"The Tale of the Fisherman and the Fish\"?"},
-    options: [
-      {"ky": "А. С. Пушкин", "ru": "А. С. Пушкин", "en": "Alexander Pushkin"},
-      {"ky": "М. Ю. Лермонтов", "ru": "М. Ю. Лермонтов", "en": "Mikhail Lermontov"},
-      {"ky": "Л. Н. Толстой", "ru": "Л. Н. Толстой", "en": "Leo Tolstoy"},
-      {"ky": "И. А. Крылов", "ru": "И. А. Крылов", "en": "Ivan Krylov"}
-    ], correct: 0,
-    explain: {"ky": "Жомок 1833-жылы жазылган.", "ru": "Сказка написана в 1833 году.", "en": "It was written in 1833."}
-  },
-  {
     id: "rl21", skill: "authors", difficulty: 1, type: "choice",
     prompt: {"ky": "Көп тамсилдери (басняларды) менен белгилүү орус жазуучусу ким?", "ru": "Какой русский писатель знаменит своими баснями?", "en": "Which Russian writer is famous for his fables?"},
     options: [
@@ -89,17 +78,6 @@ export default [
       {"ky": "И. С. Тургенев", "ru": "И. С. Тургенев", "en": "Ivan Turgenev"}
     ], correct: 0,
     explain: {"ky": "Крылов 200дөн ашык тамсил жазган.", "ru": "Крылов написал более 200 басен.", "en": "Krylov wrote more than 200 fables."}
-  },
-  {
-    id: "rl22", skill: "authors", difficulty: 2, type: "choice",
-    prompt: {"ky": "«Муму» аңгемесинин автору ким?", "ru": "Кто автор рассказа «Муму»?", "en": "Who wrote the story \"Mumu\"?"},
-    options: [
-      {"ky": "И. С. Тургенев", "ru": "И. С. Тургенев", "en": "Ivan Turgenev"},
-      {"ky": "Л. Н. Толстой", "ru": "Л. Н. Толстой", "en": "Leo Tolstoy"},
-      {"ky": "А. П. Чехов", "ru": "А. П. Чехов", "en": "Anton Chekhov"},
-      {"ky": "Н. В. Гоголь", "ru": "Н. В. Гоголь", "en": "Nikolai Gogol"}
-    ], correct: 0,
-    explain: {"ky": "«Муму» — Тургеневдин аңгемеси.", "ru": "«Муму» — рассказ И. С. Тургенева.", "en": "\"Mumu\" is a story by Ivan Turgenev."}
   },
   {
     id: "rl23", skill: "authors", difficulty: 2, type: "choice",
@@ -177,5 +155,27 @@ export default [
       {"ky": "Аңгеме", "ru": "Рассказ", "en": "A short story"}
     ], correct: 0,
     explain: {"ky": "Пушкин аны «ыр менен жазылган роман» деп атаган.", "ru": "Пушкин сам называл его «романом в стихах».", "en": "Pushkin called it a \"novel in verse\"."}
+  },
+  {
+    id: "rl30", skill: "works", difficulty: 2, type: "choice",
+    prompt: {"ky": "«Бежин луг» аңгемесинин автору ким?", "ru": "Кто автор рассказа «Бежин луг»?", "en": "Who wrote the story \"Bezhin Meadow\"?"},
+    options: [
+      {"ky": "И. С. Тургенев", "ru": "И. С. Тургенев", "en": "Ivan Turgenev"},
+      {"ky": "Л. Н. Толстой", "ru": "Л. Н. Толстой", "en": "Leo Tolstoy"},
+      {"ky": "А. П. Чехов", "ru": "А. П. Чехов", "en": "Anton Chekhov"},
+      {"ky": "Н. В. Гоголь", "ru": "Н. В. Гоголь", "en": "Nikolai Gogol"}
+    ], correct: 0,
+    explain: {"ky": "«Бежин луг» — Тургеневдин «Аңчынын жазмалары» жыйнагынан.", "ru": "«Бежин луг» — из цикла Тургенева «Записки охотника».", "en": "\"Bezhin Meadow\" is from Turgenev’s \"A Sportsman’s Sketches\"."}
+  },
+  {
+    id: "rl31", skill: "genres", difficulty: 2, type: "choice",
+    prompt: {"ky": "Пушкиндин «Зимнее утро» чыгармасы кандай жанрда?", "ru": "К какому жанру относится «Зимнее утро» Пушкина?", "en": "What genre is Pushkin’s \"Winter Morning\"?"},
+    options: [
+      {"ky": "Лирикалык ыр", "ru": "Лирическое стихотворение", "en": "A lyric poem"},
+      {"ky": "Роман", "ru": "Роман", "en": "A novel"},
+      {"ky": "Тамсил", "ru": "Басня", "en": "A fable"},
+      {"ky": "Пьеса", "ru": "Пьеса", "en": "A play"}
+    ], correct: 0,
+    explain: {"ky": "Анда окуя эмес, акындын сезими жана жаратылыштын сүрөтү бар.", "ru": "В нём не сюжет, а чувства поэта и картина природы.", "en": "It shows the poet’s feelings and a picture of nature rather than a plot."}
   }
 ];

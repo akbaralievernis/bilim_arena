@@ -133,17 +133,6 @@ export default [
     explain: { ky: 'Ар бир кадам мурунку кадамдын жыйынтыгына таянат.', ru: 'Каждый шаг опирается на результат предыдущего.', en: 'Each step depends on the result of the previous one.' }
   },
   {
-    id: "a30", skill: "sequence", difficulty: 1, type: "choice",
-    prompt: {"ky": "Алгоритм деген эмне?", "ru": "Что такое алгоритм?", "en": "What is an algorithm?"},
-    options: [
-      {"ky": "Маселени чечүүнүн так кадамдарынын ырааттуулугу", "ru": "Точная последовательность шагов для решения задачи", "en": "An exact sequence of steps that solves a task"},
-      {"ky": "Компьютердин бөлүгү", "ru": "Часть компьютера", "en": "A part of a computer"},
-      {"ky": "Программалоо тили", "ru": "Язык программирования", "en": "A programming language"},
-      {"ky": "Файлдын түрү", "ru": "Тип файла", "en": "A file type"}
-    ], correct: 0,
-    explain: {"ky": "Алгоритмди адам да, компьютер да аткара алат.", "ru": "Алгоритм может выполнять и человек, и компьютер.", "en": "Both people and computers can follow an algorithm."}
-  },
-  {
     id: "a31", skill: "condition", difficulty: 1, type: "choice",
     prompt: {"ky": "«Жамгыр жааса, кол чатыр ал» — бул кандай алгоритм?", "ru": "«Если идёт дождь, возьми зонт» — какой это алгоритм?", "en": "\"If it rains, take an umbrella\" — what kind of algorithm is this?"},
     options: [
@@ -153,17 +142,6 @@ export default [
       {"ky": "Кокустук", "ru": "Случайный", "en": "Random"}
     ], correct: 0,
     explain: {"ky": "«Эгер … болсо» — шарт, андан кийин эки жол бар.", "ru": "«Если …» — условие, после него два пути.", "en": "\"If\" is a condition that splits the path in two."}
-  },
-  {
-    id: "a32", skill: "loop", difficulty: 1, type: "choice",
-    prompt: {"ky": "«5 жолу кайтала» — бул эмне?", "ru": "«Повтори 5 раз» — что это?", "en": "\"Repeat 5 times\" — what is this?"},
-    options: [
-      {"ky": "Цикл", "ru": "Цикл", "en": "A loop"},
-      {"ky": "Шарт", "ru": "Условие", "en": "A condition"},
-      {"ky": "Өзгөрмө", "ru": "Переменная", "en": "A variable"},
-      {"ky": "Файл", "ru": "Файл", "en": "A file"}
-    ], correct: 0,
-    explain: {"ky": "Бир эле буйрукту бир нече жолу аткаруу — цикл.", "ru": "Повторение одних и тех же команд — цикл.", "en": "Doing the same commands again and again is a loop."}
   },
   {
     id: "a33", skill: "loop", difficulty: 2, type: "input", numeric: true,
@@ -188,5 +166,22 @@ export default [
     prompt: {"ky": "s = 0. i 1ден 4кө чейин: s = s + i. Акырында s канча?", "ru": "s = 0. Для i от 1 до 4: s = s + i. Чему равен s в конце?", "en": "s = 0. For i from 1 to 4: s = s + i. What is s at the end?"},
     answer: ["10"],
     explain: {"ky": "1 + 2 + 3 + 4 = 10.", "ru": "1 + 2 + 3 + 4 = 10.", "en": "1 + 2 + 3 + 4 = 10."}
+  },
+  {
+    id: "a40", skill: "sequence", difficulty: 1, type: "choice",
+    prompt: {"ky": "Компьютердик программа деген эмне?", "ru": "Что такое компьютерная программа?", "en": "What is a computer program?"},
+    options: [
+      {"ky": "Компьютер аткара турган буйруктардын ырааттуулугу", "ru": "Последовательность команд, которую выполняет компьютер", "en": "A sequence of commands a computer carries out"},
+      {"ky": "Монитордун түрү", "ru": "Вид монитора", "en": "A type of monitor"},
+      {"ky": "Файлдын аты", "ru": "Имя файла", "en": "A file name"},
+      {"ky": "Интернет дарек", "ru": "Адрес в интернете", "en": "A web address"}
+    ], correct: 0,
+    explain: {"ky": "Программа — компьютер түшүнгөн тилде жазылган алгоритм.", "ru": "Программа — алгоритм, записанный на понятном компьютеру языке.", "en": "A program is an algorithm written in a language the computer understands."}
+  },
+  {
+    id: "a41", skill: "condition", difficulty: 2, type: "input", numeric: true,
+    prompt: {"ky": "x = 4. Эгер x так сан болсо, y = x × 3, болбосо y = x + 3. y канча?", "ru": "x = 4. Если x нечётное, то y = x × 3, иначе y = x + 3. Чему равен y?", "en": "x = 4. If x is odd then y = x × 3, else y = x + 3. What is y?"},
+    answer: ["7"],
+    explain: {"ky": "4 — жуп сан, шарт аткарылбайт: 4 + 3 = 7.", "ru": "4 — чётное, условие не выполнено: 4 + 3 = 7.", "en": "4 is even, so the condition is false: 4 + 3 = 7."}
   }
 ];

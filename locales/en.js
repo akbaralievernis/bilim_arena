@@ -596,4 +596,6 @@ export default {
   race_external: 'The race opens on a separate site (Kyrgyz and Russian)',
   home_race_cta: 'Go to the race',
   play_code_hint: 'Lesson code: 4 characters, race code: 6.',
+  lesson_repeats_warning: 'Not enough new questions in this topic: {n} will repeat from earlier stages.',
+  lesson_no_questions: 'No questions found in this topic.',
 };

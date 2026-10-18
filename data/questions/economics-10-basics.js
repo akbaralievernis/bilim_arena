@@ -79,17 +79,6 @@ export default [
     explain: L('Чыгым кемитилет: 1200 − 700 = 500 сом.', 'Затраты вычитаются: 1200 − 700 = 500 сомов.', 'Costs are subtracted: 1200 − 700 = 500 som.')
   },
   {
-    id: "ec10", skill: "market", difficulty: 1, type: "choice",
-    prompt: {"ky": "Товардын баасы көтөрүлсө, адатта, ага суроо-талап кандай өзгөрөт?", "ru": "Если цена товара растёт, как обычно меняется спрос?", "en": "When the price of a good rises, what usually happens to demand?"},
-    options: [
-      {"ky": "Азаят", "ru": "Снижается", "en": "It falls"},
-      {"ky": "Көбөйөт", "ru": "Растёт", "en": "It rises"},
-      {"ky": "Өзгөрбөйт", "ru": "Не меняется", "en": "It stays the same"},
-      {"ky": "Нөлгө барабар болот", "ru": "Становится нулевым", "en": "It drops to zero"}
-    ], correct: 0,
-    explain: {"ky": "Суроо-талап мыйзамы: баа өскөн сайын сатып алуучулар азыраак алышат.", "ru": "Закон спроса: чем выше цена, тем меньше покупают.", "en": "The law of demand: the higher the price, the less people buy."}
-  },
-  {
     id: "ec11", skill: "market", difficulty: 2, type: "choice",
     prompt: {"ky": "Сунуш суроо-талаптан көп болсо, баа кандай болот?", "ru": "Если предложение больше спроса, что происходит с ценой?", "en": "If supply is greater than demand, what happens to the price?"},
     options: [
@@ -121,17 +110,6 @@ export default [
       {"ky": "Доллар", "ru": "Доллар", "en": "The dollar"}
     ], correct: 0,
     explain: {"ky": "Сом 1993-жылдан бери колдонулат.", "ru": "Сом используется с 1993 года.", "en": "The som has been used since 1993."}
-  },
-  {
-    id: "ec14", skill: "money", difficulty: 2, type: "choice",
-    prompt: {"ky": "Инфляция деген эмне?", "ru": "Что такое инфляция?", "en": "What is inflation?"},
-    options: [
-      {"ky": "Баалардын жалпы деңгээлинин өсүшү", "ru": "Рост общего уровня цен", "en": "A rise in the general level of prices"},
-      {"ky": "Баалардын төмөндөшү", "ru": "Снижение цен", "en": "Falling prices"},
-      {"ky": "Айлык акынын өсүшү", "ru": "Рост зарплат", "en": "Rising wages"},
-      {"ky": "Салыктардын жоюлушу", "ru": "Отмена налогов", "en": "Abolishing taxes"}
-    ], correct: 0,
-    explain: {"ky": "Инфляцияда ошол эле акчага азыраак товар сатып алууга болот.", "ru": "При инфляции на те же деньги можно купить меньше.", "en": "With inflation, the same money buys less."}
   },
   {
     id: "ec15", skill: "money", difficulty: 2, type: "choice",
@@ -177,5 +155,27 @@ export default [
       {"ky": "Студент", "ru": "Студент", "en": "A student"}
     ], correct: 0,
     explain: {"ky": "Ишкер өз акчасын жана убактысын бизнеске салат.", "ru": "Предприниматель вкладывает в дело свои деньги и время.", "en": "An entrepreneur puts their own money and time into a business."}
+  },
+  {
+    id: "ec30", skill: "market", difficulty: 2, type: "choice",
+    prompt: {"ky": "Сатуучулардын атаандаштыгы сатып алуучуга эмне берет?", "ru": "Что даёт покупателю конкуренция продавцов?", "en": "What does competition between sellers give the buyer?"},
+    options: [
+      {"ky": "Тандоо жана арзаныраак баа", "ru": "Выбор и более низкие цены", "en": "Choice and lower prices"},
+      {"ky": "Бир гана сатуучу", "ru": "Одного-единственного продавца", "en": "A single seller"},
+      {"ky": "Баанын өсүшү гана", "ru": "Только рост цен", "en": "Only rising prices"},
+      {"ky": "Товардын жоктугу", "ru": "Отсутствие товара", "en": "No goods at all"}
+    ], correct: 0,
+    explain: {"ky": "Сатып алуучуну тартыш үчүн сатуучулар сапатты жакшыртып, бааны түшүрүшөт.", "ru": "Чтобы привлечь покупателя, продавцы улучшают качество и снижают цены.", "en": "To win buyers, sellers improve quality and cut prices."}
+  },
+  {
+    id: "ec31", skill: "money", difficulty: 2, type: "choice",
+    prompt: {"ky": "Банктан кредит алган адам эмне кылышы керек?", "ru": "Что должен сделать человек, взявший кредит в банке?", "en": "What must someone who takes a bank loan do?"},
+    options: [
+      {"ky": "Акчаны пайызы менен кайтаруу", "ru": "Вернуть деньги с процентами", "en": "Pay the money back with interest"},
+      {"ky": "Кайтарбоо", "ru": "Не возвращать", "en": "Not pay it back"},
+      {"ky": "Пайызсыз кайтаруу", "ru": "Вернуть без процентов", "en": "Pay it back without interest"},
+      {"ky": "Товар менен төлөө", "ru": "Расплатиться товаром", "en": "Pay with goods"}
+    ], correct: 0,
+    explain: {"ky": "Кредит — убактылуу карыз; анын баасы — пайыз.", "ru": "Кредит — временный долг; его цена — проценты.", "en": "A loan is temporary debt; its price is the interest."}
   }
 ];

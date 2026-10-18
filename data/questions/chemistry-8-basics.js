@@ -104,28 +104,6 @@ export default [
     explain: {"ky": "Гелий башка заттар менен дээрлик реакцияга кирбейт.", "ru": "Гелий почти не вступает в реакции.", "en": "Helium hardly reacts with anything."}
   },
   {
-    id: "ch14", skill: "formulas", difficulty: 1, type: "choice",
-    prompt: {"ky": "Суунун химиялык формуласы кайсы?", "ru": "Какая химическая формула у воды?", "en": "What is the chemical formula of water?"},
-    options: [
-      "H₂O",
-      "CO₂",
-      "O₂",
-      "NaCl"
-    ], correct: 0,
-    explain: {"ky": "Суу молекуласы: 2 суутек жана 1 кычкылтек атому.", "ru": "Молекула воды: 2 атома водорода и 1 атом кислорода.", "en": "A water molecule has 2 hydrogen atoms and 1 oxygen atom."}
-  },
-  {
-    id: "ch15", skill: "formulas", difficulty: 2, type: "choice",
-    prompt: {"ky": "Ашкана тузунун химиялык формуласы кайсы?", "ru": "Какая формула у поваренной соли?", "en": "What is the formula of table salt?"},
-    options: [
-      "NaCl",
-      "KCl",
-      "CaCO₃",
-      "H₂O"
-    ], correct: 0,
-    explain: {"ky": "Ашкана тузу — натрий хлориди, NaCl.", "ru": "Поваренная соль — хлорид натрия, NaCl.", "en": "Table salt is sodium chloride, NaCl."}
-  },
-  {
     id: "ch16", skill: "formulas", difficulty: 2, type: "input", numeric: true,
     prompt: {"ky": "H₂SO₄ молекуласында канча кычкылтек атому бар?", "ru": "Сколько атомов кислорода в молекуле H₂SO₄?", "en": "How many oxygen atoms are in a molecule of H₂SO₄?"},
     answer: ["4"],
@@ -138,17 +116,6 @@ export default [
     explain: {"ky": "1 көмүртек + 2 кычкылтек = 3 атом.", "ru": "1 углерод + 2 кислорода = 3 атома.", "en": "1 carbon + 2 oxygen = 3 atoms."}
   },
   {
-    id: "ch18", skill: "phenomena", difficulty: 1, type: "choice",
-    prompt: {"ky": "Кайсысы химиялык кубулуш?", "ru": "Какое явление — химическое?", "en": "Which of these is a chemical change?"},
-    options: [
-      {"ky": "Темирдин дат басышы", "ru": "Ржавление железа", "en": "Iron rusting"},
-      {"ky": "Муздун эриши", "ru": "Таяние льда", "en": "Ice melting"},
-      {"ky": "Суунун кайнашы", "ru": "Кипение воды", "en": "Water boiling"},
-      {"ky": "Айнектин сынышы", "ru": "Разбивание стекла", "en": "Glass breaking"}
-    ], correct: 0,
-    explain: {"ky": "Датта жаңы зат пайда болот, калгандарында зат ошол эле бойдон калат.", "ru": "При ржавлении образуется новое вещество, в остальных случаях вещество то же.", "en": "Rust is a new substance; in the others the substance stays the same."}
-  },
-  {
     id: "ch19", skill: "phenomena", difficulty: 2, type: "multiple",
     prompt: {"ky": "Химиялык реакция жүргөнүн эмнеден билүүгө болот?", "ru": "По каким признакам видно, что идёт химическая реакция?", "en": "Which signs show that a chemical reaction is happening?"},
     options: [
@@ -158,5 +125,38 @@ export default [
       {"ky": "Нерсенин формасы гана өзгөрөт", "ru": "Меняется только форма предмета", "en": "Only the shape changes"}
     ], correct: [0, 1, 2],
     explain: {"ky": "Форманын өзгөрүшү — физикалык кубулуш.", "ru": "Изменение формы — физическое явление.", "en": "A change of shape is a physical change."}
+  },
+  {
+    id: "ch30", skill: "symbols", difficulty: 1, type: "choice",
+    prompt: {"ky": "«O» символу кайсы элементти билдирет?", "ru": "Какой элемент обозначает символ «O»?", "en": "Which element has the symbol \"O\"?"},
+    options: [
+      {"ky": "Кычкылтек", "ru": "Кислород", "en": "Oxygen"},
+      {"ky": "Алтын", "ru": "Золото", "en": "Gold"},
+      {"ky": "Күмүш", "ru": "Серебро", "en": "Silver"},
+      {"ky": "Көмүртек", "ru": "Углерод", "en": "Carbon"}
+    ], correct: 0,
+    explain: {"ky": "O — кычкылтек; алтын — Au, күмүш — Ag, көмүртек — C.", "ru": "O — кислород; золото — Au, серебро — Ag, углерод — C.", "en": "O is oxygen; gold is Au, silver Ag, carbon C."}
+  },
+  {
+    id: "ch31", skill: "formulas", difficulty: 2, type: "choice",
+    prompt: {"ky": "Аммиактын химиялык формуласы кайсы?", "ru": "Какая химическая формула у аммиака?", "en": "What is the chemical formula of ammonia?"},
+    options: [
+      "NH₃",
+      "CH₄",
+      "H₂O",
+      "CO₂"
+    ], correct: 0,
+    explain: {"ky": "Аммиак: 1 азот жана 3 суутек атому.", "ru": "Аммиак: 1 атом азота и 3 атома водорода.", "en": "Ammonia has 1 nitrogen and 3 hydrogen atoms."}
+  },
+  {
+    id: "ch32", skill: "phenomena", difficulty: 2, type: "choice",
+    prompt: {"ky": "Темир кайсы шартта тез дат басат?", "ru": "В каких условиях железо быстро ржавеет?", "en": "In what conditions does iron rust quickly?"},
+    options: [
+      {"ky": "Нымдуу абада", "ru": "Во влажном воздухе", "en": "In damp air"},
+      {"ky": "Кургак абада", "ru": "В сухом воздухе", "en": "In dry air"},
+      {"ky": "Вакуумда", "ru": "В вакууме", "en": "In a vacuum"},
+      {"ky": "Майдын ичинде", "ru": "В масле", "en": "Under oil"}
+    ], correct: 0,
+    explain: {"ky": "Дат пайда болушу үчүн суу менен кычкылтек керек.", "ru": "Для ржавчины нужны вода и кислород.", "en": "Rusting needs both water and oxygen."}
   }
 ];

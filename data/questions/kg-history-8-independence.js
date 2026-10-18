@@ -120,28 +120,6 @@ export default [
     explain: { ky: '1991 → 1995 → 1998.', ru: '1991 → 1995 → 1998.', en: '1991 → 1995 → 1998.' }
   },
   {
-    id: "h20", skill: "dates", difficulty: 1, type: "choice",
-    prompt: {"ky": "Кыргызстан БУУга кайсы жылы мүчө болгон?", "ru": "В каком году Кыргызстан стал членом ООН?", "en": "In which year did Kyrgyzstan join the United Nations?"},
-    options: [
-      "1992",
-      "1991",
-      "1993",
-      "1995"
-    ], correct: 0,
-    explain: {"ky": "1992-жылы 2-мартта.", "ru": "2 марта 1992 года.", "en": "On 2 March 1992."}
-  },
-  {
-    id: "h21", skill: "dates", difficulty: 2, type: "choice",
-    prompt: {"ky": "Улуттук валюта — сом качан жүгүртүүгө киргизилген?", "ru": "Когда в обращение ввели сом?", "en": "When was the som introduced?"},
-    options: [
-      {"ky": "1993-жылы 10-майда", "ru": "10 мая 1993 года", "en": "10 May 1993"},
-      {"ky": "1991-жылы 31-августта", "ru": "31 августа 1991 года", "en": "31 August 1991"},
-      {"ky": "1992-жылы 2-мартта", "ru": "2 марта 1992 года", "en": "2 March 1992"},
-      {"ky": "1995-жылы 1-январда", "ru": "1 января 1995 года", "en": "1 January 1995"}
-    ], correct: 0,
-    explain: {"ky": "Сом 1993-жылы 10-майда киргизилген.", "ru": "Сом введён 10 мая 1993 года.", "en": "The som was introduced on 10 May 1993."}
-  },
-  {
     id: "h22", skill: "symbols", difficulty: 1, type: "choice",
     prompt: {"ky": "Конституция боюнча Кыргызстандын мамлекеттик тили кайсы?", "ru": "Какой язык по Конституции — государственный язык Кыргызстана?", "en": "According to the Constitution, what is the state language of Kyrgyzstan?"},
     options: [
@@ -153,17 +131,6 @@ export default [
     explain: {"ky": "Мамлекеттик тил — кыргыз тили; орус тили расмий тил катары колдонулат.", "ru": "Государственный язык — кыргызский; русский используется как официальный.", "en": "Kyrgyz is the state language; Russian is used as an official language."}
   },
   {
-    id: "h23", skill: "symbols", difficulty: 2, type: "choice",
-    prompt: {"ky": "Желектеги күндүн ортосунда эмне тартылган?", "ru": "Что изображено в центре солнца на флаге?", "en": "What is drawn in the centre of the sun on the flag?"},
-    options: [
-      {"ky": "Түндүк", "ru": "Тюндюк (купол юрты)", "en": "A tündük (the crown of a yurt)"},
-      {"ky": "Бүркүт", "ru": "Беркут", "en": "An eagle"},
-      {"ky": "Тоо", "ru": "Гора", "en": "A mountain"},
-      {"ky": "Ай", "ru": "Луна", "en": "The moon"}
-    ], correct: 0,
-    explain: {"ky": "Түндүк — боз үйдүн чокусу, үй-бүлө жана биримдиктин белгиси.", "ru": "Тюндюк — верх юрты, символ семьи и единства.", "en": "The tündük is the top of the yurt, a symbol of home and unity."}
-  },
-  {
     id: "h24", skill: "people", difficulty: 2, type: "choice",
     prompt: {"ky": "Эгемендүү Кыргызстандын биринчи президенти ким болгон?", "ru": "Кто был первым президентом независимого Кыргызстана?", "en": "Who was the first president of independent Kyrgyzstan?"},
     options: [
@@ -173,5 +140,38 @@ export default [
       {"ky": "Роза Отунбаева", "ru": "Роза Отунбаева", "en": "Roza Otunbayeva"}
     ], correct: 0,
     explain: {"ky": "Аскар Акаев 1990–2005-жылдары өлкөнү жетектеген.", "ru": "Аскар Акаев руководил страной в 1990–2005 годах.", "en": "Askar Akayev led the country from 1990 to 2005."}
+  },
+  {
+    id: "h30", skill: "dates", difficulty: 2, type: "choice",
+    prompt: {"ky": "Борбор калаага «Бишкек» деген ат кайсы жылы кайтарылган?", "ru": "В каком году столице вернули название «Бишкек»?", "en": "In which year was the capital renamed back to \"Bishkek\"?"},
+    options: [
+      "1991",
+      "1989",
+      "1993",
+      "1995"
+    ], correct: 0,
+    explain: {"ky": "1991-жылы Фрунзе шаары кайрадан Бишкек деп аталды.", "ru": "В 1991 году город Фрунзе снова стал Бишкеком.", "en": "In 1991 the city of Frunze became Bishkek again."}
+  },
+  {
+    id: "h31", skill: "symbols", difficulty: 2, type: "choice",
+    prompt: {"ky": "Кыргызстандын мамлекеттик гимни кайсы жылы кабыл алынган?", "ru": "В каком году принят государственный гимн Кыргызстана?", "en": "In which year was the national anthem of Kyrgyzstan adopted?"},
+    options: [
+      "1992",
+      "1991",
+      "1995",
+      "2000"
+    ], correct: 0,
+    explain: {"ky": "Гимн 1992-жылы 18-декабрда кабыл алынган.", "ru": "Гимн принят 18 декабря 1992 года.", "en": "The anthem was adopted on 18 December 1992."}
+  },
+  {
+    id: "h32", skill: "people", difficulty: 2, type: "choice",
+    prompt: {"ky": "Чыңгыз Айтматовдун «Ак кеме» повести кайсы жылы жазылган?", "ru": "В каком году Чингиз Айтматов написал повесть «Белый пароход»?", "en": "In which year did Chinghiz Aitmatov write \"The White Ship\"?"},
+    options: [
+      "1970",
+      "1958",
+      "1980",
+      "1990"
+    ], correct: 0,
+    explain: {"ky": "«Ак кеме» 1970-жылы жарык көргөн; «Жамийла» — 1958-жылы.", "ru": "«Белый пароход» вышел в 1970 году; «Джамиля» — в 1958-м.", "en": "\"The White Ship\" came out in 1970; \"Jamilia\" in 1958."}
   }
 ];

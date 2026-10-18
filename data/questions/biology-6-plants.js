@@ -87,17 +87,6 @@ export default [
     explain: L('Фотосинтезде өсүмдүк CO₂ сиңирет, кычкылтекти бөлүп чыгарат.', 'При фотосинтезе растение поглощает CO₂, а кислород выделяет.', 'In photosynthesis the plant absorbs CO₂ and releases oxygen.')
   },
   {
-    id: "bi11", skill: "cell", difficulty: 1, type: "choice",
-    prompt: {"ky": "Клетканын тукум куучулук маалыматы кайсы бөлүгүндө сакталат?", "ru": "В какой части клетки хранится наследственная информация?", "en": "Which part of the cell stores hereditary information?"},
-    options: [
-      {"ky": "Ядро", "ru": "Ядро", "en": "The nucleus"},
-      {"ky": "Цитоплазма", "ru": "Цитоплазма", "en": "The cytoplasm"},
-      {"ky": "Клетка кабыгы", "ru": "Клеточная оболочка", "en": "The cell wall"},
-      {"ky": "Вакуоль", "ru": "Вакуоль", "en": "The vacuole"}
-    ], correct: 0,
-    explain: {"ky": "Ядродо ДНК бар — ал тукум куучулук маалыматты сактайт.", "ru": "В ядре находится ДНК — она хранит наследственную информацию.", "en": "The nucleus contains DNA, which carries hereditary information."}
-  },
-  {
     id: "bi12", skill: "cell", difficulty: 1, type: "choice",
     prompt: {"ky": "Өсүмдүк клеткасына жашыл түс берген органоиддер кайсылар?", "ru": "Какие органоиды придают клетке растения зелёный цвет?", "en": "Which organelles make plant cells green?"},
     options: [
@@ -142,17 +131,6 @@ export default [
     explain: {"ky": "Жарыктын энергиясы менен CO₂ жана суудан глюкоза жана кычкылтек пайда болот.", "ru": "С энергией света из CO₂ и воды образуются глюкоза и кислород.", "en": "Using light energy, CO₂ and water become glucose and oxygen."}
   },
   {
-    id: "bi16", skill: "plants", difficulty: 1, type: "choice",
-    prompt: {"ky": "Өсүмдүктү топурактан суу жана минералдар менен камсыз кылган орган?", "ru": "Какой орган снабжает растение водой и минералами из почвы?", "en": "Which organ takes in water and minerals from the soil?"},
-    options: [
-      {"ky": "Тамыр", "ru": "Корень", "en": "The root"},
-      {"ky": "Жалбырак", "ru": "Лист", "en": "The leaf"},
-      {"ky": "Гүл", "ru": "Цветок", "en": "The flower"},
-      {"ky": "Мөмө", "ru": "Плод", "en": "The fruit"}
-    ], correct: 0,
-    explain: {"ky": "Тамыр топурактан суу соруп, өсүмдүктү бекемдейт.", "ru": "Корень всасывает воду из почвы и закрепляет растение.", "en": "The root absorbs water and anchors the plant."}
-  },
-  {
     id: "bi17", skill: "plants", difficulty: 1, type: "choice",
     prompt: {"ky": "Сабак өсүмдүктө кандай милдет аткарат?", "ru": "Какую работу выполняет стебель?", "en": "What does the stem do?"},
     options: [
@@ -184,5 +162,27 @@ export default [
       {"ky": "Кычкылтек гана бөлүп чыгарат", "ru": "Выделяют только кислород", "en": "They only give out oxygen"}
     ], correct: 0,
     explain: {"ky": "Дем алуу күнү-түнү жүрөт, фотосинтез — жарыкта гана.", "ru": "Дыхание идёт днём и ночью, фотосинтез — только на свету.", "en": "Plants breathe day and night; photosynthesis needs light."}
+  },
+  {
+    id: "bi30", skill: "cell", difficulty: 2, type: "choice",
+    prompt: {"ky": "Өсүмдүк клеткасын жаныбар клеткасынан эмне айырмалайт?", "ru": "Чем клетка растения отличается от клетки животного?", "en": "What makes a plant cell different from an animal cell?"},
+    options: [
+      {"ky": "Бекем клетка кабыгы жана хлоропласттар", "ru": "Прочная клеточная стенка и хлоропласты", "en": "A firm cell wall and chloroplasts"},
+      {"ky": "Ядросу жок", "ru": "У неё нет ядра", "en": "It has no nucleus"},
+      {"ky": "Цитоплазмасы жок", "ru": "У неё нет цитоплазмы", "en": "It has no cytoplasm"},
+      {"ky": "Эч айырмасы жок", "ru": "Никаких отличий нет", "en": "There is no difference"}
+    ], correct: 0,
+    explain: {"ky": "Жаныбар клеткасында бекем кабык да, хлоропласттар да жок.", "ru": "У клеток животных нет ни прочной стенки, ни хлоропластов.", "en": "Animal cells have neither a firm wall nor chloroplasts."}
+  },
+  {
+    id: "bi31", skill: "plants", difficulty: 1, type: "choice",
+    prompt: {"ky": "Гүлдүн кайсы бөлүгү курт-кумурскаларды өзүнө тартат?", "ru": "Какая часть цветка привлекает насекомых?", "en": "Which part of a flower attracts insects?"},
+    options: [
+      {"ky": "Ачык түстүү желекчелер", "ru": "Яркие лепестки", "en": "The bright petals"},
+      {"ky": "Тамыр", "ru": "Корень", "en": "The root"},
+      {"ky": "Сабак", "ru": "Стебель", "en": "The stem"},
+      {"ky": "Үрөн", "ru": "Семя", "en": "The seed"}
+    ], correct: 0,
+    explain: {"ky": "Желекчелердин түсү жана жыты курт-кумурскаларды тартат — алар гүлдү чаңдаштырат.", "ru": "Цвет и запах лепестков привлекают насекомых — они опыляют цветок.", "en": "The colour and smell of petals draw insects, which pollinate the flower."}
   }
 ];

@@ -79,17 +79,6 @@ export default [
     explain: L('Соттор мыйзамдарды колдонуп, талаштарды чечет — мыйзамды кабыл алышпайт.', 'Суды применяют законы и решают споры, но не принимают законы.', 'Courts apply laws and settle disputes; they do not pass laws.')
   },
   {
-    id: "so20", skill: "state", difficulty: 1, type: "choice",
-    prompt: {"ky": "Кыргызстандын негизги мыйзамы кайсы?", "ru": "Какой закон — основной закон Кыргызстана?", "en": "What is the main law of Kyrgyzstan?"},
-    options: [
-      {"ky": "Конституция", "ru": "Конституция", "en": "The Constitution"},
-      {"ky": "Кодекс", "ru": "Кодекс", "en": "A code"},
-      {"ky": "Жарлык", "ru": "Указ", "en": "A decree"},
-      {"ky": "Буйрук", "ru": "Приказ", "en": "An order"}
-    ], correct: 0,
-    explain: {"ky": "Башка мыйзамдар Конституцияга карама-каршы келбеши керек.", "ru": "Другие законы не должны противоречить Конституции.", "en": "No other law may contradict the Constitution."}
-  },
-  {
     id: "so21", skill: "state", difficulty: 2, type: "choice",
     prompt: {"ky": "Мамлекеттик бийлик кайсы бутактарга бөлүнөт?", "ru": "На какие ветви делится государственная власть?", "en": "Which branches is state power divided into?"},
     options: [
@@ -99,17 +88,6 @@ export default [
       {"ky": "Эски жана жаңы", "ru": "Старая и новая", "en": "Old and new"}
     ], correct: 0,
     explain: {"ky": "Бийликтин бөлүнүшү бир адамга же органга бардык бийликти бербейт.", "ru": "Разделение властей не даёт всю власть одному человеку или органу.", "en": "Separating powers stops one person or body holding all the power."}
-  },
-  {
-    id: "so22", skill: "state", difficulty: 1, type: "choice",
-    prompt: {"ky": "Кыргызстандын парламенти кандай аталат?", "ru": "Как называется парламент Кыргызстана?", "en": "What is the parliament of Kyrgyzstan called?"},
-    options: [
-      {"ky": "Жогорку Кеңеш", "ru": "Жогорку Кенеш", "en": "The Jogorku Kenesh"},
-      {"ky": "Сенат", "ru": "Сенат", "en": "The Senate"},
-      {"ky": "Мамлекеттик Дума", "ru": "Государственная дума", "en": "The State Duma"},
-      {"ky": "Меджлис", "ru": "Меджлис", "en": "The Majlis"}
-    ], correct: 0,
-    explain: {"ky": "Жогорку Кеңеш — мыйзам чыгаруучу бийлик.", "ru": "Жогорку Кенеш — законодательная власть.", "en": "The Jogorku Kenesh is the legislative branch."}
   },
   {
     id: "so23", skill: "state", difficulty: 2, type: "choice",
@@ -132,17 +110,6 @@ export default [
       {"ky": "Башкалардын мүлкүн алуу укугу", "ru": "Право забирать чужое имущество", "en": "The right to take other people’s property"}
     ], correct: 0,
     explain: {"ky": "Билим алуу укугу Конституцияда бекитилген.", "ru": "Право на образование закреплено в Конституции.", "en": "The right to education is written in the Constitution."}
-  },
-  {
-    id: "so25", skill: "rights", difficulty: 2, type: "multiple",
-    prompt: {"ky": "Баланын укуктарына кайсылар кирет?", "ru": "Что входит в права ребёнка?", "en": "Which of these are children’s rights?"},
-    options: [
-      {"ky": "Билим алуу", "ru": "На образование", "en": "Education"},
-      {"ky": "Ден соолукту коргоо", "ru": "На охрану здоровья", "en": "Health care"},
-      {"ky": "Өз пикирин айтуу", "ru": "Выражать своё мнение", "en": "Expressing their views"},
-      {"ky": "Оор жумушка мажбурлоо", "ru": "Быть принуждённым к тяжёлой работе", "en": "Being forced into hard labour"}
-    ], correct: [0, 1, 2],
-    explain: {"ky": "Балага оор жумуш иштетүүгө тыюу салынат.", "ru": "Принуждать детей к тяжёлой работе запрещено.", "en": "Forcing children into hard labour is forbidden."}
   },
   {
     id: "so26", skill: "rights", difficulty: 2, type: "choice",
@@ -182,5 +149,38 @@ export default [
       {"ky": "Табиятты булгоо", "ru": "Загрязнять природу", "en": "Polluting nature"}
     ], correct: 0,
     explain: {"ky": "Мыйзамды сактоо — ар бир жарандын милдети.", "ru": "Соблюдать законы — обязанность каждого гражданина.", "en": "Obeying the law is every citizen’s duty."}
+  },
+  {
+    id: "so30", skill: "state", difficulty: 1, type: "choice",
+    prompt: {"ky": "Кыргыз Республикасынын мамлекет башчысы ким?", "ru": "Кто является главой государства Кыргызской Республики?", "en": "Who is the head of state of the Kyrgyz Republic?"},
+    options: [
+      {"ky": "Президент", "ru": "Президент", "en": "The President"},
+      {"ky": "Жогорку Кеңештин Төрагасы", "ru": "Торага Жогорку Кенеша", "en": "The Speaker of the Jogorku Kenesh"},
+      {"ky": "Шаардын мэри", "ru": "Мэр города", "en": "A city mayor"},
+      {"ky": "Жогорку Соттун төрагасы", "ru": "Председатель Верховного суда", "en": "The Chief Justice"}
+    ], correct: 0,
+    explain: {"ky": "Конституция боюнча мамлекет башчысы — Президент.", "ru": "По Конституции глава государства — Президент.", "en": "Under the Constitution the head of state is the President."}
+  },
+  {
+    id: "so31", skill: "citizenship", difficulty: 2, type: "choice",
+    prompt: {"ky": "Шайлоодо добуш берүү кандай болот?", "ru": "Каким бывает голосование на выборах?", "en": "How is voting in elections carried out?"},
+    options: [
+      {"ky": "Жашыруун жана эркин", "ru": "Тайным и свободным", "en": "Secret and free"},
+      {"ky": "Ачык жана милдеттүү", "ru": "Открытым и обязательным", "en": "Open and compulsory"},
+      {"ky": "Акы төлөнүүчү", "ru": "Платным", "en": "Paid"},
+      {"ky": "Мугалимдер үчүн гана", "ru": "Только для учителей", "en": "For teachers only"}
+    ], correct: 0,
+    explain: {"ky": "Жашыруун шайлоо адамга эч кимдин басымысыз тандоого мүмкүнчүлүк берет.", "ru": "Тайное голосование позволяет выбирать без чужого давления.", "en": "A secret ballot lets people choose without pressure from others."}
+  },
+  {
+    id: "so32", skill: "rights", difficulty: 2, type: "choice",
+    prompt: {"ky": "Адам укуктарынын жалпы декларациясы кайсы жылы кабыл алынган?", "ru": "В каком году принята Всеобщая декларация прав человека?", "en": "In which year was the Universal Declaration of Human Rights adopted?"},
+    options: [
+      "1948",
+      "1989",
+      "1991",
+      "2000"
+    ], correct: 0,
+    explain: {"ky": "БУУ аны 1948-жылы 10-декабрда кабыл алган.", "ru": "ООН приняла её 10 декабря 1948 года.", "en": "The UN adopted it on 10 December 1948."}
   }
 ];

@@ -82,17 +82,6 @@ export default [
     explain: {"ky": "s = v × t = 60 × 3 = 180 км.", "ru": "s = v × t = 60 × 3 = 180 км.", "en": "s = v × t = 60 × 3 = 180 km."}
   },
   {
-    id: "ph22", skill: "force", difficulty: 1, type: "choice",
-    prompt: {"ky": "Күч кайсы бирдик менен өлчөнөт?", "ru": "В каких единицах измеряют силу?", "en": "What unit is force measured in?"},
-    options: [
-      {"ky": "Ньютон (Н)", "ru": "Ньютон (Н)", "en": "The newton (N)"},
-      {"ky": "Килограмм", "ru": "Килограмм", "en": "The kilogram"},
-      {"ky": "Метр", "ru": "Метр", "en": "The metre"},
-      {"ky": "Ватт", "ru": "Ватт", "en": "The watt"}
-    ], correct: 0,
-    explain: {"ky": "Күчтүн бирдиги Исаак Ньютондун атынан аталган.", "ru": "Единица силы названа в честь Исаака Ньютона.", "en": "The unit of force is named after Isaac Newton."}
-  },
-  {
     id: "ph23", skill: "force", difficulty: 1, type: "choice",
     prompt: {"ky": "Бардык нерселерди Жерге тартып турган күч кайсы?", "ru": "Какая сила притягивает все тела к Земле?", "en": "Which force pulls everything towards the Earth?"},
     options: [
@@ -147,5 +136,16 @@ export default [
       {"ky": "Сутка", "ru": "Сутки", "en": "The day"}
     ], correct: 0,
     explain: {"ky": "СИде убакыт секунд менен өлчөнөт.", "ru": "В СИ время измеряется в секундах.", "en": "In SI, time is measured in seconds."}
+  },
+  {
+    id: "ph30", skill: "force", difficulty: 2, type: "choice",
+    prompt: {"ky": "Пружинаны чойгондо кайсы күч пайда болот?", "ru": "Какая сила возникает при растяжении пружины?", "en": "Which force appears when a spring is stretched?"},
+    options: [
+      {"ky": "Серпилгичтик күчү", "ru": "Сила упругости", "en": "Elastic force"},
+      {"ky": "Оордук күчү", "ru": "Сила тяжести", "en": "Gravity"},
+      {"ky": "Сүрүлүү күчү", "ru": "Сила трения", "en": "Friction"},
+      {"ky": "Архимед күчү", "ru": "Архимедова сила", "en": "Buoyancy"}
+    ], correct: 0,
+    explain: {"ky": "Чоюлган пружина мурунку формасына кайтууга умтулат — бул серпилгичтик күчү.", "ru": "Растянутая пружина стремится вернуть форму — это сила упругости.", "en": "A stretched spring tries to return to its shape — that is the elastic force."}
   }
 ];

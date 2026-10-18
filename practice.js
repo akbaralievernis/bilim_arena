@@ -38,7 +38,7 @@ class PracticeGame extends BaseGame {
   };
 }
 
-const state = { subject: null, topic: null, game: null, player: 'me' };
+const state = { subject: null, topic: null, game: null, player: 'me', seen: {} }; // seen: тема → id показанных вопросов
 const screens = ['pickScreen', 'introScreen', 'playScreen', 'resultScreen'];
 const show = (id) => screens.forEach((s) => $('#' + s).classList.toggle('hidden', s !== id));
 
@@ -110,12 +110,14 @@ async function startGame(onlyWrong = false) {
 
   if (onlyWrong && state.game) {
     const wrongIds = state.game.wrongQuestionIds();
-    const all = await getQuestions({ topic: state.topic, count: 50 });
-    questions = all.filter((q) => wrongIds.includes(q.id));
+    questions = wrongIds.length ? await getQuestions({ topic: state.topic, ids: wrongIds }) : [];
     if (!questions.length) questions = await getQuestions({ topic: state.topic, count: 10 });
   } else {
-    questions = await getQuestions({ topic: state.topic, count: 10 });
+    // Следующий раунд — сначала вопросы, которых ученик ещё не видел в этой теме
+    questions = await getQuestions({ topic: state.topic, count: 10, avoid: state.seen[state.topic] });
   }
+  const seen = (state.seen[state.topic] ||= new Set());
+  questions.forEach((q) => seen.add(q.id));
 
   state.xpBefore = (await getProgress()).xp;
   state.game?.destroy();

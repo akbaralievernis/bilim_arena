@@ -123,9 +123,9 @@ export default [
     explain: {"ky": "Адегенде бөлүү жана көбөйтүү: 8 + 21 = 29.", "ru": "Сначала деление и умножение: 8 + 21 = 29.", "en": "Divide and multiply first: 8 + 21 = 29."}
   },
   {
-    id: "m5-31", skill: "word", difficulty: 2, type: "input", numeric: true,
-    prompt: {"ky": "Китепте 240 бет бар. Айбек күнүнө 30 бет окуйт. Канча күндө окуп бүтөт?", "ru": "В книге 240 страниц. Айбек читает 30 страниц в день. За сколько дней он прочитает книгу?", "en": "A book has 240 pages. Aibek reads 30 pages a day. How many days will it take him?"},
-    answer: ["8"],
-    explain: {"ky": "240 : 30 = 8.", "ru": "240 : 30 = 8.", "en": "240 ÷ 30 = 8."}
+    id: "m5-40", skill: "word", difficulty: 2, type: "input", numeric: true,
+    prompt: {"ky": "Бир дептер 25 сом турат. 12 дептер үчүн канча сом төлөнөт?", "ru": "Одна тетрадь стоит 25 сомов. Сколько сомов стоят 12 тетрадей?", "en": "One notebook costs 25 som. How many som do 12 notebooks cost?"},
+    answer: ["300"],
+    explain: {"ky": "25 × 12 = 300.", "ru": "25 × 12 = 300.", "en": "25 × 12 = 300."}
   }
 ];

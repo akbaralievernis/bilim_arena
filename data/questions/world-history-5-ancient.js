@@ -88,17 +88,6 @@ export default [
     explain: L('Колизей Римде — Италияда.', 'Колизей находится в Риме, в Италии.', 'The Colosseum is in Rome, Italy.')
   },
   {
-    id: "wh20", skill: "civilizations", difficulty: 1, type: "choice",
-    prompt: {"ky": "Гиза пирамидалары кайсы байыркы өлкөдө курулган?", "ru": "В какой древней стране построены пирамиды Гизы?", "en": "In which ancient country were the pyramids of Giza built?"},
-    options: [
-      {"ky": "Египет", "ru": "Египет", "en": "Egypt"},
-      {"ky": "Рим", "ru": "Рим", "en": "Rome"},
-      {"ky": "Кытай", "ru": "Китай", "en": "China"},
-      {"ky": "Греция", "ru": "Греция", "en": "Greece"}
-    ], correct: 0,
-    explain: {"ky": "Пирамидалар — Египет фараондорунун мүрзөлөрү.", "ru": "Пирамиды — гробницы египетских фараонов.", "en": "The pyramids are tombs of Egyptian pharaohs."}
-  },
-  {
     id: "wh21", skill: "civilizations", difficulty: 1, type: "choice",
     prompt: {"ky": "Байыркы Египеттин падышасы кандай аталган?", "ru": "Как называли правителя Древнего Египта?", "en": "What was the ruler of ancient Egypt called?"},
     options: [
@@ -108,28 +97,6 @@ export default [
       {"ky": "Консул", "ru": "Консул", "en": "A consul"}
     ], correct: 0,
     explain: {"ky": "Египеттиктер фараонду кудайдын уулу деп эсептешкен.", "ru": "Египтяне считали фараона сыном бога.", "en": "Egyptians thought the pharaoh was the son of a god."}
-  },
-  {
-    id: "wh22", skill: "civilizations", difficulty: 2, type: "choice",
-    prompt: {"ky": "Олимпиада оюндары кайсы өлкөдө пайда болгон?", "ru": "Где появились Олимпийские игры?", "en": "Where did the Olympic Games begin?"},
-    options: [
-      {"ky": "Байыркы Грецияда", "ru": "В Древней Греции", "en": "Ancient Greece"},
-      {"ky": "Байыркы Римде", "ru": "В Древнем Риме", "en": "Ancient Rome"},
-      {"ky": "Египетте", "ru": "В Египте", "en": "Egypt"},
-      {"ky": "Персияда", "ru": "В Персии", "en": "Persia"}
-    ], correct: 0,
-    explain: {"ky": "Алгачкы оюндар Олимпия шаарында өткөн.", "ru": "Первые игры прошли в городе Олимпия.", "en": "The first games were held at Olympia."}
-  },
-  {
-    id: "wh23", skill: "civilizations", difficulty: 2, type: "choice",
-    prompt: {"ky": "Улуу Кытай дубалы эмне үчүн курулган?", "ru": "Зачем построили Великую Китайскую стену?", "en": "Why was the Great Wall of China built?"},
-    options: [
-      {"ky": "Көчмөндөрдүн чабуулунан коргонуу үчүн", "ru": "Для защиты от набегов кочевников", "en": "To defend against raids by nomads"},
-      {"ky": "Сууну токтотуу үчүн", "ru": "Чтобы остановить воду", "en": "To hold back water"},
-      {"ky": "Жолду кыскартуу үчүн", "ru": "Чтобы сократить путь", "en": "To make journeys shorter"},
-      {"ky": "Мал багуу үчүн", "ru": "Чтобы пасти скот", "en": "To keep livestock"}
-    ], correct: 0,
-    explain: {"ky": "Дубал түндүк чек араны коргогон.", "ru": "Стена защищала северную границу.", "en": "The wall protected the northern border."}
   },
   {
     id: "wh24", skill: "culture", difficulty: 1, type: "choice",
@@ -191,5 +158,38 @@ export default [
       {"ky": "Дунай жана Рейн", "ru": "Дунай и Рейн", "en": "The Danube and the Rhine"}
     ], correct: 0,
     explain: {"ky": "«Месопотамия» — «дарыялар аралыгы» деген сөз.", "ru": "«Месопотамия» значит «междуречье».", "en": "\"Mesopotamia\" means \"between the rivers\"."}
+  },
+  {
+    id: "wh30", skill: "civilizations", difficulty: 1, type: "choice",
+    prompt: {"ky": "Байыркы римдиктер кайсы тилде сүйлөшкөн?", "ru": "На каком языке говорили древние римляне?", "en": "What language did the ancient Romans speak?"},
+    options: [
+      {"ky": "Латын", "ru": "Латынь", "en": "Latin"},
+      {"ky": "Грек", "ru": "Греческий", "en": "Greek"},
+      {"ky": "Араб", "ru": "Арабский", "en": "Arabic"},
+      {"ky": "Кытай", "ru": "Китайский", "en": "Chinese"}
+    ], correct: 0,
+    explain: {"ky": "Латын тилинен көп европалык тилдер жана илимий сөздөр келип чыккан.", "ru": "От латыни произошли многие европейские языки и научные слова.", "en": "Many European languages and scientific words come from Latin."}
+  },
+  {
+    id: "wh31", skill: "culture", difficulty: 2, type: "choice",
+    prompt: {"ky": "Байыркы грек театрынын эки негизги жанры кайсы?", "ru": "Какие два главных жанра были в театре Древней Греции?", "en": "What were the two main genres of ancient Greek theatre?"},
+    options: [
+      {"ky": "Трагедия жана комедия", "ru": "Трагедия и комедия", "en": "Tragedy and comedy"},
+      {"ky": "Роман жана повесть", "ru": "Роман и повесть", "en": "The novel and the novella"},
+      {"ky": "Опера жана балет", "ru": "Опера и балет", "en": "Opera and ballet"},
+      {"ky": "Тамсил жана жомок", "ru": "Басня и сказка", "en": "The fable and the fairy tale"}
+    ], correct: 0,
+    explain: {"ky": "Афинада трагедия жана комедия майрамдарда коюлган.", "ru": "В Афинах трагедии и комедии ставили на праздниках.", "en": "In Athens tragedies and comedies were staged at festivals."}
+  },
+  {
+    id: "wh32", skill: "civilizations", difficulty: 2, type: "choice",
+    prompt: {"ky": "Хаммурапинин мыйзамдары кайсы өлкөдө түзүлгөн?", "ru": "В какой стране были созданы законы Хаммурапи?", "en": "In which country were the laws of Hammurabi created?"},
+    options: [
+      {"ky": "Вавилон", "ru": "Вавилон", "en": "Babylon"},
+      {"ky": "Египет", "ru": "Египет", "en": "Egypt"},
+      {"ky": "Рим", "ru": "Рим", "en": "Rome"},
+      {"ky": "Кытай", "ru": "Китай", "en": "China"}
+    ], correct: 0,
+    explain: {"ky": "Бул эң байыркы жазылган мыйзамдардын бири, Месопотамияда түзүлгөн.", "ru": "Это один из древнейших записанных сводов законов, создан в Месопотамии.", "en": "It is one of the oldest written law codes, created in Mesopotamia."}
   }
 ];
