@@ -77,7 +77,7 @@
         '<h2 id="ba-cam-title" style="margin:0 0 8px;font-size:20px;font-weight:800;line-height:1.3">' + title + '</h2>' +
         '<p style="margin:0 0 20px;color:#667085;font-size:15px;line-height:1.5">' + text + '</p>' +
         '<div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">' +
-          '<button type="button" data-act="retry" style="' + btn + ';border:0;background:#635BFF;color:#fff">' + T('Кайра аракет') + '</button>' +
+          '<button type="button" data-act="retry" style="' + btn + ';border:0;background:#E0162B;color:#fff">' + T('Кайра аракет') + '</button>' +
           (withoutCamera ? '<button type="button" data-act="without" style="' + btn + ';border:1px solid #E4E7EC;background:#fff;color:#202B46">' + T(withoutCamera.label) + '</button>' : '') +
           '<a href="' + backHref() + '" style="' + btn + ';border:1px solid #E4E7EC;background:#fff;color:#202B46">' + T('Оюндар') + '</a>' +
         '</div>' +

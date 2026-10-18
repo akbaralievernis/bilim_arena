@@ -59,3 +59,17 @@ test('phone layout: home page fits a 360 px screen', async ({ browser }) => {
   }
   await ctx.close();
 });
+
+test('tablet and small laptop: no horizontal scroll on main pages', async ({ browser }) => {
+  for (const width of [768, 1024]) {
+    const ctx = await browser.newContext({ viewport: { width, height: 900 } });
+    const page = await ctx.newPage();
+    for (const name of ['index', 'practice', 'teacher', 'board', 'questions', 'homework', 'reports', 'tasks']) {
+      await page.goto(`/${name}.html`);
+      await page.waitForTimeout(300);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow, `${name} at ${width}px`).toBeLessThanOrEqual(1);
+    }
+    await ctx.close();
+  }
+});

@@ -3,7 +3,9 @@
 
    Светлый интерфейс, одна палитра на всю платформу:
      фон #F7F8FC · карточки #FFFFFF · текст #202B46
-     акцент #635BFF · второй акцент #21B8A6 · награды #FFB547
+     акцент — насыщенный красный #E0162B · второй акцент #21B8A6 · награды #FFB547
+   Красный акцент не должен путаться с «ошибкой»: у верных и неверных ответов
+   есть значки ✓/✗, опасные кнопки — контурные, выбранный вариант — нейтральный.
    Масштабы: обычный (телефон, компьютер) и .board-mode (доска, всё крупнее).
    Всё работает пальцем и с клавиатуры, hover нигде не обязателен.
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -24,11 +26,11 @@
   --text-soft: #667085;        /* 4.8:1 на белом */
   --text-secondary: #667085;
 
-  --primary: #635BFF;
-  --primary-hover: #5148E5;
-  --primary-2: #7C75FF;
-  --primary-soft: #EEEDFF;
-  --primary-ink: #4B43E0;      /* текст-ссылка акцентного цвета */
+  --primary: #E0162B;          /* белый текст на нём — 4.9:1 */
+  --primary-hover: #BF0F21;
+  --primary-2: #FF4757;
+  --primary-soft: #FDECEE;
+  --primary-ink: #B50E20;      /* текст-ссылка акцентного цвета, 6.7:1 на белом */
   --secondary: #21B8A6;
   --secondary-soft: #E3F7F4;
   --secondary-ink: #0B7A6D;
@@ -135,7 +137,7 @@ a.card { text-decoration: none; color: inherit; }
   transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), border-color 0.2s;
 }
 @media (hover: hover) {
-  .card-link:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: rgba(99, 91, 255, 0.25); }
+  .card-link:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: rgba(224, 22, 43, 0.25); }
 }
 
 /* ─── Кнопки ──────────────────────────────────────────────────────────────── */
@@ -160,7 +162,7 @@ a.card { text-decoration: none; color: inherit; }
 .btn.secondary { border-color: transparent; color: #fff; background: var(--secondary-ink); }
 .btn.soft { border-color: transparent; color: var(--primary-ink); background: var(--primary-soft); }
 .btn.success { border-color: transparent; background: var(--ok-ink); color: #fff; }
-.btn.danger { border-color: transparent; background: var(--bad-ink); color: #fff; }
+.btn.danger { border-color: var(--bad-ink); background: var(--surface); color: var(--bad-ink); }
 .btn.ghost { background: transparent; border-color: transparent; }
 .btn.big { font-size: 1.1rem; padding: 0.9em 1.8em; }
 .btn.block { width: 100%; }
@@ -333,6 +335,11 @@ button.chip:not([disabled]):hover { border-color: #CDD2E4; }
   .topbar .nav { margin-left: 8px; }
   .topbar .nav a { padding: 0.5em 0.7em; }
 }
+/* У учителя разделов больше — значки без подписей уже до 1280 px */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  body.teacher-mode .topbar .nav .nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  body.teacher-mode .topbar .nav a { min-width: 44px; justify-content: center; }
+}
 @media (max-width: 1023px) {
   /* Подписи скрыты только визуально — ссылки сохраняют имя для экранного диктора */
   .topbar .nav .nav-label, .teacher-link span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -382,11 +389,11 @@ button.option:not([disabled]):hover { border-color: var(--primary); }
 .option .key {
   flex: none; width: 2em; height: 2em; border-radius: 10px;
   display: grid; place-items: center;
-  background: var(--primary-soft); color: var(--primary-ink); font-family: var(--font-title); font-weight: 800;
+  background: var(--surface-2); color: var(--text); font-family: var(--font-title); font-weight: 800;
 }
 .option.correct { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, var(--surface)); }
 .option.wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, var(--surface)); }
-.option.chosen { border-color: var(--primary); background: var(--primary-soft); }
+.option.chosen { border-color: var(--text); background: var(--surface-2); }
 .option[disabled] { cursor: default; }
 @media (max-width: 560px) { .options { grid-template-columns: 1fr; } }
 
@@ -876,3 +883,12 @@ button.option:not([disabled]):hover { border-color: var(--primary); }
 .state.insufficient { color: var(--text-soft); }
 .example { border-left: 4px solid var(--ok); }
 .example .example-answer { color: var(--ok-ink); font-weight: 700; }
+
+/* ─── Верно / неверно — не только цветом ──────────────────────────────────── */
+.option.correct, .option.wrong { position: relative; padding-right: 2.6em; }
+.option.correct::after, .option.wrong::after {
+  position: absolute; right: 0.9em; top: 50%; transform: translateY(-50%);
+  font-weight: 800; font-size: 1.15em; line-height: 1;
+}
+.option.correct::after { content: '✓'; color: var(--ok-ink); }
+.option.wrong::after { content: '✗'; color: var(--bad-ink); }

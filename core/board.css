@@ -276,7 +276,7 @@ body.controller {
 }
 .lab-flask i {
   position: absolute; left: 0; right: 0; bottom: 0; display: block;
-  background: linear-gradient(180deg, #22d3ee, #6366f1);
+  background: linear-gradient(180deg, #22d3ee, #21B8A6);
   transition: height 0.8s var(--ease);
 }
 .lab-note { margin: 0; text-align: center; font-weight: 700; }

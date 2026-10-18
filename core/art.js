@@ -11,7 +11,7 @@
 
 /** [начало градиента, конец градиента, цвет иконки на белом круге] */
 export const TONES = {
-  violet: ['#635BFF', '#8F89FF', '#635BFF'],
+  violet: ['#E0162B', '#FF6B7A', '#B50E20'], // основной тон (красный акцент); имя оставлено ради сохранённых аватаров
   teal: ['#21B8A6', '#5CD3C4', '#0E9A8A'],
   amber: ['#FFB547', '#FFD08A', '#D98A10'],
   ink: ['#202B46', '#4A5A82', '#202B46'],
@@ -70,7 +70,7 @@ export function avatar(value, { size = 96, animated = true } = {}) {
   <defs>
     <clipPath id="${id}"><circle cx="60" cy="60" r="58"/></clipPath>
   </defs>
-  <circle cx="60" cy="60" r="58" fill="#EEEDFF"/>
+  <circle cx="60" cy="60" r="58" fill="#FDECEE"/>
   <g clip-path="url(#${id})">
     <circle cx="60" cy="60" r="44" fill="#fff" opacity=".7"/>
     <g class="av-body">

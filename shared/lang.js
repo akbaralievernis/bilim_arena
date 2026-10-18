@@ -179,7 +179,7 @@
     'height:42px;min-width:52px;padding:0 26px 0 12px;border-radius:12px;border:1px solid #E3E6F0;background:#fff ' +
     'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235B6583%27 stroke-width=%273%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M6 9l6 6 6-6%27/%3E%3C/svg%3E") no-repeat right 9px center;' +
     'color:#202B46;cursor:pointer;flex:none}' +
-    '.baLang:focus-visible{outline:3px solid #635BFF;outline-offset:2px}' +
+    '.baLang:focus-visible{outline:3px solid #E0162B;outline-offset:2px}' +
     '.baLangFloat{position:fixed;top:12px;z-index:9999;height:44px;box-shadow:0 4px 14px rgba(32,43,70,.12)}';
 
   function mount() {
