@@ -68,3 +68,24 @@ export function findDuplicates(questions, { lang = 'ky', threshold = 0.8 } = {})
   }
   return { exact, probable };
 }
+
+/** Ключ пары — не зависит от порядка */
+export const pairKey = (a, b) => [a.id, b.id].sort().join('|');
+
+/**
+ * Пары для проверки учителем: по всем языкам, без повторов,
+ * только где участвует хотя бы один вопрос учителя (custom), кроме уже проверенных.
+ */
+export function pairsToReview(questions, reviewed = new Set(), langs = ['ky', 'ru', 'en']) {
+  const out = new Map();
+  for (const lang of langs) {
+    const { exact, probable } = findDuplicates(questions, { lang });
+    const all = [...exact.map(([a, b]) => ({ a, b, exact: true })), ...probable.map((p) => ({ ...p, exact: false }))];
+    for (const p of all) {
+      const key = pairKey(p.a, p.b);
+      if (reviewed.has(key) || !(p.a.custom || p.b.custom)) continue;
+      if (!out.has(key) || (p.exact && !out.get(key).exact)) out.set(key, { ...p, key });
+    }
+  }
+  return [...out.values()];
+}

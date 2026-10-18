@@ -13,7 +13,8 @@ import { getTopic, getSubject, getQuestions, skillTitle } from './core/curriculu
 import { BaseGame } from './core/engine.js';
 import { renderQuestion } from './core/quiz-ui.js';
 import { getProfile } from './core/profile.js';
-import { getProgress } from './core/progress.js';
+import { getProgress, questionMemory } from './core/progress.js';
+import { seenIds } from './core/selection.js';
 import { resultView } from './core/results.js';
 import { studentAssignments, saveSubmission, submissionFor, attemptsLeft, STATUS } from './core/assignments.js';
 
@@ -109,13 +110,14 @@ function openIntro(assignmentId) {
 
   $('#introTitle').textContent = a.title || pick(topic?.title, lang);
   $('#introMeta').textContent = `${pick(subject?.title, lang)} · ${t('grade', { n: a.grade })} · ${pick(topic?.title, lang)}`;
-  $('#introHow').textContent = pick(HomeworkGame.meta.how, lang);
+  $('#introHow').textContent = a.check ? t('mode_check_how') : pick(HomeworkGame.meta.how, lang);
 
   $('#introDetails').replaceChildren(...[
     el('span', {}, `${t('questions_n', { n: a.count })}`),
     el('span', {}, `${t('hw_due_at')}: ${fmtDate(a.dueAt)}`),
     el('span', {}, `${t('hw_attempts_left', { n: entry.attemptsLeft })}`),
     el('span', {}, `${a.xp} XP`),
+    a.check ? el('span', {}, t('hw_mode_check_chip')) : null,
     a.skill ? el('span', {}, `${skillTitle(a.topic, a.skill, lang)}`) : null
   ].filter(Boolean));
 
@@ -136,12 +138,17 @@ async function startAssignment(onlyWrong = false) {
   } else if (a.questionIds?.length) {
     questions = await getQuestions({ topic: a.topic, ids: a.questionIds });
   } else {
+    // Сначала вопросы, которых ученик ещё не видел (новая попытка — новые вопросы)
+    const seen = new Set(seenIds(await questionMemory(), a.topic));
     questions = await getQuestions({
       topic: a.topic,
       count: a.count,
       skills: a.skill ? [a.skill] : null,
-      difficulty: a.difficulty
+      difficulty: a.difficulty,
+      avoid: seen
     });
+    const repeats = questions.filter((q) => seen.has(q.id)).length;
+    if (a.check && repeats) toast(t('hw_check_repeats', { n: repeats }), { icon: 'ℹ️', ms: 5000 });
   }
 
   if (!questions.length) return toast(t('empty_none'), { icon: '⚠️' });
@@ -171,10 +178,11 @@ function renderGame(game, kind) {
   $('#progressBar').style.width = `${(game.index / game.questionCount) * 100}%`;
   $('#prompt').textContent = game.current?.prompt || '';
 
+  const hide = !!state.current?.assignment.check; // проверка: верно ли — только в конце
   renderQuestion($('#answerArea'), game.current, {
-    reveal,
+    reveal: reveal && !hide,
     given: answered?.value ?? null,
-    correct: answered?.correct ?? null,
+    correct: hide ? null : answered?.correct ?? null,
     onAnswer: (value) => {
       game.handleAnswer(state.me, value);
       game.revealAnswer();
@@ -183,6 +191,12 @@ function renderGame(game, kind) {
 
   const explain = $('#explain');
   explain.classList.toggle('hidden', !reveal);
+  if (reveal && hide) {
+    explain.replaceChildren(el('b', {}, t('mode_check_answered')));
+    clearTimeout(game._next);
+    game._next = setTimeout(() => game.nextQuestion(), 700);
+    return;
+  }
   if (reveal) {
     explain.replaceChildren(
       el('b', {}, answered?.correct

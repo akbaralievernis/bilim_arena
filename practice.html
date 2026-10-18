@@ -50,7 +50,20 @@
         </div>
       </div>
       <div class="stats" id="introStats"></div>
-      <button class="btn primary big block" id="startBtn" type="button" data-i18n="game_start">Оюнду баштоо</button>
+      <div class="grid two">
+        <div class="card plain stack">
+          <div class="label" data-i18n="mode_practice">Машыгуу</div>
+          <p class="small" data-i18n="mode_practice_text">Ар бир жооптон кийин түшүндүрмө. Алгач кайталоо убагы келген каталар.</p>
+          <p class="small muted" id="practiceNote"></p>
+          <button class="btn primary big block" id="startBtn" type="button" data-i18n="mode_practice_start">Машыгууну баштоо</button>
+        </div>
+        <div class="card plain stack">
+          <div class="label" data-i18n="mode_check">Жыйынтык текшерүү</div>
+          <p class="small" data-i18n="mode_check_text">Сен көрө элек суроолор гана, жардамсыз. Талдоо — аягында.</p>
+          <p class="small muted" id="checkNote"></p>
+          <button class="btn big block" id="checkBtn" type="button" data-i18n="mode_check_start">Текшерүүнү баштоо</button>
+        </div>
+      </div>
       <button class="btn ghost block" id="backBtn" type="button" data-i18n="back">Артка</button>
     </section>
 
@@ -78,6 +91,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./practice.js?v=15"></script>
+  <script type="module" src="./practice.js?v=16"></script>
 </body>
 </html>

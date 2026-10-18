@@ -80,6 +80,16 @@
         </label>
 
         <label class="field">
+          <span class="label" data-i18n="hw_mode">Түрү</span>
+          <select class="input" id="fCheck">
+            <option value="" data-i18n="hw_mode_practice">Машыгуу (түшүндүрмө менен)</option>
+            <option value="1" data-i18n="hw_mode_check">Текшерүү (жаңы суроолор, жардамсыз)</option>
+          </select>
+        </label>
+
+        <p class="small muted" id="poolNote" aria-live="polite"></p>
+
+        <label class="field">
           <span class="label" data-i18n="hw_class">Класс</span>
           <select class="input" id="fClass"></select>
         </label>
@@ -149,6 +159,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./homework.js?v=15"></script>
+  <script type="module" src="./homework.js?v=16"></script>
 </body>
 </html>

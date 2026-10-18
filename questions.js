@@ -14,18 +14,23 @@ import { parseQuestions, IMPORT_EXAMPLE } from './core/import.js';
 import { setRole } from './core/profile.js';
 import {
   QUESTION_TYPES, typeMeta, findQuestions, saveQuestion,
-  deleteQuestion, duplicateQuestion, getQuestion, allQuestions
+  deleteQuestion, duplicateQuestion, getQuestion, allQuestions, toEngineQuestion
 } from './core/questions.js';
+import { pairsToReview } from './core/duplicates.js';
+import { store } from './core/store.js';
+
+/** Пары, которые учитель отметил как «разные вопросы» */
+const DUP_REVIEWED = 'dup_reviewed';
 
 const state = { editing: null, selected: new Set(), list: [], draft: {}, parsed: [], imported: null };
-const screens = ['listScreen', 'formScreen', 'importScreen', 'readyScreen'];
+const screens = ['listScreen', 'formScreen', 'importScreen', 'readyScreen', 'dupScreen'];
 const show = (id) => {
   screens.forEach((s) => $('#' + s).classList.toggle('hidden', s !== id));
-  const ready = id === 'readyScreen';
-  $('#tabMine').classList.toggle('on', !ready);
-  $('#tabReady').classList.toggle('on', ready);
-  $('#tabMine').setAttribute('aria-selected', String(!ready));
-  $('#tabReady').setAttribute('aria-selected', String(ready));
+  const tab = id === 'readyScreen' ? 'tabReady' : id === 'dupScreen' ? 'tabDups' : 'tabMine';
+  ['tabMine', 'tabReady', 'tabDups'].forEach((x) => {
+    $('#' + x).classList.toggle('on', x === tab);
+    $('#' + x).setAttribute('aria-selected', String(x === tab));
+  });
 };
 
 const textOf = (v, lang) => (v && typeof v === 'object' ? (v[lang] || v.ky || Object.values(v)[0] || '') : String(v ?? ''));
@@ -455,10 +460,79 @@ async function saveImport() {
   $('#filterGrade').value = '';
   $('#filterTopic').value = topic;
   syncFilterSkills();
-  $('#importDoneTitle').textContent = t('imp_done', { n: ids.length });
+  // Новые вопросы, похожие на уже имеющиеся, — подсказка проверить их
+  const fresh = new Set(ids);
+  const similar = (await duplicatePairs()).filter((p) => fresh.has(p.a.id) || fresh.has(p.b.id)).length;
+  $('#importDoneTitle').textContent = t('imp_done', { n: ids.length }) + (similar ? ` · ${t('dup_after_import', { n: similar })}` : '');
   $('#importDone').classList.remove('hidden');
   toast(t('imp_done', { n: ids.length }), { icon: '✅' });
   await renderList();
+}
+
+// ─── Похожие вопросы ──────────────────────────────────────────────────────────
+
+/** Вопросы учителя и банки их тем — в одном формате для сравнения */
+async function questionsToCompare() {
+  const mine = (await allQuestions()).map(toEngineQuestion);
+  const topics = [...new Set(mine.map((q) => q.topic).filter(Boolean))];
+  const banks = (await Promise.all(topics.map((id) => loadBank(id)))).flat();
+  return [...mine, ...banks];
+}
+
+async function duplicatePairs() {
+  return pairsToReview(await questionsToCompare(), new Set(await store.get(DUP_REVIEWED, [])));
+}
+
+const answerText = (q, lang) => {
+  if (q.type === 'input') return (q.answer || []).join(' / ');
+  if (q.type === 'multiple') return (q.correct || []).map((i) => textOf(q.options?.[i], lang)).join(', ');
+  if (q.type === 'choice') return textOf(q.options?.[q.correct ?? 0], lang);
+  return '';
+};
+
+function dupSide(q, lang) {
+  return el('div', { class: 'card plain stack' },
+    el('span', { class: 'chip small' }, q.custom ? t('dup_mine') : t('dup_bank')),
+    el('b', {}, textOf(q.prompt, lang)),
+    el('span', { class: 'small muted' }, `${t('game_correct_answer')}: ${answerText(q, lang) || '—'}`),
+    el('span', { class: 'small muted' }, `${pick(getTopic(q.topic)?.title, lang) || ''} · ${skillTitle(q.topic, q.skill, lang)}`)
+  );
+}
+
+async function renderDups() {
+  const lang = getLang();
+  const pairs = await duplicatePairs();
+  const short = (q) => `${textOf(q.prompt, lang).slice(0, 24)}…`;
+  const cards = pairs.map((p) => {
+    const own = [p.a, p.b].filter((q) => q.custom);
+    return el('div', { class: 'card stack' },
+      el('b', {}, p.exact ? t('dup_exact') : t('dup_probable', { p: Math.round(p.score * 100) })),
+      el('div', { class: 'grid two' }, dupSide(p.a, lang), dupSide(p.b, lang)),
+      el('div', { class: 'row', style: 'gap:8px;flex-wrap:wrap' },
+        el('button', {
+          class: 'btn ghost', type: 'button',
+          onclick: async () => {
+            await store.set(DUP_REVIEWED, [...new Set([...(await store.get(DUP_REVIEWED, [])), p.key])]);
+            toast(t('dup_kept'), { icon: '✅' });
+            renderDups();
+          }
+        }, t('dup_different')),
+        ...own.map((q) => el('button', { class: 'btn ghost', type: 'button', onclick: () => openForm(q.id) },
+          icon('pen'), ' ', own.length > 1 ? `${t('edit')}: ${short(q)}` : t('dup_edit_mine'))),
+        ...own.map((q) => el('button', {
+          class: 'btn ghost', type: 'button',
+          onclick: async () => {
+            if (!confirm(t('qb_delete_confirm'))) return;
+            await deleteQuestion(q.id);
+            toast(t('delete'), { icon: '🗑️' });
+            renderDups();
+          }
+        }, icon('trash'), ' ', own.length > 1 ? `${t('delete')}: ${short(q)}` : t('dup_delete_mine')))
+      )
+    );
+  });
+  $('#dupList').replaceChildren(...(cards.length ? cards : [el('div', { class: 'card center muted' }, t('dup_none'))]));
+  show('dupScreen');
 }
 
 // ─── Готовые тесты ────────────────────────────────────────────────────────────
@@ -564,6 +638,8 @@ function renderReadyFilters() {
   renderReadyFilters();
   $('#tabReady').addEventListener('click', renderReady);
   $('#tabMine').addEventListener('click', renderList);
+  $('#tabDups').addEventListener('click', renderDups);
+  $('#dupBackBtn').addEventListener('click', renderList);
   $('#readyBackBtn').addEventListener('click', renderList);
   $('#readySubject').addEventListener('change', renderReady);
   $('#readyGrade').addEventListener('change', renderReady);

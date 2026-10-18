@@ -34,6 +34,7 @@
       <div class="row tabs" role="tablist">
         <button class="chip on" id="tabMine" type="button" role="tab" aria-selected="true" data-i18n="qb_title">Менин суроолорум</button>
         <button class="chip" id="tabReady" type="button" role="tab" aria-selected="false" data-i18n="qb_tab_ready">Даяр тесттер</button>
+        <button class="chip" id="tabDups" type="button" role="tab" aria-selected="false" data-i18n="dup_tab">Окшош суроолор</button>
       </div>
       <!-- После вставки: что делать с новыми вопросами -->
       <div class="card stack hidden" id="importDone" role="status">
@@ -91,6 +92,16 @@
       </div>
 
       <div class="stack" id="questionList"></div>
+    </section>
+
+    <!-- Похожие вопросы: проверяет учитель, сайт сам ничего не удаляет -->
+    <section class="stack hidden" id="dupScreen">
+      <div class="row between">
+        <h1 data-i18n="dup_tab">Окшош суроолор</h1>
+        <button class="btn ghost" id="dupBackBtn" type="button" data-i18n="qb_title">Менин суроолорум</button>
+      </div>
+      <p class="muted" data-i18n="dup_hint">Сайт окшош суроолорду табат, бирок өзү эч нерсени өчүрбөйт — чечимди сиз кабыл аласыз.</p>
+      <div class="stack" id="dupList"></div>
     </section>
 
     <!-- Готовые тесты: каждая тема из банка вопросов -->
@@ -222,6 +233,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./questions.js?v=15"></script>
+  <script type="module" src="./questions.js?v=16"></script>
 </body>
 </html>

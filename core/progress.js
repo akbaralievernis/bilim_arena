@@ -9,6 +9,7 @@
 
 import { store, KEYS } from './store.js';
 import { getTopic, skillTitle } from './curriculum.js';
+import { schedule, memKey } from './selection.js';
 
 const XP_PER_LEVEL_BASE = 100;
 const XP_GROWTH = 1.25;
@@ -32,7 +33,9 @@ const blank = () => ({
   topics: {},   // topicId -> { answered, correct, lastAt, games }
   games: {},    // gameId -> { plays, best, xp }
   badges: [],
-  dailyGoal: 100
+  dailyGoal: 100,
+  qs: {},       // 'topicId::questionId' -> память о вопросе (core/selection.js)
+  checks: {}    // topicId -> [{ at, correct, total }] — итоговые проверки
 });
 
 let cached = null;
@@ -125,7 +128,8 @@ export async function getProgress() {
     badges: d.badges,
     topics: d.topics,
     skills: d.skills,
-    games: d.games
+    games: d.games,
+    checks: d.checks
   };
 }
 
@@ -150,6 +154,12 @@ export async function recordAnswer({ topic, skill, correct, questionId, timeMs, 
   if (correct) t.correct += 1;
   t.lastAt = Date.now();
 
+  // Память о вопросе: уже видел, когда повторить ошибку
+  if (questionId) {
+    const key = memKey(topic, questionId);
+    d.qs[key] = schedule(d.qs[key], !!correct);
+  }
+
   // XP только за учебную активность: верный ответ даёт больше, попытка — минимум
   const xp = correct ? 10 : (attemptXP ? 2 : 0);
   d.xp += xp;
@@ -169,6 +179,20 @@ export async function recordAnswer({ topic, skill, correct, questionId, timeMs, 
     }, 300);
   }
   return { xp, newBadges: fresh };
+}
+
+/** Что ученик помнит о вопросах: { 'тема::id': { n, ok, miss, at, box, due } } */
+export async function questionMemory() {
+  return (await read()).qs;
+}
+
+/** Итоговая проверка по теме — хранится отдельно от тренировок */
+export async function recordCheck({ topic, correct, total }) {
+  const d = await read();
+  const list = d.checks[topic] || (d.checks[topic] = []);
+  list.push({ at: Date.now(), correct, total });
+  if (list.length > 20) list.splice(0, list.length - 20);
+  await write(d);
 }
 
 /** Итог игры: рекорд, бонус XP за хорошую работу */

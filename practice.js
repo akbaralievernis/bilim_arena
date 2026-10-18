@@ -4,15 +4,18 @@
  * Тот же игровой движок, что и на доске, но в режиме «соло»:
  * прогресс, ошибки и XP сохраняются в профиле ученика.
  * Перед игрой всегда показывается цель и правила, после — разбор ошибок.
+ * Два режима: тренировка (объяснение после каждого ответа, повтор ошибок)
+ * и итоговая проверка (только невиданные вопросы, разбор в конце).
  */
 
-import { bootstrap, mountHeader, el, $, sfx, confetti } from './core/ui.js';
+import { bootstrap, mountHeader, el, $, sfx, confetti, toast } from './core/ui.js';
 import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
 import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, getQuestions, skillTitle } from './core/curriculum.js';
 import { BaseGame } from './core/engine.js';
 import { renderQuestion } from './core/quiz-ui.js';
-import { topicState, getProgress } from './core/progress.js';
+import { topicState, getProgress, questionMemory, recordCheck } from './core/progress.js';
+import { pickPractice, pickCheck, dueCount, unseenCount, CHECK_MIN } from './core/selection.js';
 import { getProfile } from './core/profile.js';
 import { resultView } from './core/results.js';
 
@@ -38,7 +41,11 @@ class PracticeGame extends BaseGame {
   };
 }
 
-const state = { subject: null, topic: null, game: null, player: 'me', seen: {} }; // seen: тема → id показанных вопросов
+const state = { subject: null, topic: null, game: null, player: 'me', mode: 'practice' };
+const ROUND = 10; // вопросов в раунде
+
+/** Все вопросы темы (банк + вопросы учителя) */
+const topicPool = (topic) => getQuestions({ topic, count: 10000 });
 const screens = ['pickScreen', 'introScreen', 'playScreen', 'resultScreen'];
 const show = (id) => screens.forEach((s) => $('#' + s).classList.toggle('hidden', s !== id));
 
@@ -94,30 +101,52 @@ async function openIntro(topicId) {
   const pr = await getProgress();
   const rec = pr.topics[topicId];
   $('#introStats').replaceChildren(
-    stat(10, t('questions_n', { n: '' }).trim() || '10'),
+    stat(ROUND, t('questions_n', { n: '' }).trim() || String(ROUND)),
     stat('~4 ' + t('minutes'), t('game_time')),
     stat(rec ? `${Math.round((rec.correct / rec.answered) * 100)}%` : '—', t('knowledge_map'))
   );
+
+  // Что ждёт в каждом режиме — честно, до начала
+  const [pool, mem] = await Promise.all([topicPool(topicId), questionMemory()]);
+  const due = dueCount(pool, mem, topicId);
+  const unseen = unseenCount(pool, mem, topicId);
+  $('#practiceNote').textContent = due ? t('mode_due_n', { n: due }) : t('mode_due_none');
+  const last = pr.checks?.[topicId]?.at(-1);
+  $('#checkNote').textContent = [
+    unseen < CHECK_MIN ? t('mode_check_short', { n: unseen, min: CHECK_MIN })
+      : unseen < ROUND ? t('mode_check_fewer', { n: unseen }) : t('mode_unseen_n', { n: unseen }),
+    last ? t('mode_last_check', { p: Math.round((last.correct / Math.max(1, last.total)) * 100) }) : ''
+  ].filter(Boolean).join(' · ');
+  $('#checkBtn').disabled = unseen < CHECK_MIN;
 
   show('introScreen');
 }
 
 // ─── Игра ─────────────────────────────────────────────────────────────────────
 
-async function startGame(onlyWrong = false) {
+async function startGame(onlyWrong = false, mode = 'practice') {
   const lang = getLang();
-  let questions;
+  let questions = [];
 
   if (onlyWrong && state.game) {
     const wrongIds = state.game.wrongQuestionIds();
     questions = wrongIds.length ? await getQuestions({ topic: state.topic, ids: wrongIds }) : [];
-    if (!questions.length) questions = await getQuestions({ topic: state.topic, count: 10 });
-  } else {
-    // Следующий раунд — сначала вопросы, которых ученик ещё не видел в этой теме
-    questions = await getQuestions({ topic: state.topic, count: 10, avoid: state.seen[state.topic] });
+    mode = 'practice'; // повтор ошибок — всегда тренировка
   }
-  const seen = (state.seen[state.topic] ||= new Set());
-  questions.forEach((q) => seen.add(q.id));
+  if (!questions.length) {
+    const [pool, mem] = await Promise.all([topicPool(state.topic), questionMemory()]);
+    if (mode === 'check') {
+      const chosen = pickCheck(pool, mem, state.topic, { count: ROUND });
+      if (!chosen.enough) {
+        toast(t('mode_check_short', { n: chosen.available, min: CHECK_MIN }), { icon: 'ℹ️', ms: 5000 });
+        return openIntro(state.topic);
+      }
+      questions = chosen.questions;
+    } else {
+      questions = pickPractice(pool, mem, state.topic, { count: ROUND }).questions;
+    }
+  }
+  state.mode = mode;
 
   state.xpBefore = (await getProgress()).xp;
   state.game?.destroy();
@@ -148,14 +177,25 @@ function renderGame(game, kind) {
   // Один рендерер для всех типов: выбор, ввод, сопоставление, сортировка…
   $('#inputWrap').classList.add('hidden');
   $('#options').classList.remove('hidden');
+  const hide = state.mode === 'check'; // в проверке не показываем, верно ли
   renderQuestion($('#options'), game.current, {
-    reveal,
+    reveal: reveal && !hide,
     given: answered?.value ?? null,
-    correct: answered?.correct ?? null,
+    correct: hide ? null : answered?.correct ?? null,
     onAnswer: (value) => answer(value)
   });
 
   const explain = $('#explain');
+  if (state.mode === 'check') {
+    // Проверка: без подсказок — правильный ответ и объяснение только в конце
+    explain.classList.toggle('hidden', !reveal);
+    if (reveal) {
+      explain.replaceChildren(el('b', {}, t('mode_check_answered')));
+      clearTimeout(game._next);
+      game._next = setTimeout(() => game.nextQuestion(), 700);
+    }
+    return;
+  }
   explain.classList.toggle('hidden', !reveal);
   if (reveal) {
     const correctText = game.correctText();
@@ -184,12 +224,17 @@ async function showResults(game) {
   const lang = getLang();
   const xp = Math.max(0, (await getProgress()).xp - (state.xpBefore ?? 0));
 
+  if (state.mode === 'check') {
+    await recordCheck({ topic: state.topic, correct: r.correctAnswers, total: r.totalAnswers });
+    toast(t('mode_check_done'), { icon: '✅' });
+  }
+
   $('#resultScreen').replaceChildren(resultView({
     accuracy: r.accuracy, xp, correct: r.correctAnswers, total: r.totalAnswers, timeSec: r.durationSec,
     skills: Object.entries(r.bySkill).map(([skill, s]) => ({ title: skillTitle(state.topic, skill, lang), ...s })),
     mistakes: r.mistakes,
     onRepeatMistakes: () => startGame(true),
-    onAgain: () => startGame(false)
+    onAgain: () => startGame(false, state.mode)
   }));
   show('resultScreen');
   $('#resultScreen h1').focus();
@@ -210,7 +255,8 @@ async function showResults(game) {
   await renderPicker();
   if (topicParam && getTopic(topicParam)) openIntro(topicParam);
 
-  $('#startBtn').addEventListener('click', () => startGame(false));
+  $('#startBtn').addEventListener('click', () => startGame(false, 'practice'));
+  $('#checkBtn').addEventListener('click', () => startGame(false, 'check'));
   $('#backBtn').addEventListener('click', () => renderPicker());
   $('#sendBtn').addEventListener('click', () => {
     const v = $('#answerInput').value.trim();

@@ -9,7 +9,7 @@
 import { bootstrap, mountHeader, el, $, toast } from './core/ui.js';
 import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
-import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, skillTitle, GRADES } from './core/curriculum.js';
+import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, skillTitle, GRADES, getQuestions } from './core/curriculum.js';
 import { store, KEYS } from './core/store.js';
 import { setRole, getProfile } from './core/profile.js';
 import {
@@ -112,7 +112,7 @@ async function openForm(assignment = null) {
   fillSelect($('#fGrade'), GRADES.map((g) => ({ value: g, label: t('grade', { n: g }) })), assignment?.grade || 6);
 
   fillSelect($('#fDifficulty'), [
-    { value: '1,2,3', label: t('hw_all_skills') },
+    { value: '1,2,3', label: t('hw_all_levels') },
     { value: '1', label: t('difficulty_1') },
     { value: '2', label: t('difficulty_2') },
     { value: '3', label: t('difficulty_3') }
@@ -126,12 +126,14 @@ async function openForm(assignment = null) {
   $('#fTitle').value = assignment?.title || '';
   $('#fCount').value = assignment?.count || 10;
   $('#fAttempts').value = assignment?.attempts || 2;
+  $('#fCheck').value = assignment?.check ? '1' : '';
   $('#fXP').value = assignment?.xp || 50;
   $('#fAssigned').value = dateValue(assignment?.assignedAt || Date.now());
   $('#fDue').value = dateValue(assignment?.dueAt || Date.now() + 7 * 86400000);
 
   await syncTopics(assignment?.topic, assignment?.skill);
   updateMode();
+  updatePoolNote();
   show('formScreen');
 }
 
@@ -163,6 +165,28 @@ function syncSkills(skillId = null) {
 }
 
 /** Режим: система подбирает вопросы или учитель выбирает вручную */
+/**
+ * Хватит ли вопросов темы: проверка без повторов требует новых вопросов
+ * на каждую попытку. Учитель видит это до того, как раздаст задание.
+ */
+async function updatePoolNote() {
+  const topic = $('#fTopic').value;
+  if (!topic || state.mode === 'pick') return $('#poolNote').replaceChildren();
+  const skill = $('#fSkill').value;
+  const pool = await getQuestions({
+    topic, count: 10000, strict: true,
+    skills: skill ? [skill] : null,
+    difficulty: $('#fDifficulty').value.split(',').map(Number)
+  });
+  const count = Math.max(3, Number($('#fCount').value) || 10);
+  const attempts = $('#fCheck').value ? Math.max(1, Number($('#fAttempts').value) || 1) : 1;
+  const short = pool.length < count * attempts;
+  $('#poolNote').textContent = short
+    ? t('hw_pool_warning', { n: pool.length, need: count * attempts, attempts, count })
+    : t('hw_pool_ok', { n: pool.length });
+  $('#poolNote').style.color = short ? 'var(--warn)' : '';
+}
+
 async function updateMode() {
   const manual = state.mode === 'pick';
   $('#modeAuto').setAttribute('aria-pressed', String(!manual));
@@ -229,6 +253,7 @@ async function saveForm() {
     assignedAt: new Date($('#fAssigned').value).getTime() || Date.now(),
     dueAt: new Date($('#fDue').value).setHours(23, 59, 59, 999) || Date.now(),
     attempts: Math.max(1, Number($('#fAttempts').value) || 1),
+    check: !!$('#fCheck').value,
     xp: Math.max(10, Number($('#fXP').value) || 50),
     teacherName: profile.name || t('role_teacher')
   };
@@ -321,9 +346,12 @@ async function openStats(assignmentId) {
 
   $('#fSubject').addEventListener('change', () => syncTopics());
   $('#fGrade').addEventListener('change', () => syncTopics());
-  $('#fTopic').addEventListener('change', () => { syncSkills(); if (state.mode === 'pick') renderPickList(); });
-  $('#modeAuto').addEventListener('click', () => { state.mode = 'auto'; updateMode(); });
-  $('#modePick').addEventListener('click', () => { state.mode = 'pick'; updateMode(); });
+  $('#fTopic').addEventListener('change', () => { syncSkills(); if (state.mode === 'pick') renderPickList(); updatePoolNote(); });
+  ['#fSkill', '#fDifficulty', '#fCount', '#fAttempts', '#fCheck'].forEach((id) => $(id).addEventListener('change', updatePoolNote));
+  $('#fGrade').addEventListener('change', () => setTimeout(updatePoolNote));
+  $('#fSubject').addEventListener('change', () => setTimeout(updatePoolNote));
+  $('#modeAuto').addEventListener('click', () => { state.mode = 'auto'; updateMode(); updatePoolNote(); });
+  $('#modePick').addEventListener('click', () => { state.mode = 'pick'; updateMode(); updatePoolNote(); });
 
   // Быстрое создание задания из выбранных вопросов библиотеки
   const params = new URLSearchParams(location.search);
