@@ -101,3 +101,21 @@ test('a saved test keeps its question order; a paper check marks the topic in th
   r = await studentReport('айбек');
   assert.equal(r.topicRows.find((x) => x.topic === 'math-6-fractions').status, 'mastered');
 });
+
+test('export to Race: choice and short answer only, at most 20 checkpoints, safe cells', async () => {
+  const { toRaceTable } = await import('../core/tests.js');
+  const qs = [
+    { id: 'a', type: 'choice', prompt: { ru: 'Два "плюс"\tдва?' }, options: ['3', '4', '5'], correct: 1 },
+    { id: 'b', type: 'input', prompt: 'Столица?', answer: ['Бишкек', 'Bishkek'] },
+    { id: 'c', type: 'match', prompt: 'Пары', pairs: [['a', 'b']] },
+    { id: 'd', type: 'choice', vote: true, prompt: 'Мнение', options: ['x', 'y'] },
+    ...Array.from({ length: 25 }, (_, i) => ({ id: `n${i}`, type: 'input', prompt: `${i} + 1 = ?`, answer: [String(i + 1)] }))
+  ];
+  const r = toRaceTable({ id: 't' }, qs, 'ru', (n) => `CP ${n}`);
+  assert.equal(r.used, 20);
+  assert.equal(r.skippedTypes, 1, 'matching is not a Race task');
+  assert.equal(r.cut, 7);
+  const [first, second] = r.text.split('\n');
+  assert.equal(first, 'CP 1\t"Два ""плюс""\tдва?"\t4\t3\t5');
+  assert.equal(second, 'CP 2\tСтолица?\tБишкек');
+});

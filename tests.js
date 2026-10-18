@@ -16,8 +16,9 @@ import { recordStage, studentKey } from './core/lessons.js';
 import { CHECK_MIN } from './core/selection.js';
 import {
   allTests, getTest, saveTest, deleteTest, testQuestions,
-  buildVariant, variantName, parseAnswers, scorePaper, PAPER_TYPES
+  buildVariant, variantName, parseAnswers, scorePaper, PAPER_TYPES, toRaceTable, RACE_LIMITS
 } from './core/tests.js';
+import { raceUrl } from './core/race.js';
 
 const state = { editing: null, pool: [], sel: [], test: null, questions: [] };
 const screens = ['listScreen', 'editScreen', 'resultsScreen'];
@@ -54,6 +55,7 @@ async function renderList() {
       el('a', { class: 'btn soft', href: homeworkUrl(x) }, icon('tasks', { size: 18 }), ' ', t('act_homework')),
       el('a', { class: 'btn soft', href: `./print.html?${new URLSearchParams({ test: x.id })}` }, t('tst_print')),
       el('a', { class: 'btn soft', href: './scan.html' }, t('omr_scan')),
+      el('button', { class: 'btn soft', type: 'button', onclick: () => toRace(x) }, icon('flag', { size: 18 }), ' ', t('race_export')),
       el('button', { class: 'btn soft', type: 'button', onclick: () => openResults(x.id) }, t('tst_enter_results')),
       el('button', { class: 'btn ghost', type: 'button', 'aria-label': t('edit'), onclick: () => openEdit(x.id) }, icon('pen')),
       el('button', {
@@ -69,6 +71,41 @@ async function renderList() {
   ));
   $('#testList').replaceChildren(...(cards.length ? cards : [el('div', { class: 'card center muted' }, t('tst_empty'))]));
   show('listScreen');
+}
+
+// ─── В гонку (Bilim Arena Race) ───────────────────────────────────────────────
+
+/**
+ * Вопросы теста копируются в формате «Вставить из Excel» гонки и открывается
+ * создание гонки. Сайты не связаны базами — учитель вставляет строки сам.
+ */
+async function toRace(x) {
+  const r = toRaceTable(x, await testQuestions(x), getLang(), (n) => t('race_cp', { n }));
+  if (!r.used) return toast(t('race_export_none'), { icon: 'ℹ️', ms: 5000 });
+  let copied = false;
+  try { await navigator.clipboard.writeText(r.text); copied = true; } catch { /* нет доступа к буферу — текст ниже */ }
+  const notes = [
+    t('race_export_used', { n: r.used }),
+    r.skippedTypes ? t('race_export_skipped', { n: r.skippedTypes }) : null,
+    r.cut ? t('race_export_cut', { n: r.cut, max: RACE_LIMITS.route }) : null
+  ].filter(Boolean);
+  const area = el('textarea', { class: 'input', rows: '6', readonly: 'readonly', 'aria-label': t('race_export') });
+  area.value = r.text;
+  $('#racePanel').replaceChildren(
+    el('b', {}, copied ? t('race_export_copied') : t('race_export_copy_manual')),
+    el('ol', { class: 'small' }, ...['race_step1', 'race_step2', 'race_step3'].map((k) => el('li', {}, t(k)))),
+    el('p', { class: 'small muted' }, notes.join(' · ')),
+    area,
+    el('div', { class: 'row', style: 'gap:8px' },
+      el('a', { class: 'btn primary', href: raceUrl('/create'), target: '_blank', rel: 'noopener' }, icon('flag', { size: 18 }), ' ', t('race_open_create')),
+      el('button', { class: 'btn ghost', type: 'button', onclick: async () => {
+        area.select();
+        try { await navigator.clipboard.writeText(r.text); toast(t('race_export_copied'), { icon: '📋' }); } catch { /* выделено — Ctrl+C */ }
+      } }, t('race_copy_again')),
+      el('button', { class: 'btn ghost', type: 'button', onclick: () => $('#racePanel').classList.add('hidden') }, t('close')))
+  );
+  $('#racePanel').classList.remove('hidden');
+  $('#racePanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // ─── Конструктор ──────────────────────────────────────────────────────────────

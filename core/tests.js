@@ -177,3 +177,46 @@ export function scorePaper(items, answers) {
   const rows = items.map((it, i) => ({ item: it, given: answers[i] ?? '', correct: checkPaperAnswer(it, answers[i]) }));
   return { rows, correct: rows.filter((r) => r.correct).length, total: items.length };
 }
+
+// ─── Экспорт в Bilim Arena Race ──────────────────────────────────────────────
+
+/** Ограничения Race (lib/race/validation.ts, lib/race/tasks.ts) */
+export const RACE_LIMITS = { route: 20, options: 6, title: 60, question: 500, option: 200 };
+
+/** Ячейка таблицы (табуляция): в кавычки, если внутри табуляция, перенос или кавычка */
+const tsvCell = (s) => {
+  const v = String(s ?? '').trim();
+  return /[\t\n\r"]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+};
+
+/**
+ * Вопросы теста → строки для «Вставить из Excel» в Race:
+ * чекпоинт | вопрос | правильный ответ | неверные варианты…
+ * Race понимает только выбор одного ответа и короткий ответ — остальное пропускаем честно.
+ * @returns {{ text, used, skippedTypes, cut }}
+ */
+export function toRaceTable(test, questions, lang, checkpointLabel = (n) => `${n}`) {
+  const rows = [];
+  let skippedTypes = 0;
+  for (const q of questions) {
+    if (q.vote) continue;
+    const prompt = pick(q.prompt, lang).slice(0, RACE_LIMITS.question);
+    let answer = '';
+    let wrong = [];
+    if (q.type === 'choice' && Array.isArray(q.options)) {
+      const opts = q.options.map((o) => pick(o, lang).slice(0, RACE_LIMITS.option));
+      answer = opts[q.correct ?? 0];
+      wrong = opts.filter((_, i) => i !== (q.correct ?? 0)).slice(0, RACE_LIMITS.options - 1);
+    } else if (q.type === 'input' && q.answer?.length) {
+      answer = String(q.answer[0]).slice(0, RACE_LIMITS.option);
+    } else {
+      skippedTypes++;
+      continue;
+    }
+    if (!prompt || !answer) { skippedTypes++; continue; }
+    rows.push([checkpointLabel(rows.length + 1).slice(0, RACE_LIMITS.title), prompt, answer, ...wrong]);
+  }
+  const cut = Math.max(0, rows.length - RACE_LIMITS.route);
+  const used = rows.slice(0, RACE_LIMITS.route);
+  return { text: used.map((r) => r.map(tsvCell).join('\t')).join('\n'), used: used.length, skippedTypes, cut };
+}
