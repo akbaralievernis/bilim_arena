@@ -24,6 +24,8 @@ export default defineConfig({
     // Урок и конструктор: телефоны говорят с локальным сервером знакомства,
     // которого нет в CSP сайта, поэтому CSP здесь отключена
     { name: 'classroom', testMatch: /(classroom|import)\.spec\.js/, use: { bypassCSP: true } },
+    // Офлайн: здесь service worker включён (в остальных проектах он выключен)
+    { name: 'offline', testMatch: /offline\.spec\.js/, use: { serviceWorkers: 'allow' } },
     // Нагрузка — только по явному запросу: npx playwright test --project=load
     { name: 'load', testMatch: /load\.spec\.js/, use: { bypassCSP: true } }
   ],

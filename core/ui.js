@@ -192,8 +192,23 @@ export function mountHeader(target, { role = 'student', active = '' } = {}) {
  * updateViaCache: 'none' — браузер проверяет новую версию sw.js в обход HTTP-кэша.
  */
 function registerOffline() {
+  watchOnline();
   if (!('serviceWorker' in navigator) || !location.protocol.startsWith('http')) return;
   navigator.serviceWorker.register(new URL('../sw.js', import.meta.url).href, { updateViaCache: 'none' }).catch(() => {});
+}
+
+/** Плашка «нет интернета»: сайт работает, результаты сохраняются и уйдут в облако позже */
+function watchOnline() {
+  const update = () => {
+    let bar = document.getElementById('offlineBar');
+    if (navigator.onLine !== false) { bar?.remove(); return; }
+    if (bar) return;
+    bar = el('div', { id: 'offlineBar', class: 'offline-bar', role: 'status' }, icon('offline', { size: 16 }), el('span', {}, t('offline_banner')));
+    document.body.append(bar);
+  };
+  window.addEventListener('online', update);
+  window.addEventListener('offline', update);
+  update();
 }
 
 /** Стартовая подготовка страницы: язык + тема. Вызывается первой. */

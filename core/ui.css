@@ -899,3 +899,14 @@ button.option:not([disabled]):hover { border-color: var(--primary); }
 .tst-selected { list-style: none; margin: 0; padding: 0; }
 .tst-result-row { display: grid; grid-template-columns: minmax(8em, 1.2fr) minmax(7em, 0.8fr) minmax(10em, 2fr) auto auto; gap: 8px; align-items: center; }
 @media (max-width: 700px) { .tst-result-row { grid-template-columns: 1fr 1fr; } }
+
+/* ─── Нет интернета ───────────────────────────────────────────────────────── */
+.offline-bar {
+  position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+  z-index: 60; display: flex; align-items: center; gap: 8px; max-width: calc(100% - 32px);
+  padding: 8px 14px; border-radius: 999px; background: var(--text); color: #fff;
+  font-size: 0.875rem; font-weight: 600; box-shadow: var(--shadow-lg);
+  pointer-events: none; /* видно, но не перекрывает кнопки под собой */
+}
+@media (max-width: 767px) { .offline-bar { bottom: calc(84px + env(safe-area-inset-bottom)); } }
+@media print { .offline-bar { display: none; } }

@@ -1,12 +1,14 @@
 /* Билим Арена — офлайн кэш. Файлдар өзгөргөндө VERSION'ду көбөйтүңүз.
  *
  * Стратегия: «сначала сеть». Каждый запрос к сайту идёт на сервер с проверкой
- * свежести (cache: 'no-cache'), кэш — только запасной вариант без интернета.
+ * свежести (cache: 'no-cache'), кэш — запасной вариант без интернета.
  * Поэтому после обновления сайта ученик сразу получает новые файлы.
+ * Медленная сеть (есть связь, но ответа нет дольше NET_TIMEOUT) — отдаём кэш,
+ * а свежий файл докачивается в фоне и пригодится в следующий раз.
  * Прогресс, XP и данные Supabase хранятся в localStorage/облаке — кэш их не трогает.
  */
 const PREFIX = 'ba-';
-const VERSION = 'ba-v37';
+const VERSION = 'ba-v38';
 const CORE = [
   './', './index.html', './home.css', './home.js',
   './board.html', './board.js', './play.html', './play.js',
@@ -50,7 +52,7 @@ const CORE = [
   './shared/progress.js', './shared/game-shell.js',
   './games/flashcards/index.html', './games/word-match/index.html',
   './games/wordle/index.html', './games/word-rain/index.html',
-  './games/balloons/index.html', './games/mafia/index.html',
+  './games/balloons/index.html', './games/mafia/index.html', './games/mafia/favicon.svg',
   './games/citadel/index.html', './games/citadel/app.js', './games/citadel/style.css', './games/citadel/data.js', './games/citadel/i18n.js',
   './games/eagle/index.html', './games/reaction/index.html',
   './games/focus-duel/index.html', './games/focus-duel/focus-duel.js', './games/focus-duel/data.js', './games/focus-duel/style.css', './games/focus-duel/i18n.js',
@@ -81,6 +83,11 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+const NET_TIMEOUT = 3500;
+/** После первого «зависания» сети несколько минут отвечаем из кэша сразу (сеть обновляет его в фоне) */
+const SLOW_MODE_MS = 3 * 60 * 1000;
+let slowUntil = 0;
+
 // Тармак биринчи, болбосо кэштен (жаңы версиялар дароо көрүнөт)
 self.addEventListener('fetch', (e) => {
   const req = e.request;
@@ -91,15 +98,37 @@ self.addEventListener('fetch', (e) => {
   if (!sameOrigin && !isFont) return; // MediaPipe, CDN ж.б. — браузердин өзүнө калтырабыз
 
   // no-cache: браузердин HTTP кэшин айланып өтүп, серверден жаңы версияны текшерет
-  e.respondWith(
-    (sameOrigin ? fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }) : fetch(req))
-      .then((res) => {
-        if (res && (res.ok || res.type === 'opaque')) {
-          const copy = res.clone();
-          caches.open(VERSION).then((c) => c.put(req, copy));
-        }
-        return res;
-      })
-      .catch(() => caches.match(req, { ignoreSearch: true }).then((r) => r || (req.mode === 'navigate' ? caches.match('./index.html') : undefined)))
-  );
+  const net = (sameOrigin ? fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }) : fetch(req))
+    .then((res) => {
+      if (res && (res.ok || res.type === 'opaque')) {
+        const copy = res.clone();
+        caches.open(VERSION).then((c) => c.put(req, copy));
+      }
+      return res;
+    });
+  const fallback = () => caches.match(req, { ignoreSearch: true })
+    .then((r) => r || (req.mode === 'navigate' ? caches.match('./index.html') : Response.error()));
+
+  e.respondWith((async () => {
+    try {
+      if (Date.now() < slowUntil) {
+        // Режим медленной сети: страница не ждёт каждый файл по несколько секунд
+        const cached = await caches.match(req, { ignoreSearch: true });
+        if (cached) return cached;
+      }
+      const started = Date.now();
+      const first = await Promise.race([net, new Promise((r) => setTimeout(r, NET_TIMEOUT, 'slow'))]);
+      if (first !== 'slow') {
+        if (Date.now() - started < 1500) slowUntil = 0; // сеть снова быстрая
+        return first;
+      }
+      // Связь есть, но очень медленная: кэш сейчас, сеть обновит его в фоне
+      slowUntil = Date.now() + SLOW_MODE_MS;
+      const cached = await caches.match(req, { ignoreSearch: true });
+      return cached || await net;
+    } catch {
+      return fallback();
+    }
+  })());
+  e.waitUntil(net.catch(() => {}));
 });

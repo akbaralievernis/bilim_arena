@@ -247,6 +247,11 @@ function renderStages() {
 // ─── 2. Комната и подключение учеников ────────────────────────────────────────
 
 async function openRoom() {
+  // Урок с телефонами требует интернета (сервер знакомства) — сразу честно и с вариантами
+  if (navigator.onLine === false) {
+    toast(t('offline_board'), { icon: '📴', ms: 9000 });
+    return;
+  }
   show('lobbyScreen');
   $('#roomCode').textContent = '····';
   $('#playersList').replaceChildren();
