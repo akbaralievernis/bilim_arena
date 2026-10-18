@@ -20,7 +20,7 @@ export default defineConfig({
   },
   projects: [
     // Страницы — с настоящей Content-Security-Policy
-    { name: 'pages', testMatch: /(pages|learning|teacher-tests)\.spec\.js/ },
+    { name: 'pages', testMatch: /(pages|learning|teacher-tests|omr|scan-page)\.spec\.js/ },
     // Урок и конструктор: телефоны говорят с локальным сервером знакомства,
     // которого нет в CSP сайта, поэтому CSP здесь отключена
     { name: 'classroom', testMatch: /(classroom|import)\.spec\.js/, use: { bypassCSP: true } },

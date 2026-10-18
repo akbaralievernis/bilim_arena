@@ -53,6 +53,7 @@ async function renderList() {
       el('a', { class: 'btn primary', href: boardUrl(x) }, icon('board', { size: 18 }), ' ', t('act_board')),
       el('a', { class: 'btn soft', href: homeworkUrl(x) }, icon('tasks', { size: 18 }), ' ', t('act_homework')),
       el('a', { class: 'btn soft', href: `./print.html?${new URLSearchParams({ test: x.id })}` }, t('tst_print')),
+      el('a', { class: 'btn soft', href: './scan.html' }, t('omr_scan')),
       el('button', { class: 'btn soft', type: 'button', onclick: () => openResults(x.id) }, t('tst_enter_results')),
       el('button', { class: 'btn ghost', type: 'button', 'aria-label': t('edit'), onclick: () => openEdit(x.id) }, icon('pen')),
       el('button', {

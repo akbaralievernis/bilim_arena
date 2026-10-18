@@ -1,0 +1,13 @@
+/* Bilim Arena — сканер бланков (scan.html) */
+.scan-view { position: relative; width: 100%; max-width: 720px; margin: 0 auto; border-radius: var(--radius); overflow: hidden; background: #000; }
+.scan-view video { display: block; width: 100%; max-height: 72vh; object-fit: contain; }
+/* Подсказка: куда поместить лист (пропорции рамки бланка) */
+.scan-frame {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  height: 86%; aspect-ratio: 170 / 250; max-width: 92%;
+  border: 3px dashed rgba(255, 255, 255, 0.8); border-radius: 10px; pointer-events: none;
+}
+.scan-canvas { width: 100%; height: auto; border-radius: var(--radius-sm); border: 1px solid var(--line); }
+.scan-score { font-size: 1.6rem; }
+.scan-crop { display: block; max-width: 100%; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+.scan-issue select { width: auto; min-width: 5em; }

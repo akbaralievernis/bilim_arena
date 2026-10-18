@@ -12,6 +12,7 @@ import { t, pick, getLang } from './core/i18n.js';
 import { getTopic, getSubject } from './core/curriculum.js';
 import { setRole } from './core/profile.js';
 import { getTest, testQuestions, buildVariant, variantName, LETTERS } from './core/tests.js';
+import { sheetSvg, MAX_ITEMS } from './core/omr.js';
 
 const state = { test: null, questions: [] };
 const field = (label) => el('span', { class: 'p-field' }, `${label}: `, el('span', { class: 'p-line' }));
@@ -50,16 +51,18 @@ function questionBlock(item) {
   return el('li', { class: 'p-q' }, el('div', { class: 'p-prompt' }, item.prompt), ...body);
 }
 
-/** Бланк ответов: строка на вопрос, кружки для букв или клетка для ответа */
-function answerGrid(items) {
-  return el('table', { class: 'p-grid' },
-    el('tbody', {}, ...items.map((it) => el('tr', {},
-      el('th', {}, String(it.n)),
-      el('td', {}, ...(it.options
-        ? it.options.map((_, k) => el('span', { class: 'p-bubble' }, LETTERS[k]))
-        : [el('span', { class: 'p-box' })]))
-    )))
-  );
+/** Бланк ответов для сканера (core/omr.js): метки, код теста, номер ученика, кружки */
+function answerSheet(test, v, items) {
+  const box = el('div', { class: 'p-omr' });
+  box.innerHTML = sheetSvg({
+    testId: test.id, questionIds: test.questionIds, variant: v, items,
+    title: test.title, variantLabel: `${t('tst_variant')} ${variantName(v)}`,
+    labels: {
+      name: t('tst_p_name'), number: t('omr_number'), tens: t('omr_tens'), units: t('omr_units'),
+      howto: t('omr_howto'), version: `Bilim Arena · ${t('tst_p_version')}: ${version(test)}`
+    }
+  });
+  return box;
 }
 
 function keyTable(test, variants) {
@@ -81,14 +84,14 @@ function render() {
   const sheets = variants.map(({ v, items }) => el('section', { class: 'p-sheet' },
     head(test, v, lang),
     el('ol', { class: 'p-questions' }, ...items.map(questionBlock)),
-    ...($('#pGrid').checked ? [el('div', { class: 'p-grid-wrap' },
-      el('h3', {}, `${t('tst_p_grid')} — ${t('tst_variant')} ${variantName(v)}`),
-      el('div', { class: 'p-fields' }, field(t('tst_p_name'))),
-      answerGrid(items))] : []),
-    el('footer', { class: 'p-foot' }, `Bilim Arena · ${t('tst_p_version')}: ${version(test)}`)
+    el('footer', { class: 'p-foot' }, `Bilim Arena · ${t('tst_p_version')}: ${version(test)}`),
+    // Бланк — отдельной страницей (подвал уже на нём)
+    ...($('#pGrid').checked ? [el('div', { class: 'p-grid-wrap' }, answerSheet(test, v, items))] : [])
   ));
   if ($('#pKey').checked) sheets.push(keyTable(test, variants));
   $('#sheets').replaceChildren(...sheets);
+  const tooLong = variants[0].items.length > MAX_ITEMS;
+  $('#omrNote').textContent = tooLong ? t('omr_too_long', { n: MAX_ITEMS }) : '';
 }
 
 (async function init() {

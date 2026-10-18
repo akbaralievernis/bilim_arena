@@ -104,7 +104,7 @@ const STUDENT_NAV = [
 const SECTION = {
   'practice.html': 'games.html', 'speak.html': 'games.html',
   'tasks.html': 'profile.html', 'account.html': 'profile.html',
-  'tests.html': 'questions.html', 'print.html': 'questions.html'
+  'tests.html': 'questions.html', 'print.html': 'questions.html', 'scan.html': 'questions.html'
 };
 
 const TEACHER_NAV = [

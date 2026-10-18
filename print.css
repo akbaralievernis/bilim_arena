@@ -55,3 +55,7 @@
   .p-sheet { border: 0; border-radius: 0; margin: 0; padding: 0; max-width: none; break-after: page; page-break-after: always; }
   .p-sheet:last-child { break-after: auto; page-break-after: auto; }
 }
+
+/* Бланк для сканера: SVG в миллиметрах, на экране — по ширине листа */
+.p-omr svg { display: block; width: 100%; height: auto; max-width: 184mm; margin: 0 auto; }
+@media print { .p-omr svg { width: 184mm; height: 264mm; } }
