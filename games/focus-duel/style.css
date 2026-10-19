@@ -7,7 +7,7 @@
   --font: "Inter", system-ui, -apple-system, sans-serif;
   
   /* Modern Colors */
-  --primary: #5c6df5;
+  --primary: #E0162B; /* общий красный акцент сайта; белый текст 4.9:1 */
   --accent: #38e5ff;
   --accent2: #ff4fd8;
   --good: #10b981;
@@ -33,7 +33,8 @@ body[data-theme="light"] {
   --bg: #f8fafc;
   --bg-soft: #ffffff;
   --text: #0f172a;
-  --text-soft: #64748b;
+  --text-soft: #475569; /* на светлом стекле серый #64748b был бледнее нормы */
+  --accent: #0e7490;    /* голубой #38e5ff на белом почти не виден */
   --glass-bg: rgba(0, 0, 0, 0.02);
   --glass-border: rgba(0, 0, 0, 0.06);
 }
@@ -286,7 +287,7 @@ body::before {
   font-weight: 900;
   font-size: 1.5rem;
   color: var(--text-soft);
-  opacity: 0.3;
+  opacity: 0.75; /* «VS» должно читаться, а не только угадываться */
 }
 
 .sideMsg { text-align: center; font-weight: 800; font-size: 0.9rem; min-height: 1.2rem; }
@@ -410,7 +411,7 @@ input:focus, select:focus { border-color: var(--accent); background: rgba(0, 0, 
 
 .btn:hover { transform: translateY(-2px); background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); }
 .btn.primary { background: var(--primary); color: white; border: none; }
-.btn.primary:hover { background: #6c7df6; box-shadow: 0 4px 15px rgba(92, 109, 245, 0.4); }
+.btn.primary:hover { background: #BF0F21; box-shadow: 0 4px 15px rgba(224, 22, 43, 0.35); }
 .btn.danger { color: var(--bad); border-color: rgba(239, 68, 68, 0.3); }
 .btn.danger:hover { background: rgba(239, 68, 68, 0.1); border-color: var(--bad); }
 

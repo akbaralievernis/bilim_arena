@@ -14,20 +14,26 @@ export default defineConfig({
   reporter: [['list']],
   use: {
     baseURL: 'http://localhost:8766',
-    channel: 'chrome',
     headless: true,
-    serviceWorkers: 'block'   // кэш офлайн-режима не должен подменять свежие файлы
+    serviceWorkers: 'block',  // кэш офлайн-режима не должен подменять свежие файлы
+    trace: 'retain-on-failure' // запись шагов упавшего теста: npx playwright show-trace test-results/…/trace.zip
   },
   projects: [
     // Страницы — с настоящей Content-Security-Policy
-    { name: 'pages', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic)\.spec\.js/ },
+    { name: 'pages', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic|a11y|a11y-games)\.spec\.js/, use: { channel: 'chrome' } },
     // Урок и конструктор: телефоны говорят с локальным сервером знакомства,
     // которого нет в CSP сайта, поэтому CSP здесь отключена
-    { name: 'classroom', testMatch: /(classroom|import)\.spec\.js/, use: { bypassCSP: true } },
+    { name: 'classroom', testMatch: /(classroom|import)\.spec\.js/, use: { channel: 'chrome', bypassCSP: true } },
     // Офлайн: здесь service worker включён (в остальных проектах он выключен)
-    { name: 'offline', testMatch: /offline\.spec\.js/, use: { serviceWorkers: 'allow' } },
+    { name: 'offline', testMatch: /offline\.spec\.js/, use: { channel: 'chrome', serviceWorkers: 'allow' } },
+    // Те же страницы в движках Safari и Firefox — по явному запросу:
+    // npx playwright test --project=webkit --project=firefox
+    { name: 'webkit', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic)\.spec\.js/, use: { browserName: 'webkit' } },
+    { name: 'firefox', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic)\.spec\.js/, use: { browserName: 'firefox' } },
+    // Скорость на слабом телефоне и 3G — только по явному запросу: npx playwright test --project=perf
+    { name: 'perf', testMatch: /perf\.spec\.js/, use: { channel: 'chrome' } },
     // Нагрузка — только по явному запросу: npx playwright test --project=load
-    { name: 'load', testMatch: /load\.spec\.js/, use: { bypassCSP: true } }
+    { name: 'load', testMatch: /load\.spec\.js/, use: { channel: 'chrome', bypassCSP: true } }
   ],
   webServer: [
     { command: 'node tests/e2e/serve.mjs . 8766', url: 'http://localhost:8766/index.html', reuseExistingServer: true, timeout: 30_000 },

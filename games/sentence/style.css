@@ -257,7 +257,7 @@ body {
 }
 
 .btn.danger {
-  background: var(--error);
+  background: #be123c; /* белый текст читается: 6:1 (раньше розовый был бледнее нормы) */
   color: white;
   border: none;
 }

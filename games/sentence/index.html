@@ -14,7 +14,7 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@700;800&display=swap"
     rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=16">
+  <link rel="stylesheet" href="style.css?v=17">
   <script src="../../shared/lang.js?v=16"></script>
   <script src="./i18n.js?v=15"></script>
   <script src="../../shared/sw-register.js?v=15"></script>
@@ -192,9 +192,9 @@
                 </div>
                 <div class="row">
                   <div>
-                    <div class="labelBig" data-i18n="modeLabel">Оюн режими</div>
+                    <div class="labelBig" id="modeLabel" data-i18n="modeLabel">Оюн режими</div>
                   </div>
-                  <select id="modeSelect" class="select selectSmall">
+                  <select id="modeSelect" class="select selectSmall" aria-labelledby="modeLabel">
                     <option value="text">Текст</option>
                     <option value="math">Математика</option>
                   </select>
@@ -206,18 +206,18 @@
                 
                 <div class="setting-item">
                   <div class="setting-header">
-                    <div class="labelBig" data-i18n="timeLabel">Жалпы убакыт (сек)</div>
+                    <div class="labelBig" id="timeLabel" data-i18n="timeLabel">Жалпы убакыт (сек)</div>
                     <div class="value" id="timeVal">60</div>
                   </div>
-                  <input type="range" id="timeRange" min="20" max="240" step="5" value="60" />
+                  <input type="range" id="timeRange" min="20" max="240" step="5" value="60" aria-labelledby="timeLabel" />
                 </div>
 
                 <div class="setting-item">
                   <div class="setting-header">
-                    <div class="labelBig" data-i18n="speedLabel">Көрсөтүү ылдамдыгы (мс)</div>
+                    <div class="labelBig" id="speedLabel" data-i18n="speedLabel">Көрсөтүү ылдамдыгы (мс)</div>
                     <div class="value" id="speedVal">800</div>
                   </div>
-                  <input type="range" id="speedRange" min="250" max="1600" step="50" value="800" />
+                  <input type="range" id="speedRange" min="250" max="1600" step="50" value="800" aria-labelledby="speedLabel" />
                 </div>
               </div>
 
@@ -226,10 +226,10 @@
                 
                 <div class="setting-item">
                   <div class="setting-header">
-                    <div class="labelBig">Каталар үчүн айып<small class="muted settingHint">Катары менен 3 катадан кийин алынат</small></div>
+                    <div class="labelBig" id="penaltyLabel">Каталар үчүн айып<small class="muted settingHint">Катары менен 3 катадан кийин алынат</small></div>
                     <div class="value" id="penaltyVal">150</div>
                   </div>
-                  <input type="range" id="penaltyRange" min="0" max="500" step="10" value="150" />
+                  <input type="range" id="penaltyRange" min="0" max="500" step="10" value="150" aria-labelledby="penaltyLabel" />
                 </div>
 
                 <div class="row">

@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
-    "test:e2e": "playwright test",
-    "signal:dev": "npm --prefix signal run dev"
+    "test:e2e": "playwright test --project=pages --project=classroom --project=offline --project=load",
+    "signal:dev": "npm --prefix signal run dev",
+    "test:browsers": "playwright test --project=webkit --project=firefox"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
     "@playwright/test": "1.64.0"
   }
 }

@@ -23,8 +23,8 @@
   --surface-2: #F1F2F8;
   --line: #E4E7EC;
   --text: #202B46;
-  --text-soft: #667085;        /* 4.8:1 на белом */
-  --text-secondary: #667085;
+  --text-soft: #5D6577;        /* 5.9:1 на белом, 5.2:1 на серых карточках (#F1F2F8) */
+  --text-secondary: #5D6577;
 
   --primary: #E0162B;          /* белый текст на нём — 4.9:1 */
   --primary-hover: #BF0F21;

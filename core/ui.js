@@ -211,6 +211,12 @@ function watchOnline() {
   update();
 }
 
+/** Был ли вход в облако на этом устройстве (сессия Supabase) или это возврат по ссылке из письма */
+function cloudNeeded() {
+  if (/[#&?](access_token|refresh_token|code|token_hash|error_description)=/.test(location.href)) return true;
+  try { return Object.keys(localStorage).some((k) => /^sb-.+-auth-token$/.test(k)); } catch { return true; }
+}
+
 /** Стартовая подготовка страницы: язык + тема. Вызывается первой. */
 export async function bootstrap() {
   // Журнал сбоев (core/errors.js) — подгружается отдельно и ничего не задерживает
@@ -219,8 +225,9 @@ export async function bootstrap() {
   await initI18n();
   document.body.classList.remove('boot');
   registerOffline();
-  // Облако подгружается, только если настроено, и не задерживает страницу
-  if (SUPABASE.url && SUPABASE.anonKey) {
+  // Облако подгружается, только если настроено и на устройстве уже был вход:
+  // ученикам без аккаунта библиотека облака (~100 КБ) не нужна — страница легче на 3G
+  if (SUPABASE.url && SUPABASE.anonKey && cloudNeeded()) {
     import('./cloud.js').then((m) => m.initCloud()).catch((e) => console.warn('[cloud]', e));
     window.addEventListener('ba:cloud-status', (e) => {
       const btn = document.getElementById('cloudBtn');
