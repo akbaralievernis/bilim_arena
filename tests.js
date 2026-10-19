@@ -9,7 +9,7 @@
 import { bootstrap, mountHeader, el, $, toast } from './core/ui.js';
 import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
-import { SUBJECTS, TOPICS, topicsOf, getTopic, skillTitle, loadBank, getQuestions } from './core/curriculum.js';
+import { SUBJECTS, TOPICS, topicsOf, getTopic, skillTitle, loadBank, getQuestions, questionRef, parseQuestionRef } from './core/curriculum.js';
 import { setRole } from './core/profile.js';
 import { findDuplicates } from './core/duplicates.js';
 import { recordStage, studentKey } from './core/lessons.js';
@@ -20,7 +20,8 @@ import {
 } from './core/tests.js';
 import { raceUrl } from './core/race.js';
 
-const state = { editing: null, pool: [], sel: [], test: null, questions: [] };
+// sel — ссылки «тема::id»; cache — все загруженные вопросы по ссылке (из любых тем)
+const state = { editing: null, pool: [], sel: [], cache: new Map(), test: null, questions: [] };
 const screens = ['listScreen', 'editScreen', 'resultsScreen'];
 const show = (id) => screens.forEach((s) => $('#' + s).classList.toggle('hidden', s !== id));
 const MAX_VARIANTS = 4;
@@ -49,7 +50,7 @@ async function renderList() {
     el('div', { class: 'row between' },
       el('b', {}, x.title || '—'),
       el('span', { class: 'small muted' }, `${t('questions_n', { n: x.questionIds.length })} · ${fmtDate(x.updatedAt)}`)),
-    el('span', { class: 'small muted' }, pick(getTopic(x.topic)?.title, lang) || ''),
+    el('span', { class: 'small muted' }, (x.topics?.length ? x.topics : [x.topic]).map((id) => pick(getTopic(id)?.title, lang)).filter(Boolean).join(' · ')),
     el('div', { class: 'row', style: 'gap:8px;flex-wrap:wrap' },
       el('a', { class: 'btn primary', href: boardUrl(x) }, icon('board', { size: 18 }), ' ', t('act_board')),
       el('a', { class: 'btn soft', href: homeworkUrl(x) }, icon('tasks', { size: 18 }), ' ', t('act_homework')),
@@ -121,12 +122,12 @@ async function loadPool() {
   const topic = $('#tTopic').value;
   const bank = await loadBank(topic);
   const own = (await getQuestions({ topic, count: 10000 })).filter((q) => q.custom);
-  state.pool = [...bank, ...own].filter((q) => PAPER_TYPES.includes(q.type) && !q.vote);
+  state.pool = [...bank, ...own].filter((q) => PAPER_TYPES.includes(q.type) && !q.vote).map((q) => ({ ...q, topic: q.topic || topic }));
+  state.pool.forEach((q) => state.cache.set(questionRef(q), q));
   const lang = getLang();
   const tp = getTopic(topic);
   fillSelect($('#fSkill'), [{ value: '', label: t('hw_all_skills') }, ...(tp?.skills || []).map((s) => ({ value: s.id, label: pick(s.title, lang) }))], '');
-  // Вопросы другой темы из теста убираем: тест — по одной теме
-  state.sel = state.sel.filter((id) => state.pool.some((q) => String(q.id) === id));
+  // Выбранные вопросы других тем остаются: тест может быть из нескольких тем
 }
 
 function filtered() {
@@ -138,28 +139,28 @@ function filtered() {
     && (!needle || promptOf(q).toLowerCase().includes(needle)));
 }
 
-const metaLine = (q) => `${q.custom ? t('dup_mine') : t('dup_bank')} · ${skillTitle(q.topic, q.skill, getLang())} · ${t('difficulty_' + (q.difficulty || 1))}`;
+const metaLine = (q, withTopic = false) => [withTopic ? pick(getTopic(q.topic)?.title, getLang()) : null, q.custom ? t('dup_mine') : t('dup_bank'), skillTitle(q.topic, q.skill, getLang()), t('difficulty_' + (q.difficulty || 1))].filter(Boolean).join(' · ');
 
 function renderAvail() {
   const list = filtered();
   $('#availCount').textContent = String(list.length);
   $('#availList').replaceChildren(...list.map((q) => {
-    const inTest = state.sel.includes(String(q.id));
+    const inTest = state.sel.includes(questionRef(q));
     return el('div', { class: 'q-row' },
       el('span', { class: 'q-text' }, el('b', {}, promptOf(q)), el('span', { class: 'small muted' }, metaLine(q))),
       el('button', {
         class: `btn ${inTest ? 'ghost' : 'soft'}`, type: 'button', disabled: inTest,
         'aria-label': `${t('tst_add')}: ${promptOf(q)}`,
-        onclick: () => { state.sel.push(String(q.id)); renderEditor(); }
+        onclick: () => { state.sel.push(questionRef(q)); renderEditor(); }
       }, inTest ? '✓' : '+')
     );
   }));
 }
 
 function renderSel() {
-  const byId = new Map(state.pool.map((q) => [String(q.id), q]));
-  const qs = state.sel.map((id) => byId.get(id)).filter(Boolean);
-  $('#selCount').textContent = t('questions_n', { n: qs.length });
+  const qs = state.sel.map((ref) => state.cache.get(ref)).filter(Boolean);
+  const multi = new Set(qs.map((q) => q.topic)).size > 1;
+  $('#selCount').textContent = multi ? `${t('questions_n', { n: qs.length })} · ${t('tst_topics_n', { n: new Set(qs.map((q) => q.topic)).size })}` : t('questions_n', { n: qs.length });
   const move = (i, d) => {
     const j = i + d;
     if (j < 0 || j >= state.sel.length) return;
@@ -167,7 +168,7 @@ function renderSel() {
     renderEditor();
   };
   $('#selList').replaceChildren(...qs.map((q, i) => el('li', { class: 'q-row' },
-    el('span', { class: 'q-text' }, el('b', {}, `${i + 1}. ${promptOf(q)}`), el('span', { class: 'small muted' }, metaLine(q))),
+    el('span', { class: 'q-text' }, el('b', {}, `${i + 1}. ${promptOf(q)}`), el('span', { class: 'small muted' }, metaLine(q, multi))),
     el('button', { class: 'btn ghost', type: 'button', 'aria-label': t('tst_up'), disabled: i === 0, onclick: () => move(i, -1) }, '↑'),
     el('button', { class: 'btn ghost', type: 'button', 'aria-label': t('tst_down'), disabled: i === qs.length - 1, onclick: () => move(i, 1) }, '↓'),
     el('button', { class: 'btn ghost', type: 'button', 'aria-label': t('delete'), onclick: () => { state.sel.splice(i, 1); renderEditor(); } }, '✕')
@@ -191,7 +192,11 @@ async function openEdit(id = null) {
   const lang = getLang();
   const test = id ? await getTest(id) : null;
   state.editing = test;
-  state.sel = [...(test?.questionIds || [])];
+  // Старые тесты хранят просто id — приводим к ссылкам «тема::id»
+  state.cache = new Map();
+  const existing = test ? await testQuestions(test) : [];
+  existing.forEach((q) => state.cache.set(questionRef(q), q));
+  state.sel = existing.map(questionRef);
   $('#editTitle').textContent = test ? t('tst_edit') : t('tst_create');
   $('#tName').value = test?.title || '';
   const subject = test?.subject || getTopic(test?.topic)?.subject || subjectsWithTopics()[0]?.id;
@@ -208,26 +213,26 @@ async function openEdit(id = null) {
 /** Случайные N вопросов из отфильтрованных, которых ещё нет в тесте */
 function addRandom() {
   const n = Math.max(1, Math.min(50, Number($('#randomN').value) || 5));
-  const free = filtered().filter((q) => !state.sel.includes(String(q.id)));
+  const free = filtered().filter((q) => !state.sel.includes(questionRef(q)));
   for (let i = free.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [free[i], free[j]] = [free[j], free[i]];
   }
   const add = free.slice(0, n);
-  state.sel.push(...add.map((q) => String(q.id)));
+  state.sel.push(...add.map(questionRef));
   if (add.length < n) toast(t('tst_random_short', { n: add.length }), { icon: 'ℹ️', ms: 4000 });
   renderEditor();
 }
 
 async function save() {
   if (!state.sel.length) return toast(t('tst_need_questions'), { icon: '⚠️' });
-  const topic = $('#tTopic').value;
+  const main = parseQuestionRef(state.sel[0]).topic || $('#tTopic').value;
   await saveTest({
     id: state.editing?.id,
-    title: $('#tName').value.trim() || pick(getTopic(topic)?.title, getLang()),
-    subject: $('#tSubject').value,
-    grade: getTopic(topic)?.grade,
-    topic,
+    title: $('#tName').value.trim() || pick(getTopic(main)?.title, getLang()),
+    subject: getTopic(main)?.subject || $('#tSubject').value,
+    grade: getTopic(main)?.grade,
+    topic: main,
     questionIds: state.sel
   });
   toast(t('tst_saved'), { icon: '✅' });
@@ -286,7 +291,7 @@ async function saveResults() {
     const items = variantItems(r.v);
     const res = scorePaper(items, parseAnswers(r.text, items));
     const playerId = `paper:${studentKey(r.name)}`;
-    res.rows.forEach((x) => log.push({ playerId, playerName: r.name, skill: x.item.q.skill, correct: x.correct, questionId: x.item.q.id }));
+    res.rows.forEach((x) => log.push({ playerId, playerName: r.name, topic: x.item.q.topic, skill: x.item.q.skill, correct: x.correct, questionId: x.item.q.id }));
     players.push({ id: playerId, name: r.name, score: res.correct });
   });
   await recordStage({

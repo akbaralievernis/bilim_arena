@@ -119,3 +119,26 @@ test('export to Race: choice and short answer only, at most 20 checkpoints, safe
   assert.equal(first, 'CP 1\t"Два ""плюс""\tдва?"\t4\t3\t5');
   assert.equal(second, 'CP 2\tСтолица?\tБишкек');
 });
+
+test('multi-topic test: refs only when needed, questions in order, report per topic', async () => {
+  const { normalizeRefs, saveTest, testQuestions } = await import('../core/tests.js');
+  // Одна тема — как раньше: просто id (уже распечатанные бланки не «устаревают»)
+  assert.deepEqual(normalizeRefs(['math-6-fractions::f01', 'f02'], 'math-6-fractions'), { topic: 'math-6-fractions', topics: ['math-6-fractions'], questionIds: ['f01', 'f02'] });
+  const multi = normalizeRefs(['math-6-fractions::f01', 'chemistry-8-basics::ch01', 'math-6-fractions::f03'], 'math-6-fractions');
+  assert.equal(multi.topic, 'math-6-fractions', 'main topic has most questions');
+  assert.deepEqual(multi.topics, ['math-6-fractions', 'chemistry-8-basics']);
+  assert.deepEqual(multi.questionIds, ['math-6-fractions::f01', 'chemistry-8-basics::ch01', 'math-6-fractions::f03']);
+
+  const saved = await saveTest({ title: 'Аралаш', topic: 'math-6-fractions', questionIds: multi.questionIds });
+  const qs = await testQuestions(saved);
+  assert.deepEqual(qs.map((q) => `${q.topic}/${q.id}`), ['math-6-fractions/f01', 'chemistry-8-basics/ch01', 'math-6-fractions/f03']);
+
+  // Ответы урока записываются по теме самого вопроса
+  const log = qs.map((q, i) => ({ playerId: 'p:a', playerName: 'Азат', topic: q.topic, skill: q.skill, correct: i !== 1, questionId: q.id }));
+  await recordStage({ subject: 'math', topic: 'math-6-fractions', mode: 'paper', gameId: 'paper', log, players: [] });
+  const r = await studentReport('азат');
+  const rows = Object.fromEntries(r.topicRows.map((x) => [x.topic, x]));
+  assert.equal(rows['math-6-fractions'].answered, 2);
+  assert.equal(rows['chemistry-8-basics'].answered, 1);
+  assert.equal(rows['chemistry-8-basics'].correct, 0);
+});

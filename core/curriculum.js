@@ -254,6 +254,8 @@ export const gradesOf = (subjectId) => [
 ].sort((a, b) => a - b);
 
 export const skillTitle = (topicId, skillId, lang) => {
+  // Ключ «тема::навык» (тест из нескольких тем) — тема берётся из ключа
+  if (typeof skillId === 'string' && skillId.includes('::')) [topicId, skillId] = skillId.split('::');
   const topic = getTopic(topicId);
   const skill = topic?.skills.find((s) => s.id === skillId);
   return skill ? pick(skill.title, lang) : skillId;
@@ -328,6 +330,26 @@ export async function getQuestions({ topic, count = 10, skills, difficulty, type
   const fresh = (arr) => shuffle(arr.filter((q) => !seen.has(q.id)));
   const again = (arr) => shuffle(arr.filter((q) => seen.has(q.id)));
   return shuffle([...fresh(list), ...fresh(rest), ...again(list), ...again(rest)].slice(0, count));
+}
+
+/** Ссылка на вопрос: «тема::id» (тест из нескольких тем) или просто id (тема — fallbackTopic) */
+export const questionRef = (q) => `${q.topic}::${q.id}`;
+export function parseQuestionRef(ref, fallbackTopic = null) {
+  const s = String(ref);
+  const i = s.indexOf('::');
+  return i > 0 ? { topic: s.slice(0, i), id: s.slice(i + 2) } : { topic: fallbackTopic, id: s };
+}
+
+/** Вопросы по ссылкам — из любых тем, в том же порядке, что и ссылки */
+export async function getQuestionsByRefs(refs, fallbackTopic = null) {
+  const parsed = (refs || []).map((r) => parseQuestionRef(r, fallbackTopic));
+  const byTopic = new Map();
+  parsed.forEach((p) => { if (!byTopic.has(p.topic)) byTopic.set(p.topic, []); byTopic.get(p.topic).push(p.id); });
+  const found = new Map();
+  for (const [topic, ids] of byTopic) {
+    (await getQuestions({ topic, ids })).forEach((q) => found.set(`${topic}::${q.id}`, { ...q, topic: q.topic || topic }));
+  }
+  return parsed.map((p) => found.get(`${p.topic}::${p.id}`)).filter(Boolean);
 }
 
 /** Варианты ответа в перемешанном порядке (правильный не всегда первый) */

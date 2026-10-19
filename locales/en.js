@@ -845,4 +845,6 @@ export default {
   pr_for_parents_hint: 'The report opens as a separate page: print it or send the link (e.g. on WhatsApp). The data is inside the link and stored nowhere.',
   pr_open: 'Open the report',
   pr_show_parents: 'Show my parents',
+  tst_topics_n: '{n} topics',
+  tst_multi_hint: 'Pick another topic and add its questions too — a test can span several topics.',
 };

@@ -15,7 +15,7 @@ import { icon } from './core/icons.js';
 /** Иконка улики по её типу — вместо эмодзи из данных дела */
 const CLUE_ICON = { document: 'tasks', photo: 'camera', map: 'map', testimony: 'users', table: 'grid', date: 'clock', quote: 'sentence', object: 'cube' };
 import { t, pick, getLang } from './core/i18n.js';
-import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, getQuestions, skillTitle } from './core/curriculum.js';
+import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, getQuestions, skillTitle, getQuestionsByRefs } from './core/curriculum.js';
 import { createRoom, joinUrl, renderQR } from './core/realtime.js';
 import { setPromptImage } from './core/images.js';
 import QuickVoteGame from './games/quickvote/game.js';
@@ -296,7 +296,7 @@ async function openRoom() {
           state.room?.send(playerId, {
             type: 'result',
             correct: res.correct,
-            topic: state.topic,
+            topic: question.raw.topic || state.topic,
             skill: question.skill,
             questionId: question.raw.id,
             gameId: state.game.meta.id
@@ -378,7 +378,7 @@ async function startStage(stageIndex, customQuestions = null) {
   if (!questions && state.review && stage.id === 'review') {
     // Повторение строится на реальных ошибках класса
     const wrong = state.review.ids.length
-      ? await getQuestions({ topic: state.topic, ids: state.review.ids })
+      ? await getQuestionsByRefs(state.review.ids, state.topic) // тест учителя может быть из нескольких тем
       : [];
     const extra = state.review.skills.length
       ? await getQuestions({ topic: state.topic, count: 4, skills: state.review.skills, avoid: usedIds() })

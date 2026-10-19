@@ -73,8 +73,8 @@ export async function recordStage({ lessonId, subject, topic, mode, gameId, log,
     st.answered += 1;
     if (e.correct) { st.correct += 1; correct += 1; }
     else if (e.questionId && !st.wrong.includes(e.questionId)) st.wrong.push(e.questionId);
-    addStat(st.bySkill, skillKey(topic, e.skill), e.correct);
-    addStat(lesson.bySkill, skillKey(topic, e.skill), e.correct);
+    addStat(st.bySkill, skillKey(e.topic || topic, e.skill), e.correct);
+    addStat(lesson.bySkill, skillKey(e.topic || topic, e.skill), e.correct);
   });
   // Очки этапа — по игрокам, а не по ответам
   players.forEach((p) => {
@@ -156,7 +156,7 @@ export async function studentSummaries() {
     s.lastAt = Math.max(s.lastAt, sub.lastAt || 0);
     const topic = assignments.get(sub.assignmentId)?.topic || null;
     Object.entries(sub.skillStats || {}).forEach(([skill, v]) => {
-      const k = skillKey(topic, skill);
+      const k = skill.includes('::') ? skill : skillKey(topic, skill); // задание из нескольких тем
       const acc = s.bySkill[k] || (s.bySkill[k] = { ok: 0, total: 0 });
       acc.ok += Number(v.ok) || 0; acc.total += Number(v.total) || 0;
     });

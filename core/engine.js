@@ -226,6 +226,7 @@ export class BaseGame {
 
     this.log.push({
       playerId, playerName: player.name, questionId: this.current.raw.id,
+      topic: this.current.raw.topic || this.ctx.topic, // в тесте из нескольких тем — тема самого вопроса
       skill: this.current.skill, correct, ms, value
     });
 
@@ -310,6 +311,7 @@ export class BaseGame {
     player.streak = 0;
     this.log.push({
       playerId, playerName: player.name, questionId: this.current.raw.id,
+      topic: this.current.raw.topic || this.ctx.topic,
       skill: this.current.skill, correct: false, ms: null, value: null, skipped: true
     });
   }
@@ -329,11 +331,16 @@ export class BaseGame {
   /** Разбор: сколько ошибок по каждому навыку + список ошибочных вопросов */
   buildResults(reason = 'manual') {
     const bySkill = {};
+    const bySkillTopic = {}; // «тема::навык» — для тестов из нескольких тем
     const mistakes = [];
 
     this.log.forEach((entry) => {
       const s = bySkill[entry.skill] || (bySkill[entry.skill] = { ok: 0, total: 0 });
+      const tk = `${entry.topic || this.ctx.topic}::${entry.skill}`;
+      const st = bySkillTopic[tk] || (bySkillTopic[tk] = { ok: 0, total: 0 });
       s.total += 1;
+      st.total += 1;
+      if (entry.correct) st.ok += 1;
       if (entry.correct) s.ok += 1;
       else {
         const q = this.ctx.questions.find((x) => x.id === entry.questionId);
@@ -373,6 +380,7 @@ export class BaseGame {
       teams: this.isTeamGame ? this.teamScores() : null,
       winner,
       bySkill,
+      bySkillTopic,
       mistakes,
       /** Навыки, где меньше 70% верных — их стоит повторить */
       weakSkills: Object.entries(bySkill)
@@ -388,7 +396,7 @@ export class BaseGame {
     if (this.ctx.solo) {
       for (const entry of this.log) {
         await recordAnswer({
-          topic: this.ctx.topic, skill: entry.skill, correct: entry.correct,
+          topic: entry.topic || this.ctx.topic, skill: entry.skill, correct: entry.correct,
           questionId: entry.questionId, timeMs: entry.ms, gameId: this.meta.id
         });
       }

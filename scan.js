@@ -294,7 +294,7 @@ async function accept() {
   const g = grade(res);
   const entry = {
     testId: res.test.id, variant: res.variant, name, number,
-    answers: res.items.map((it, i) => ({ questionId: it.q.id, skill: it.q.skill, correct: g[i].correct })),
+    answers: res.items.map((it, i) => ({ questionId: it.q.id, topic: it.q.topic, skill: it.q.skill, correct: g[i].correct })),
     correct: g.filter((x) => x.correct).length, total: res.items.length
   };
   // Повторный скан того же ученика заменяет прежний
@@ -336,7 +336,7 @@ async function finish() {
     const players = [];
     list.forEach((x) => {
       const playerId = `paper:${studentKey(x.name)}`;
-      x.answers.forEach((a) => log.push({ playerId, playerName: x.name, skill: a.skill, correct: a.correct, questionId: a.questionId }));
+      x.answers.forEach((a) => log.push({ playerId, playerName: x.name, topic: a.topic, skill: a.skill, correct: a.correct, questionId: a.questionId }));
       players.push({ id: playerId, name: x.name, score: x.correct });
     });
     await recordStage({ subject: test.subject, topic: test.topic, mode: $('#isCheck').checked ? 'paper-check' : 'paper', gameId: 'paper', log, players });

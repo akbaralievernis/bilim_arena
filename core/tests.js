@@ -12,7 +12,7 @@
 
 import { store } from './store.js';
 import { pick } from './i18n.js';
-import { getQuestions } from './curriculum.js';
+import { getQuestionsByRefs, parseQuestionRef } from './curriculum.js';
 
 const KEY = 'tests';
 export const LETTERS = 'ABCDEFGHIJ';
@@ -32,16 +32,30 @@ export async function getTest(id) {
   return (await allTests()).find((x) => x.id === id) || null;
 }
 
+/**
+ * Вопросы теста: из одной темы — просто id (как раньше), из нескольких — «тема::id».
+ * topic — главная тема (больше всего вопросов), topics — все темы теста.
+ */
+export function normalizeRefs(refs, fallbackTopic) {
+  const parsed = [...new Set((refs || []).map(String))].map((r) => parseQuestionRef(r, fallbackTopic));
+  const count = new Map();
+  parsed.forEach((p) => count.set(p.topic, (count.get(p.topic) || 0) + 1));
+  const topics = [...count.keys()].filter(Boolean);
+  const topic = [...count.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || fallbackTopic || null;
+  const single = topics.length <= 1;
+  return { topic, topics: topics.length ? topics : [topic].filter(Boolean), questionIds: parsed.map((p) => (single ? p.id : `${p.topic}::${p.id}`)) };
+}
+
 /** @param {object} data { id?, title, subject, grade, topic, questionIds } */
 export async function saveTest(data) {
   const list = await allTests();
   const now = Date.now();
+  const refs = normalizeRefs(data.questionIds, data.topic);
   const clean = {
     title: String(data.title || '').trim().slice(0, 120),
     subject: data.subject || null,
     grade: data.grade ? Number(data.grade) : null,
-    topic: data.topic || null,
-    questionIds: [...new Set((data.questionIds || []).map(String))]
+    ...refs
   };
   const i = data.id ? list.findIndex((x) => x.id === data.id) : -1;
   const test = i >= 0 ? { ...list[i], ...clean, updatedAt: now } : { ...clean, id: newId(), createdAt: now, updatedAt: now };
@@ -57,9 +71,7 @@ export async function deleteTest(id) {
 /** Вопросы теста в формате движка — в порядке, заданном учителем */
 export async function testQuestions(test) {
   if (!test?.questionIds?.length) return [];
-  const list = await getQuestions({ topic: test.topic, ids: test.questionIds });
-  const byId = new Map(list.map((q) => [String(q.id), q]));
-  return test.questionIds.map((id) => byId.get(String(id))).filter(Boolean);
+  return getQuestionsByRefs(test.questionIds, test.topic);
 }
 
 // ─── Варианты для печати ─────────────────────────────────────────────────────

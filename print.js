@@ -25,7 +25,8 @@ function head(test, v, lang) {
     el('div', { class: 'p-title-row' },
       el('b', { class: 'p-title' }, test.title),
       el('b', { class: 'p-variant' }, `${t('tst_variant')} ${variantName(v)}`)),
-    el('div', { class: 'p-meta' }, [pick(getSubject(topic?.subject)?.title, lang), topic ? t('grade', { n: topic.grade }) : null, pick(topic?.title, lang)].filter(Boolean).join(' · ')),
+    el('div', { class: 'p-meta' }, [pick(getSubject(topic?.subject)?.title, lang), topic ? t('grade', { n: topic.grade }) : null,
+      (test.topics?.length > 1 ? test.topics : [test.topic]).map((id) => pick(getTopic(id)?.title, lang)).filter(Boolean).join(', ')].filter(Boolean).join(' · ')),
     el('div', { class: 'p-fields' }, field(t('tst_p_name')), field(t('tst_p_class')), field(t('tst_p_date')))
   );
 }
@@ -73,7 +74,7 @@ function keyTable(test, variants) {
     el('div', { class: 'p-meta' }, `${t('tst_p_version')}: ${version(test)}`),
     el('div', { class: 'p-key-grid' }, ...variants.map(({ v, items }) => el('table', { class: 'p-key-table' },
       el('caption', {}, `${t('tst_variant')} ${variantName(v)}`),
-      el('tbody', {}, ...items.map((it) => el('tr', {}, el('th', {}, String(it.n)), el('td', {}, it.keyText))))
+      el('tbody', {}, ...items.map((it) => el('tr', {}, el('th', {}, String(it.n)), el('td', {}, ['match', 'sort', 'multiple'].includes(it.type) && it.key !== it.keyText ? `${it.key} (${it.keyText})` : it.keyText))))
     )))
   );
 }

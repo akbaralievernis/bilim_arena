@@ -9,7 +9,7 @@
 import { bootstrap, mountHeader, el, $, toast, sfx, confetti } from './core/ui.js';
 import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
-import { getTopic, getSubject, getQuestions, skillTitle } from './core/curriculum.js';
+import { getTopic, getSubject, getQuestions, getQuestionsByRefs, skillTitle } from './core/curriculum.js';
 import { BaseGame } from './core/engine.js';
 import { renderQuestion } from './core/quiz-ui.js';
 import { setPromptImage } from './core/images.js';
@@ -134,10 +134,11 @@ async function startAssignment(onlyWrong = false) {
 
   let questions;
   if (onlyWrong && state.game) {
+    // Ошибочные вопросы — из того же набора (он мог быть из нескольких тем)
     const ids = state.game.wrongQuestionIds();
-    questions = await getQuestions({ topic: a.topic, ids });
+    questions = state.game.ctx.questions.filter((q) => ids.includes(q.id));
   } else if (a.questionIds?.length) {
-    questions = await getQuestions({ topic: a.topic, ids: a.questionIds });
+    questions = await getQuestionsByRefs(a.questionIds, a.topic);
   } else {
     // Сначала вопросы, которых ученик ещё не видел (новая попытка — новые вопросы)
     const seen = new Set(seenIds(await questionMemory(), a.topic));
@@ -244,7 +245,8 @@ async function showResults(game) {
     studentName: state.profile.name || '—',
     correct: r.correctAnswers,
     total: r.totalAnswers,
-    skillStats: r.bySkill,
+    // Задание из нескольких тем — навыки с темой («тема::навык»), чтобы отчёт не путал темы
+    skillStats: a.questionIds?.some((id) => String(id).includes('::')) ? r.bySkillTopic : r.bySkill,
     mistakes: r.mistakes.map((m) => ({ questionId: m.questionId, skill: m.skill }))
   });
   toast(t('hw_result_saved'), { icon: '✅' });
