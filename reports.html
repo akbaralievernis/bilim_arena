@@ -59,10 +59,13 @@
         </div>
         <div><button class="btn primary" id="mSaveBtn" type="button" data-i18n="save">Сактоо</button></div>
       </details>
-      <label class="field no-print">
-        <span class="label" data-i18n="qb_search">Издөө</span>
-        <input class="input" id="studentSearch" type="search" autocomplete="off" />
-      </label>
+      <div class="row no-print" style="gap:8px;align-items:end">
+        <label class="field" style="flex:1;min-width:12em">
+          <span class="label" data-i18n="qb_search">Издөө</span>
+          <input class="input" id="studentSearch" type="search" autocomplete="off" />
+        </label>
+        <button class="btn soft" id="exportStudentsBtn" type="button" data-i18n="xl_export_all">Excel'ге жүктөө</button>
+      </div>
       <div class="stack" id="studentList"></div>
     </section>
 
@@ -73,6 +76,6 @@
     </section>
   </main>
   <div id="toasts"></div>
-  <script type="module" src="./reports.js?v=3"></script>
+  <script type="module" src="./reports.js?v=4"></script>
 </body>
 </html>

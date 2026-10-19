@@ -19,6 +19,19 @@ const STATUS_VIEW = {
   insufficient: ['insufficient', 'mastery_insufficient'],
   new: ['new', 'mastery_new']
 };
+/** Выгрузка в Excel: модуль подгружается только по нажатию */
+async function toExcel(kind, arg) {
+  try {
+    const mod = await import('./core/report-export.js');
+    const n = await { students: mod.exportStudents, lesson: mod.exportLesson, student: mod.exportStudent }[kind](arg);
+    toast(n ? t('xl_done') : t('rep_students_empty'), { icon: n ? '📊' : 'ℹ️' });
+  } catch (e) {
+    console.error('[excel]', e);
+    toast(t('xl_failed'), { icon: '⚠️' });
+  }
+}
+const excelBtn = (onclick) => el('button', { class: 'btn ghost', type: 'button', onclick }, icon('download', { size: 18 }), ' ', t('xl_export'));
+
 const statusBadge = (status) => el('span', { class: `state ${STATUS_VIEW[status][0]}` }, t(STATUS_VIEW[status][1]));
 
 const screens = ['lessonsScreen', 'lessonScreen', 'studentsScreen', 'studentScreen'];
@@ -112,6 +125,7 @@ async function openLesson(id) {
     el('div', { class: 'row no-print', style: 'gap:8px' },
       ...(reviewUrl && (wrongIds.length || weak.length) ? [el('a', { class: 'btn primary', href: reviewUrl }, icon('board', { size: 18 }), ' ', t('rep_repeat_board'))] : []),
       ...(topic ? [el('a', { class: 'btn ghost', href: `./homework.html?${new URLSearchParams({ topic: topic.id })}` }, t('act_homework'))] : []),
+      excelBtn(() => toExcel('lesson', lesson.id)),
       el('button', {
         class: 'btn ghost', type: 'button',
         onclick: async () => {
@@ -190,6 +204,7 @@ async function openStudent(name) {
   const weakTopic = r.weak.find((w) => getTopic(w.topic))?.topic;
 
   $('#studentDetail').replaceChildren(
+    el('div', { class: 'row no-print' }, excelBtn(() => toExcel('student', key))),
     el('div', { class: 'row between' },
       el('h2', { style: 'margin:0' }, r.name),
       el('div', { class: 'stats' },
@@ -258,6 +273,8 @@ async function openStudent(name) {
   $('#studentBackBtn').addEventListener('click', renderStudents);
   $('#studentSearch').addEventListener('input', drawStudentList);
   $('#mSaveBtn').addEventListener('click', saveMastery);
+  $('#exportStudentsBtn').replaceChildren(icon('download', { size: 18 }), ' ', t('xl_export_all'));
+  $('#exportStudentsBtn').addEventListener('click', () => toExcel('students'));
   $('#printBtn').addEventListener('click', () => window.print());
   // Результаты учеников пришли из облака — обновить открытый список
   window.addEventListener('ba:synced', () => {

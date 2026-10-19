@@ -78,6 +78,7 @@ const P = {
   pause: '<rect x="6.5" y="5" width="4" height="14" rx="1.2"/><rect x="13.5" y="5" width="4" height="14" rx="1.2"/>',
   skip: '<path d="M5.5 5.5v13l9-6.5z"/><path d="M18.5 5.5v13"/>',
   flag: '<path d="M5 21V4"/><path d="M5 4.5h11l-2 4 2 4H5"/>',
+  download: '<path d="M12 4v11"/><path d="M7 10.5 12 15.5l5-5"/><path d="M5 19.5h14"/>',
   school: '<path d="M3 21h18M5 21V10l7-5 7 5v11"/><path d="M10 21v-5h4v5M12 5V2.5h3"/>',
   hospital: '<rect x="4" y="4" width="16" height="17" rx="2"/><path d="M12 8v6M9 11h6M9.5 21v-3h5v3"/>',
   tree: '<path d="M12 21v-5"/><path d="M12 3c3.3 0 6 2.6 6 5.8 0 1-.3 2-.8 2.8A4.5 4.5 0 0 1 14 16H10a4.5 4.5 0 0 1-3.2-4.4c-.5-.8-.8-1.8-.8-2.8C6 5.6 8.7 3 12 3z"/>',
