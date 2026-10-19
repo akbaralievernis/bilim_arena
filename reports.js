@@ -7,9 +7,10 @@ import { bootstrap, mountHeader, el, $, toast } from './core/ui.js';
 import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
 import { getTopic, getSubject, skillTitle } from './core/curriculum.js';
-import { setRole } from './core/profile.js';
+import { setRole, getProfile } from './core/profile.js';
 import { lessonHistory, getLesson, deleteLesson, studentSummaries, studentReport, weakFrom } from './core/lessons.js';
 import { masterySettings, saveMasterySettings } from './core/mastery.js';
+import { fromTeacher, reportLink } from './core/parent-report.js';
 
 /** Статус освоения темы → класс и подпись */
 const STATUS_VIEW = {
@@ -197,6 +198,20 @@ function drawStudentList() {
   );
 }
 
+/** Отчёт для родителей: комментарий учителя → страница по ссылке (данные — в самой ссылке) */
+function parentReportBox(r) {
+  const note = el('textarea', { class: 'input', rows: '3', maxlength: '600', placeholder: t('pr_note_hint'), 'aria-label': t('pr_note') });
+  const open = async () => {
+    const teacher = (await getProfile()).name || '';
+    window.open(reportLink(fromTeacher(r, { note: note.value.trim(), teacher })), '_blank', 'noopener');
+  };
+  return el('details', { class: 'card plain no-print' },
+    el('summary', {}, el('b', {}, t('pr_for_parents'))),
+    el('p', { class: 'small muted' }, t('pr_for_parents_hint')),
+    note,
+    el('div', {}, el('button', { class: 'btn primary', type: 'button', onclick: open }, t('pr_open'))));
+}
+
 async function openStudent(name) {
   const key = String(name).replace(/\s+/g, ' ').trim().toLowerCase();
   const r = await studentReport(key);
@@ -204,7 +219,8 @@ async function openStudent(name) {
   const weakTopic = r.weak.find((w) => getTopic(w.topic))?.topic;
 
   $('#studentDetail').replaceChildren(
-    el('div', { class: 'row no-print' }, excelBtn(() => toExcel('student', key))),
+    el('div', { class: 'row no-print', style: 'gap:8px' }, excelBtn(() => toExcel('student', key))),
+    parentReportBox(r),
     el('div', { class: 'row between' },
       el('h2', { style: 'margin:0' }, r.name),
       el('div', { class: 'stats' },

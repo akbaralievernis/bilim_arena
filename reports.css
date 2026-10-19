@@ -20,3 +20,12 @@
   .card { box-shadow: none; border: 1px solid #ddd; }
   .rep-row { break-inside: avoid; }
 }
+
+/* ─── Отчёт для родителей (report.html) ───────────────────────────────────── */
+.pr-section h2 { font-size: 1.15rem; margin: 0; }
+.pr-list { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.pr-note { margin: 0; border-left: 4px solid var(--primary); }
+@media print {
+  .pr-section { break-inside: avoid; }
+  #report { border: 0; box-shadow: none; padding: 0; }
+}

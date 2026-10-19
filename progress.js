@@ -20,6 +20,8 @@ import { findLabStep } from './data/labs/index.js';
 import { getGame } from './data/games.js';
 import { getProgress, knowledgeMap, weakSkills, reviewSuggestions, history, BADGES, migrateLegacy } from './core/progress.js';
 import { getProfile } from './core/profile.js';
+import { fromStudent, reportLink } from './core/parent-report.js';
+import { masterySettings } from './core/mastery.js';
 
 /** Иконки достижений — из общего набора, а не эмодзи */
 const BADGE_ICON = {
@@ -225,4 +227,10 @@ async function renderHistory() {
   };
   await renderAll();
   window.addEventListener('ba:synced', renderAll); // данные пришли из облака
+
+  // Отчёт для родителей: открывается страницей, её можно распечатать или отправить ссылкой
+  $('#parentReportBtn').addEventListener('click', async () => {
+    const [p, pr, weak, hist, settings] = await Promise.all([getProfile(), getProgress(), weakSkills({ limit: 6 }), history(12), masterySettings()]);
+    location.href = reportLink(fromStudent({ name: p.name || t('role_student'), progress: pr, weak, history: hist, settings }));
+  });
 })();
