@@ -15,6 +15,7 @@ import { t, pick, getLang } from './core/i18n.js';
 import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, getQuestions, skillTitle } from './core/curriculum.js';
 import { BaseGame } from './core/engine.js';
 import { renderQuestion } from './core/quiz-ui.js';
+import { setPromptImage } from './core/images.js';
 import { getProgress, questionMemory, recordCheck, topicStatus, topicPath, recordDiagnostic, recordExplained } from './core/progress.js';
 import { pickPractice, pickCheck, pickDiagnostic, pickExamples, weakSkillsOf, dueCount, unseenCount, CHECK_MIN } from './core/selection.js';
 import { masterySettings } from './core/mastery.js';
@@ -270,6 +271,7 @@ function renderGame(game, kind) {
   $('#counter').textContent = `${game.current?.number || 0} / ${game.questionCount}`;
   $('#progressBar').style.width = `${((game.index) / game.questionCount) * 100}%`;
   $('#prompt').textContent = game.current?.prompt || '';
+  setPromptImage($('#promptImage'), game.current?.image, game.current?.prompt);
 
   // Один рендерер для всех типов: выбор, ввод, сопоставление, сортировка…
   $('#inputWrap').classList.add('hidden');

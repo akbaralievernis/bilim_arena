@@ -176,6 +176,7 @@ export class BaseGame {
       raw: q,
       number: this.index + 1,
       prompt: pick(q.prompt, lang),
+      image: q.image || null, // картинка — на доске и в соло-режиме; на телефоны не шлём (тяжело для сети)
       explain: pick(q.explain, lang),
       type,
       options,
@@ -447,6 +448,7 @@ export class BaseGame {
         total: this.questionCount,
         type: this.current.type,
         prompt: this.current.prompt,
+        hasImage: !!this.current.image,
         options: this.current.options,
         pairs: this.current.pairs,
         items: this.current.items,

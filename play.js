@@ -42,7 +42,8 @@ function render(spec) {
       status.replaceChildren(...[
         spec.clue ? el('div', { class: 'chip on' }, `${spec.clue.title}`) : null,
         el('div', { class: 'small muted' }, `${spec.number} / ${spec.total}`),
-        el('h2', {}, spec.prompt)
+        el('h2', {}, spec.prompt),
+        spec.hasImage ? el('div', { class: 'chip' }, t('img_on_board')) : null
       ].filter(Boolean));
       $('#footHint').textContent = t('game_time') + ': ' + (spec.timeLeft ?? '');
 

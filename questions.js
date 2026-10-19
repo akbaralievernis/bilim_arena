@@ -17,6 +17,7 @@ import {
   deleteQuestion, duplicateQuestion, getQuestion, allQuestions, toEngineQuestion
 } from './core/questions.js';
 import { pairsToReview } from './core/duplicates.js';
+import { compressImage, setPromptImage, dataUrlBytes } from './core/images.js';
 import { store } from './core/store.js';
 
 /** Пары, которые учитель отметил как «разные вопросы» */
@@ -99,7 +100,7 @@ async function renderList() {
       el('span', { class: 'q-text' },
         el('b', {}, textOf(q.question, lang)),
         el('span', { class: 'small muted' },
-          `${pick(meta.title, lang)} · ${skillTitle(q.topic, q.skill, lang)} · ${t('difficulty_' + (q.difficulty || 1))} · ${q.xp || 10} XP`)
+          `${q.image ? '📷 · ' : ''}${pick(meta.title, lang)} · ${skillTitle(q.topic, q.skill, lang)} · ${t('difficulty_' + (q.difficulty || 1))} · ${q.xp || 10} XP`)
       ),
       el('button', { class: 'btn ghost', type: 'button', 'aria-label': t('edit'), onclick: () => openForm(q.id) }, icon('pen')),
       el('button', {
@@ -125,6 +126,24 @@ async function renderList() {
 
 // ─── Конструктор ──────────────────────────────────────────────────────────────
 
+function showImage(note = '') {
+  setPromptImage($('#fImagePreview'), state.image, t('img_label'));
+  $('#fImageRemove').classList.toggle('hidden', !state.image);
+  $('#fImageNote').textContent = note || (state.image ? t('img_size', { kb: Math.round(dataUrlBytes(state.image) / 1024) }) : t('img_hint'));
+}
+
+async function pickImage(file) {
+  if (!file) return;
+  $('#fImageNote').textContent = t('img_working');
+  try {
+    const res = await compressImage(file);
+    state.image = res.url;
+    showImage();
+  } catch (e) {
+    showImage(t(e.message === 'too-big' ? 'img_too_big' : 'img_not_image'));
+  }
+}
+
 async function openForm(id = null) {
   const lang = getLang();
   const q = id ? await getQuestion(id) : null;
@@ -141,6 +160,8 @@ async function openForm(id = null) {
   fillSelect($('#fType'), QUESTION_TYPES.map((x) => ({ value: x.id, label: `${pick(x.title, lang)}` })), q?.type || 'single');
 
   $('#fQuestion').value = textOf(q?.question, lang);
+  state.image = q?.image || null;
+  showImage();
   $('#fExplanation').value = textOf(q?.explanation, lang);
   $('#fXP').value = q?.xp || 10;
 
@@ -337,7 +358,7 @@ async function save() {
   }
 
   const topicObj = getTopic(topic);
-  await saveQuestion({
+  const saved = await saveQuestion({
     id: state.editing?.id,
     type,
     question,
@@ -350,8 +371,10 @@ async function save() {
     topic,
     skill,
     difficulty: Number($('#fDifficulty').value) || 1,
-    xp: Number($('#fXP').value) || 10
+    xp: Number($('#fXP').value) || 10,
+    image: state.image || null
   });
+  if (!saved) return toast(t('img_storage_full'), { icon: '⚠️', ms: 7000 });
 
   toast(t('qb_saved'), { icon: '✅' });
   renderList();
@@ -646,6 +669,8 @@ function renderReadyFilters() {
   if (new URLSearchParams(location.search).get('view') === 'ready') renderReady();
   $('#cancelBtn').addEventListener('click', renderList);
   $('#saveBtn').addEventListener('click', save);
+  $('#fImage').addEventListener('change', (e) => { pickImage(e.target.files[0]); e.target.value = ''; });
+  $('#fImageRemove').addEventListener('click', () => { state.image = null; showImage(); });
 
   $('#fSubject').addEventListener('change', () => syncTopics());
   $('#fGrade').addEventListener('change', () => syncTopics());

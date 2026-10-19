@@ -79,7 +79,8 @@ export async function saveQuestion(data) {
     const i = list.findIndex((q) => q.id === data.id);
     if (i >= 0) {
       list[i] = { ...list[i], ...data, updatedAt: now };
-      await store.set(KEY, list);
+      // Место в браузере кончилось (обычно из-за картинок) — сообщаем, а не теряем молча
+      if (!(await store.set(KEY, list))) return null;
       return list[i];
     }
   }
@@ -98,7 +99,7 @@ export async function saveQuestion(data) {
     updatedAt: now
   };
   list.push(question);
-  await store.set(KEY, list);
+  if (!(await store.set(KEY, list))) return null;
   return question;
 }
 
@@ -139,6 +140,7 @@ export function toEngineQuestion(q) {
     xp: Number(q.xp) || 10,
     prompt: q.question,
     explain: q.explanation,
+    image: q.image || null,
     custom: true
   };
 

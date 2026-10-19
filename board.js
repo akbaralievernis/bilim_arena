@@ -17,6 +17,7 @@ const CLUE_ICON = { document: 'tasks', photo: 'camera', map: 'map', testimony: '
 import { t, pick, getLang } from './core/i18n.js';
 import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, getQuestions, skillTitle } from './core/curriculum.js';
 import { createRoom, joinUrl, renderQR } from './core/realtime.js';
+import { setPromptImage } from './core/images.js';
 import QuickVoteGame from './games/quickvote/game.js';
 import TerritoryGame from './games/territory/game.js';
 import ErrorHuntGame from './games/errorhunt/game.js';
@@ -537,6 +538,7 @@ function renderInvestigation(game) {
   // Фаза улики: вопрос рисуется базовой логикой, а после ответа — содержание улики
   const clue = game.currentClue;
   $('#prompt').textContent = game.current?.prompt || '';
+  setPromptImage($('#promptImage'), game.current?.image, game.current?.prompt);
   const reveal = game.state === 'reveal';
 
   options.replaceChildren(...(game.current?.options || []).map((text, i) => el('div', {
@@ -621,6 +623,7 @@ function renderGame(game, kind) {
   $('#questionCounter').textContent = t('game_question', { n: `${game.current?.number || 0}/${game.questionCount}` });
   $('#answeredCount').textContent = game.statusText ? game.statusText() : '';
   $('#prompt').textContent = game.current?.prompt || '';
+  setPromptImage($('#promptImage'), game.current?.image, game.current?.prompt);
 
   const reveal = game.state === 'reveal';
 

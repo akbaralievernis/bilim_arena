@@ -910,3 +910,8 @@ button.option:not([disabled]):hover { border-color: var(--primary); }
 }
 @media (max-width: 767px) { .offline-bar { bottom: calc(84px + env(safe-area-inset-bottom)); } }
 @media print { .offline-bar { display: none; } }
+
+/* ─── Картинка в вопросе ──────────────────────────────────────────────────── */
+.prompt-image-wrap { display: flex; justify-content: center; margin: 4px 0 12px; }
+.prompt-image { display: block; max-width: 100%; max-height: 38vh; border-radius: var(--radius-sm); border: 1px solid var(--line); background: #fff; object-fit: contain; }
+body.board-mode .prompt-image { max-height: 46vh; }

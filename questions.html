@@ -217,6 +217,18 @@
         <textarea class="input" id="fQuestion" rows="2"></textarea>
       </label>
 
+      <!-- Картинка к вопросу (по желанию): сжимается на устройстве -->
+      <div class="field">
+        <span class="label" data-i18n="img_label">Сүрөт (милдеттүү эмес)</span>
+        <div class="row" style="gap:8px">
+          <label class="btn soft" for="fImage" data-i18n="img_choose">Сүрөт тандоо</label>
+          <input class="sr-only" id="fImage" type="file" accept="image/*" />
+          <button class="btn ghost hidden" id="fImageRemove" type="button" data-i18n="img_remove">Сүрөттү алып салуу</button>
+        </div>
+        <div class="prompt-image-wrap" id="fImagePreview" hidden></div>
+        <p class="small muted" id="fImageNote" aria-live="polite"></p>
+      </div>
+
       <!-- Поля ответа зависят от типа задания -->
       <div class="card plain stack" id="answerFields"></div>
 
@@ -234,6 +246,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./questions.js?v=17"></script>
+  <script type="module" src="./questions.js?v=18"></script>
 </body>
 </html>

@@ -59,3 +59,6 @@
 /* Бланк для сканера: SVG в миллиметрах, на экране — по ширине листа */
 .p-omr svg { display: block; width: 100%; height: auto; max-width: 184mm; margin: 0 auto; }
 @media print { .p-omr svg { width: 184mm; height: 264mm; } }
+
+/* Картинка в вопросе: не больше трети листа */
+.p-img { display: block; max-width: 70%; max-height: 60mm; margin: 4px 0 6px; }

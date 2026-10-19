@@ -13,6 +13,7 @@ import { getTopic, getSubject } from './core/curriculum.js';
 import { setRole } from './core/profile.js';
 import { getTest, testQuestions, buildVariant, variantName, LETTERS } from './core/tests.js';
 import { sheetSvg, MAX_ITEMS } from './core/omr.js';
+import { safeImageSrc } from './core/images.js';
 
 const state = { test: null, questions: [] };
 const field = (label) => el('span', { class: 'p-field' }, `${label}: `, el('span', { class: 'p-line' }));
@@ -48,7 +49,8 @@ function questionBlock(item) {
   } else {
     body.push(el('div', { class: 'p-answer' }, `${t('tst_p_answer')}: ______________________`));
   }
-  return el('li', { class: 'p-q' }, el('div', { class: 'p-prompt' }, item.prompt), ...body);
+  const img = safeImageSrc(item.q.image) ? el('img', { class: 'p-img', src: item.q.image, alt: '' }) : null;
+  return el('li', { class: 'p-q' }, el('div', { class: 'p-prompt' }, item.prompt), img, ...body);
 }
 
 /** Бланк ответов для сканера (core/omr.js): метки, код теста, номер ученика, кружки */

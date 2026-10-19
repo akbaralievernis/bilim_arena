@@ -12,6 +12,7 @@ import { t, pick, getLang } from './core/i18n.js';
 import { getTopic, getSubject, getQuestions, skillTitle } from './core/curriculum.js';
 import { BaseGame } from './core/engine.js';
 import { renderQuestion } from './core/quiz-ui.js';
+import { setPromptImage } from './core/images.js';
 import { getProfile } from './core/profile.js';
 import { getProgress, questionMemory } from './core/progress.js';
 import { seenIds } from './core/selection.js';
@@ -177,6 +178,7 @@ function renderGame(game, kind) {
   $('#counter').textContent = `${game.current?.number || 0} / ${game.questionCount}`;
   $('#progressBar').style.width = `${(game.index / game.questionCount) * 100}%`;
   $('#prompt').textContent = game.current?.prompt || '';
+  setPromptImage($('#promptImage'), game.current?.image, game.current?.prompt);
 
   const hide = !!state.current?.assignment.check; // проверка: верно ли — только в конце
   renderQuestion($('#answerArea'), game.current, {
