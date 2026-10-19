@@ -1,0 +1,49 @@
+/* English City — только свои классы (ec-), общая дизайн-система — core/ui.css */
+
+.ec-rules { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+.ec-place { text-align: left; display: grid; gap: 4px; cursor: pointer; }
+.ec-place.on { box-shadow: 0 0 0 2px var(--primary); }
+
+.ec-task { gap: 10px; }
+.ec-instruction { font-size: clamp(1.15rem, 2.6vw, 1.5rem); font-weight: 700; line-height: 1.35; min-height: 1.4em; }
+
+/* Сцена: места — карточки с рисунком, предметы — кнопки внутри */
+.ec-scene { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); gap: 10px; }
+.ec-zone {
+  display: grid; grid-template-rows: auto 1fr; gap: 6px; min-height: 140px; padding: 8px;
+  border-radius: var(--radius-sm); background: var(--surface); border: 2px dashed var(--line);
+}
+.ec-zone.start { background: var(--surface-2); grid-column: 1 / -1; min-height: 110px; }
+.ec-drop {
+  display: flex; align-items: center; gap: 8px; width: 100%; min-height: var(--tap); padding: 4px 8px;
+  border: 0; border-radius: 10px; background: transparent; color: var(--text); font: inherit; font-weight: 700; cursor: pointer;
+}
+.ec-drop:hover { background: var(--primary-soft); }
+.ec-drop:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.ec-zone-art { flex: none; display: grid; place-items: center; }
+.ec-zone-label { text-align: left; }
+.ec-items { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; }
+.ec-obj {
+  width: 54px; height: 54px; display: grid; place-items: center; padding: 0; cursor: grab;
+  border: 2px solid var(--line); border-radius: 12px; background: #fff;
+  touch-action: none; /* перетаскивание пальцем не прокручивает страницу */
+}
+.ec-obj:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.ec-obj.selected { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+.ec-obj.hinted { border-color: var(--reward); box-shadow: 0 0 0 3px var(--reward-soft); }
+.ec-ghost { position: fixed; z-index: 80; pointer-events: none; opacity: 0.9; box-shadow: var(--shadow-lg); }
+
+.ec-feedback:empty { display: none; }
+.ec-feedback { padding: 10px 14px; border-radius: var(--radius-sm); border-left: 4px solid var(--line); background: var(--surface); }
+.ec-feedback.ok { border-left-color: var(--ok); }
+.ec-feedback.bad { border-left-color: var(--bad); }
+.ec-feedback ul { margin: 6px 0; padding-left: 1.2em; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ec-obj { transition: transform 0.15s var(--ease); }
+  .ec-obj.selected { transform: translateY(-2px); }
+}
+@media (max-width: 480px) {
+  .ec-scene { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ec-obj { width: 48px; height: 48px; }
+}

@@ -77,13 +77,15 @@ export function resultView(o) {
     review = el('section', { class: 'res-block' }, toggle, panel);
   }
 
-  const other = o.other || { label: t('res_other_game'), href: './games.html' };
+  // Адреса от корня сайта: экран результата работает и в играх из подпапок games/…
+  const root = new URL('../', import.meta.url);
+  const other = o.other || { label: t('res_other_game'), href: new URL('games.html', root).href };
   const actions = el('div', { class: 'res-actions' }, ...[
     o.onAgain ? el('button', { class: 'btn primary', type: 'button', onclick: o.onAgain }, icon('refresh', { size: 18 }), el('span', {}, t('res_play_again'))) : null,
     other.href
       ? el('a', { class: 'btn', href: other.href }, icon('games', { size: 18 }), el('span', {}, other.label))
       : el('button', { class: 'btn', type: 'button', onclick: other.onClick }, icon('games', { size: 18 }), el('span', {}, other.label)),
-    el('a', { class: 'btn', href: './progress.html' }, icon('progress', { size: 18 }), el('span', {}, t('nav_progress')))
+    el('a', { class: 'btn', href: new URL('progress.html', root).href }, icon('progress', { size: 18 }), el('span', {}, t('nav_progress')))
   ].filter(Boolean));
 
   return el('div', { class: 'result-view' },

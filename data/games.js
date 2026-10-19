@@ -87,6 +87,27 @@ const board = (params) => `./board.html${params ? '?' + params : ''}`;
 export const GAMES = [
   // ─── Тил үйрөнүү ─────────────────────────────────────────────────────────
   {
+    id: 'english-city', category: 'languages', subjects: ['english'], type: 'interactive', difficulty: 1, players: [1, 1],
+    devices: ['phone', 'computer', 'board'], minutes: 8, added: '2026-10-19', rank: 78, href: './games/english-city/index.html', art: { icon: 'city', tone: 'teal' },
+    title: L('English City', 'English City', 'English City'),
+    desc: L('Англисче көрсөтмө боюнча буюмдарды ордуна кой: түстөр, сандар, предлогдор, угуп түшүнүү', 'Раскладывай предметы по английским инструкциям: цвета, числа, предлоги, понимание на слух',
+      'Follow English instructions and move things around: colours, numbers, prepositions, listening')
+  },
+  {
+    id: 'story-lab', category: 'languages', subjects: ['english'], type: 'interactive', difficulty: 2, players: [1, 1],
+    devices: ['phone', 'computer'], minutes: 10, added: '2026-10-19', rank: 77, href: './games/story-lab/index.html', art: { icon: 'book', tone: 'violet' },
+    title: L('Story Lab', 'Story Lab', 'Story Lab'),
+    desc: L('Каармандар менен англисче сүйлөш — сенин жоопторуң окуянын аягын өзгөртөт', 'Говори с героями по-английски — твои ответы меняют концовку истории',
+      'Talk to the characters in English — your answers change how the story ends')
+  },
+  {
+    id: 'picture-detective', category: 'languages', subjects: ['english'], type: 'interactive', difficulty: 2, players: [1, 1],
+    devices: ['phone', 'computer'], minutes: 10, added: '2026-10-19', rank: 76, href: './games/picture-detective/index.html', art: { icon: 'lens', tone: 'amber' },
+    title: L('Picture Detective', 'Picture Detective', 'Picture Detective'),
+    desc: L('Сүрөттү англисче өз сүйлөмдөрүң менен сүрөттө — жаз же айт', 'Опиши картинку своими английскими предложениями — письменно или голосом',
+      'Describe a picture in your own English sentences — type or speak')
+  },
+  {
     id: 'speak', category: 'languages', subjects: ['english'], type: 'interactive', difficulty: 2, players: [1, 1],
     devices: ['phone', 'computer'], minutes: 5, added: '2026-09-25', rank: 80, href: './speak.html', art: { icon: 'mic', tone: 'rose' },
     title: L('Айт!', 'Говори!', 'Speak!'),

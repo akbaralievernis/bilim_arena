@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ky" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <!-- Безопасность: скрипты только с сайта и проверенного CDN, соединения только с базой и сервером знакомства -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://udkxmgflbxetfzziftla.supabase.co wss://udkxmgflbxetfzziftla.supabase.co https://bilimarena-signal.bilimarena-signal.workers.dev wss://bilimarena-signal.bilimarena-signal.workers.dev https://0.peerjs.com wss://0.peerjs.com https://cdn.jsdelivr.net; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F7F8FC" />
+  <meta name="description" content="English City — англисче көрсөтмөлөрдү аткарып, буюмдарды ордуна кой." />
+  <title>English City — Bilim Arena</title>
+  <link rel="icon" href="../../assets/logo.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png" />
+  <link rel="stylesheet" href="../../core/ui.css?v=17" />
+  <link rel="stylesheet" href="./style.css?v=1" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main" data-i18n="skip_to_content">Мазмунга өтүү</a>
+  <div id="header"></div>
+
+  <main id="main" class="wrap stack" style="padding-top:20px;padding-bottom:40px">
+    <!-- Начало: место, уровень, режим -->
+    <section class="card pad-lg stack" id="startScreen">
+      <div class="row between">
+        <h1 style="margin:0">English City</h1>
+        <a class="btn ghost" href="../../games.html" data-i18n="eg_back_catalog">Оюндарга кайтуу</a>
+      </div>
+      <p class="muted" data-i18n="ec_intro">Англисче көрсөтмөнү окуп же угуп, буюмдарды керектүү жерге кой.</p>
+      <div class="card plain stack">
+        <b data-i18n="game_how">Кантип ойнойт</b>
+        <ol class="small ec-rules">
+          <li data-i18n="ec_rule_1">Буюмду тандап (басып же сүйрөп), андан кийин жерди тандаңыз.</li>
+          <li data-i18n="ec_rule_2">Баары даяр болгондо «Текшерүү» баскычын басыңыз.</li>
+          <li data-i18n="ec_rule_3">Ката болсо — көрсөтмөнүн кайсы бөлүгү аткарыла электигин айтабыз. Кайра аракет кылыңыз.</li>
+        </ol>
+      </div>
+      <div class="stack">
+        <b data-i18n="ec_choose_place">Жерди тандаңыз</b>
+        <div class="grid auto" id="sceneList"></div>
+      </div>
+      <div class="stack">
+        <b data-i18n="eg_level">Деңгээл</b>
+        <div class="chips" id="levelList" role="group" aria-label="Деңгээл" data-i18n-attr="aria-label:eg_level"></div>
+      </div>
+      <label class="check"><input type="checkbox" id="listenMode" /> <span data-i18n="ec_listen_mode">Угуп түшүнүү: көрсөтмө жашырылат, аны угасыз</span></label>
+      <p class="small muted" id="audioNote"></p>
+      <div><button class="btn primary big" id="startBtn" type="button" data-i18n="game_start">Оюнду баштоо</button></div>
+    </section>
+
+    <!-- Игра -->
+    <section class="stack hidden" id="playScreen">
+      <div class="row between">
+        <span class="chip" id="counter"></span>
+        <span class="small muted" id="placeLabel"></span>
+      </div>
+      <div class="bar"><i id="progressBar" style="width:0%"></i></div>
+      <div class="card stack ec-task">
+        <div class="ec-instruction" id="instruction" aria-live="polite"></div>
+        <div class="row" style="gap:8px">
+          <button class="btn soft" id="listenBtn" type="button"></button>
+          <button class="btn ghost hidden" id="showTextBtn" type="button" data-i18n="ec_show_text">Текстти көрсөтүү</button>
+        </div>
+      </div>
+      <p class="small muted" id="selectHint" aria-live="polite"></p>
+      <div class="ec-scene" id="scene"></div>
+      <div class="ec-feedback" id="feedback" role="status" aria-live="polite"></div>
+      <div class="row" style="gap:8px">
+        <button class="btn primary big" id="checkBtn" type="button" data-i18n="ec_check">Текшерүү</button>
+        <button class="btn ghost" id="resetBtn" type="button" data-i18n="ec_reset">Кайра баштоо</button>
+        <button class="btn ghost hidden" id="hintBtn" type="button" data-i18n="ec_hint">Жардам</button>
+        <button class="btn ghost hidden" id="skipBtn" type="button" data-i18n="ec_skip">Өткөрүп жиберүү</button>
+      </div>
+    </section>
+
+    <section class="card pad-lg hidden result-screen" id="resultScreen" aria-live="polite"></section>
+  </main>
+
+  <div id="toasts"></div>
+  <script type="module" src="./app.js?v=1"></script>
+</body>
+</html>

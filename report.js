@@ -35,7 +35,7 @@ function render(r) {
     el('span', { class: `state ${STATUS_CLS[x.s]}` }, t(STATUS_KEY[x.s])),
     x.c != null ? ` · ${t('rep_last_check')}: ${x.c}%` : x.p != null ? ` · ${x.p}%` : '');
 
-  $('#report').replaceChildren(
+  $('#report').replaceChildren(...[
     el('header', { class: 'stack', style: 'gap:4px' },
       el('h1', { style: 'margin:0' }, t('pr_title', { name: r.name || '—' })),
       el('p', { class: 'muted', style: 'margin:0' }, [
@@ -60,7 +60,7 @@ function render(r) {
     !r.topics.length && !r.recent.length ? el('p', { class: 'muted' }, t('pr_empty')) : null,
     section(t('pr_home'), el('ul', { class: 'pr-list' }, ...['pr_home_1', 'pr_home_2', 'pr_home_3'].map((k) => el('li', {}, t(k))))),
     el('p', { class: 'small muted' }, t('pr_disclaimer', { th: r.threshold }))
-  );
+  ].filter(Boolean));
 }
 
 (async function init() {

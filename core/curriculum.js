@@ -82,7 +82,12 @@ export const TOPICS = [
       { id: 'animals', title: { ky: 'Жаныбарлар', ru: 'Животные', en: 'Animals' } },
       { id: 'food', title: { ky: 'Тамак-аш', ru: 'Еда', en: 'Food' } },
       { id: 'school', title: { ky: 'Мектеп', ru: 'Школа', en: 'School' } },
-      { id: 'verbs', title: { ky: 'Этиштер', ru: 'Глаголы', en: 'Verbs' } }
+      { id: 'verbs', title: { ky: 'Этиштер', ru: 'Глаголы', en: 'Verbs' } },
+      // Навыки трёх игр по английскому (English City, Story Lab, Picture Detective)
+      { id: 'listening', title: { ky: 'Угуп түшүнүү', ru: 'Понимание на слух', en: 'Listening' } },
+      { id: 'prepositions', title: { ky: 'Орун предлогдору', ru: 'Предлоги места', en: 'Prepositions of place' } },
+      { id: 'dialogue', title: { ky: 'Күнүмдүк сүйлөшүү', ru: 'Повседневный диалог', en: 'Everyday dialogue' } },
+      { id: 'describing', title: { ky: 'Сүрөттү сүрөттөө', ru: 'Описание картинки', en: 'Describing pictures' } }
     ],
     bank: () => import('../data/questions/english-5-basics.js')
   },

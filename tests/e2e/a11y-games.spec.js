@@ -2,7 +2,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-const GAMES = ['flashcards', 'word-match', 'wordle', 'word-rain', 'balloons', 'sentence', 'odd-one-out', 'focus-duel', 'citadel', 'eagle', 'reaction', 'mafia'];
+const GAMES = ['flashcards', 'word-match', 'wordle', 'word-rain', 'balloons', 'sentence', 'odd-one-out', 'focus-duel', 'citadel', 'eagle', 'reaction', 'mafia', 'english-city', 'story-lab', 'picture-detective'];
 
 test('standalone games have no serious accessibility problems', async ({ page }) => {
   test.setTimeout(240_000);

@@ -1,0 +1,11 @@
+/* Picture Detective — только свои классы (pd-), общая дизайн-система — core/ui.css */
+
+.pd-rules { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+.pd-layout { align-items: start; }
+.pd-picture { margin: 0; padding: 8px; overflow: hidden; }
+.pd-svg { display: block; width: 100%; height: auto; border-radius: var(--radius-sm); }
+.pd-prompt { margin: 0; font-size: clamp(1.05rem, 2.2vw, 1.25rem); font-weight: 700; line-height: 1.4; }
+.pd-feedback { border-left: 4px solid var(--warn); }
+.pd-feedback.good { border-left-color: var(--ok); }
+.pd-score { font-size: 1.4rem; }
+.pd-list { margin: 4px 0 0; padding-left: 1.2em; display: grid; gap: 4px; }

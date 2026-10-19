@@ -20,7 +20,7 @@ export default defineConfig({
   },
   projects: [
     // Страницы — с настоящей Content-Security-Policy
-    { name: 'pages', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic|a11y|a11y-games)\.spec\.js/, use: { channel: 'chrome' } },
+    { name: 'pages', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic|a11y|a11y-games|english-games)\.spec\.js/, use: { channel: 'chrome' } },
     // Урок и конструктор: телефоны говорят с локальным сервером знакомства,
     // которого нет в CSP сайта, поэтому CSP здесь отключена
     { name: 'classroom', testMatch: /(classroom|import)\.spec\.js/, use: { channel: 'chrome', bypassCSP: true } },
@@ -28,8 +28,8 @@ export default defineConfig({
     { name: 'offline', testMatch: /offline\.spec\.js/, use: { channel: 'chrome', serviceWorkers: 'allow' } },
     // Те же страницы в движках Safari и Firefox — по явному запросу:
     // npx playwright test --project=webkit --project=firefox
-    { name: 'webkit', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic)\.spec\.js/, use: { browserName: 'webkit' } },
-    { name: 'firefox', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic)\.spec\.js/, use: { browserName: 'firefox' } },
+    { name: 'webkit', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic|english-games)\.spec\.js/, use: { browserName: 'webkit' } },
+    { name: 'firefox', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic|english-games)\.spec\.js/, use: { browserName: 'firefox' } },
     // Скорость на слабом телефоне и 3G — только по явному запросу: npx playwright test --project=perf
     { name: 'perf', testMatch: /perf\.spec\.js/, use: { channel: 'chrome' } },
     // Нагрузка — только по явному запросу: npx playwright test --project=load

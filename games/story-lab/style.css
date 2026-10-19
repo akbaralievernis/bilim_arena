@@ -1,0 +1,23 @@
+/* Story Lab — только свои классы (sl-), общая дизайн-система — core/ui.css */
+
+.sl-rules { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+.sl-story { text-align: left; display: grid; gap: 6px; cursor: pointer; padding: 0 0 14px; overflow: hidden; }
+.sl-story > *:not(.sl-story-art) { margin: 0 14px; }
+.sl-story.match { box-shadow: 0 0 0 2px var(--primary); }
+.sl-story-art .art-cover, .sl-art .art-cover { display: block; width: 100%; height: 120px; }
+.sl-art { border-radius: var(--radius-sm); overflow: hidden; }
+
+.sl-context { margin: 0; color: var(--text-soft); }
+.sl-bubble { position: relative; padding: 12px 16px; border-radius: 16px; background: var(--surface-2); border-left: 4px solid var(--secondary); }
+.sl-bubble.reply { border-left-color: var(--primary); background: var(--primary-soft); }
+.sl-speaker { display: block; font-size: 0.85rem; color: var(--text-soft); }
+.sl-line { margin: 4px 0 0; font-size: clamp(1.1rem, 2.4vw, 1.35rem); font-weight: 700; line-height: 1.35; }
+.sl-translation { margin: 6px 0 0; }
+
+.sl-choice { text-align: left; }
+.sl-feedback { border-left: 4px solid var(--line); }
+.sl-feedback.q-best { border-left-color: var(--ok); }
+.sl-feedback.q-ok { border-left-color: var(--warn); }
+.sl-feedback.q-poor { border-left-color: var(--bad); }
+.sl-ending.good { border-left: 4px solid var(--ok); }
+.sl-ending.bad { border-left: 4px solid var(--warn); }

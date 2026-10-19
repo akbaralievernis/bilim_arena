@@ -5,7 +5,7 @@ const PAGES = ['index', 'games', 'practice', 'progress', 'profile', 'tasks', 'sp
   'teacher', 'homework', 'questions', 'reports', 'board', 'play', 'privacy', 'terms', 'tests', 'scan', 'report'];
 const GAMES = ['games/flashcards/index.html', 'games/word-match/index.html', 'games/wordle/index.html', 'games/word-rain/index.html',
   'games/balloons/index.html', 'games/sentence/index.html', 'games/odd-one-out/index.html', 'games/focus-duel/index.html',
-  'games/citadel/index.html', 'games/mafia/index.html'];
+  'games/citadel/index.html', 'games/mafia/index.html', 'games/english-city/index.html', 'games/story-lab/index.html', 'games/picture-detective/index.html'];
 
 /** Ошибки страницы: исключения, console.error, нарушения CSP */
 function watch(page) {

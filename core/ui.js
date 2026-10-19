@@ -117,8 +117,15 @@ const TEACHER_NAV = [
 ];
 
 /** Ссылка меню: текущая страница — aria-current, страница раздела — подсветка */
+/**
+ * Адрес страницы сайта от его корня — шапка работает и на страницах в подпапках
+ * (games/english-city/ и т. п.). Сравнения «активный пункт» идут по короткому имени.
+ */
+const SITE_ROOT = new URL('../', import.meta.url);
+export const siteUrl = (path) => new URL(path, SITE_ROOT).href;
+
 const navLink = (it, active, { tab = false } = {}) => el('a', {
-  href: it.href,
+  href: siteUrl(it.href),
   ...(tab ? {} : { title: t(it.key) }),
   ...(active === it.href ? { 'aria-current': 'page' } : {}),
   ...(SECTION[active] === it.href ? { class: 'active' } : {})
@@ -146,18 +153,18 @@ export function mountHeader(target, { role = 'student', active = '' } = {}) {
     langSelect,
     // Облако — только когда подключено
     SUPABASE.url ? el('a', {
-      class: 'icon-link', href: 'account.html', id: 'cloudBtn',
+      class: 'icon-link', href: siteUrl('account.html'), id: 'cloudBtn',
       title: t('acc_title'), 'aria-label': t('acc_title')
     }, icon('cloud')) : null
   );
 
   if (!teacher) {
     // Режим учителя — отдельной кнопкой, не среди разделов ученика
-    actions.append(el('a', { class: 'teacher-link', href: 'teacher.html', title: t('home_teacher_cta') }, icon('teacher', { size: 18 }), el('span', {}, t('nav_teacher'))));
+    actions.append(el('a', { class: 'teacher-link', href: siteUrl('teacher.html'), title: t('home_teacher_cta') }, icon('teacher', { size: 18 }), el('span', {}, t('nav_teacher'))));
 
     // Профиль ученика: иллюстрация и имя (подгружаются из профиля)
     const link = el('a', {
-      class: 'profile-link', href: 'profile.html', 'aria-label': t('nav_profile'),
+      class: 'profile-link', href: siteUrl('profile.html'), 'aria-label': t('nav_profile'),
       ...(active === 'profile.html' ? { 'aria-current': 'page' } : {})
     }, avatar(null, { size: 34, animated: false }), el('span', { class: 'profile-name' }, t('nav_profile')));
     actions.append(link);
@@ -168,8 +175,8 @@ export function mountHeader(target, { role = 'student', active = '' } = {}) {
   }
 
   const header = el('header', { class: 'topbar' },
-    el('a', { class: 'brand', href: teacher ? 'teacher.html' : 'index.html', 'aria-label': t('app_name') },
-      el('img', { class: 'logo', src: 'assets/logo.svg', alt: '', width: 36, height: 36 }),
+    el('a', { class: 'brand', href: siteUrl(teacher ? 'teacher.html' : 'index.html'), 'aria-label': t('app_name') },
+      el('img', { class: 'logo', src: siteUrl('assets/logo.svg'), alt: '', width: 36, height: 36 }),
       el('span', { class: 'brand-name' }, t('app_name'))
     ),
     nav,
