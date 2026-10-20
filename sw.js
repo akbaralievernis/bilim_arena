@@ -8,7 +8,7 @@
  * Прогресс, XP и данные Supabase хранятся в localStorage/облаке — кэш их не трогает.
  */
 const PREFIX = 'ba-';
-const VERSION = 'ba-v48';
+const VERSION = 'ba-v49';
 const CORE = [
   './', './index.html', './home.css', './home.js',
   './board.html', './board.js', './play.html', './play.js',
@@ -18,11 +18,16 @@ const CORE = [
   './questions.html', './questions.js', './speak.html', './speak.js', './account.html', './account.js', './games.html', './games.js', './profile.html', './profile.js', './race.html', './race.js', './reports.html', './reports.js', './reports.css', './privacy.html', './terms.html', './legal.js', './data/legal.js', './tests.html', './tests.js', './print.html', './print.js', './print.css', './scan.html', './scan.js', './scan.css', './report.html', './report.js',
   './manifest.webmanifest', './assets/logo.svg', './assets/icon-192.png', './assets/icon-512.png',
   './assets/icon-maskable-512.png', './assets/apple-touch-icon.png',
+  // Шрифты сайта (раньше — Google Fonts)
+  './assets/fonts/fonts.css',
+  './assets/fonts/inter-latin.woff2', './assets/fonts/inter-latin-ext.woff2', './assets/fonts/inter-cyrillic.woff2', './assets/fonts/inter-cyrillic-ext.woff2',
+  './assets/fonts/montserrat-latin.woff2', './assets/fonts/montserrat-latin-ext.woff2', './assets/fonts/montserrat-cyrillic.woff2', './assets/fonts/montserrat-cyrillic-ext.woff2',
+  './assets/fonts/jetbrains-mono-latin.woff2', './assets/fonts/jetbrains-mono-latin-ext.woff2', './assets/fonts/jetbrains-mono-cyrillic.woff2', './assets/fonts/jetbrains-mono-cyrillic-ext.woff2',
   // Ядро платформы
   './core/ui.css', './core/board.css', './core/ui.js', './core/i18n.js',
   './core/store.js', './core/profile.js', './core/curriculum.js',
   './core/progress.js', './core/engine.js', './core/realtime.js',
-  './core/questions.js', './core/assignments.js', './core/quiz-ui.js', './core/sync.js', './core/speech.js', './core/config.js', './core/cloud.js', './core/icons.js', './core/art.js', './core/catalog.js', './core/results.js', './core/race.js', './core/turn.js', './core/import.js', './core/lessons.js', './core/merge.js', './core/errors.js', './core/selection.js', './core/duplicates.js', './core/mastery.js', './core/tests.js', './core/omr.js', './core/xlsx.js', './core/images.js', './core/parent-report.js', './core/report-export.js', './core/cycles.js', './vendor/peerjs-1.5.5.min.js', './vendor/qrcode-generator-1.4.4.js',
+  './core/questions.js', './core/assignments.js', './core/quiz-ui.js', './core/sync.js', './core/speech.js', './core/config.js', './core/cloud.js', './core/icons.js', './core/art.js', './core/catalog.js', './core/results.js', './core/race.js', './core/turn.js', './core/import.js', './core/lessons.js', './core/merge.js', './core/errors.js', './core/selection.js', './core/duplicates.js', './core/mastery.js', './core/tests.js', './core/omr.js', './core/xlsx.js', './core/images.js', './core/parent-report.js', './core/report-export.js', './core/cycles.js', './vendor/peerjs-1.5.5.min.js', './vendor/qrcode-generator-1.4.4.js', './vendor/supabase-js-2.117.3.js', './vendor/canvas-confetti-1.6.0.js',
   './locales/ky.js', './locales/ru.js', './locales/en.js',
   './games/quickvote/game.js', './games/territory/game.js',
   './games/investigation/game.js', './games/errorhunt/game.js', './games/timeline/game.js', './games/codelock/game.js', './games/formula/game.js', './games/city/game.js', './games/lab/game.js',
@@ -94,13 +99,12 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   const sameOrigin = url.origin === self.location.origin;
-  const isFont = url.hostname.includes('fonts.g');
-  if (!sameOrigin && !isFont) return; // MediaPipe, CDN ж.б. — браузердин өзүнө калтырабыз
+  if (!sameOrigin) return; // MediaPipe, CDN ж.б. — браузердин өзүнө калтырабыз (шрифты теперь свои)
 
   // no-cache: браузердин HTTP кэшин айланып өтүп, серверден жаңы версияны текшерет
-  const net = (sameOrigin ? fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }) : fetch(req))
+  const net = fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' })
     .then((res) => {
-      if (res && (res.ok || res.type === 'opaque')) {
+      if (res && res.ok) {
         const copy = res.clone();
         caches.open(VERSION).then((c) => c.put(req, copy));
       }

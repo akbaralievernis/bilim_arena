@@ -346,6 +346,19 @@ export async function createRoom({ onJoin, onLeave, onMessage, prefix = ROOM_PRE
   // Сторож комнаты: тихо «умершая» регистрация (без события disconnected) тоже восстанавливается
   const patrol = setInterval(keepAll, TIMING.rejoin);
 
+  /** Имя игрока, не совпадающее с именами других телефонов: «Айбек», «Айбек 2», «Айбек 3»… */
+  const requestedNames = new Map();
+  const nameKey = (n) => String(n).toLowerCase();
+  function uniqueName(requested, id) {
+    const taken = new Set([...players.values()].filter((p) => p.id !== id).map((p) => nameKey(p.name)));
+    if (!taken.has(nameKey(requested))) return requested;
+    // Переподключение того же телефона — то же имя, что и раньше
+    const prev = players.get(id);
+    if (prev && requestedNames.get(id) === requested && !taken.has(nameKey(prev.name))) return prev.name;
+    const base = [...requested].slice(0, 17).join('');
+    for (let n = 2; ; n++) if (!taken.has(nameKey(`${base} ${n}`))) return `${base} ${n}`;
+  }
+
   function onConnection(conn) {
     const limit = rateLimiter();
     conn.on('data', (raw) => {
@@ -368,8 +381,12 @@ export async function createRoom({ onJoin, onLeave, onMessage, prefix = ROOM_PRE
         if (prev && prev !== conn) { try { prev.close(); } catch { /* закрыт */ } }
         conns.set(id, conn);
         conn._playerId = id;
-        const player = { id, name: cleanPlayerName(msg.name) };
+        const requested = cleanPlayerName(msg.name);
+        const player = { id, name: uniqueName(requested, id) };
+        requestedNames.set(id, requested);
         players.set(id, player);
+        // Имя уже занято другим телефоном — иначе ответы двух учеников слились бы в отчёте в одного
+        if (player.name !== requested) safeSend(conn, { type: 'name', name: player.name, requested });
         onJoin?.(player);
         return;
       }

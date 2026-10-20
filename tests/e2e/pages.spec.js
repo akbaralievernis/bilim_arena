@@ -73,3 +73,27 @@ test('tablet and small laptop: no horizontal scroll on main pages', async ({ bro
     await ctx.close();
   }
 });
+
+test('cloud library and fonts load from the site itself (no CDN, no Google)', async ({ page }) => {
+  const external = [];
+  page.on('request', (r) => { if (/jsdelivr|googleapis|gstatic/.test(r.url())) external.push(r.url()); });
+  const problems = watch(page);
+  await page.goto('/account.html');
+  // Клиент облака создаётся из vendor/ (с проверкой SRI) — запрос к базе здесь не нужен
+  const ok = await page.evaluate(async () => {
+    const { getClient } = await import('./core/cloud.js');
+    const client = await getClient();
+    return typeof client?.from === 'function' && typeof client?.auth?.getSession === 'function';
+  });
+  expect(ok).toBe(true);
+  // Шрифт сайта действительно загрузился, включая кыргызские буквы
+  const fonts = await page.evaluate(async () => {
+    await document.fonts.load('700 16px Inter', 'Ңөү');
+    return document.fonts.check('700 16px Inter', 'Ңөү');
+  });
+  expect(fonts).toBe(true);
+  await page.goto('/games/citadel/index.html');
+  expect(await page.evaluate(() => typeof window.confetti)).toBe('function');
+  expect(external).toEqual([]);
+  expect(problems.filter((p) => !/supabase\.co/.test(p))).toEqual([]);
+});

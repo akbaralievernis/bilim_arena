@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <!-- Безопасность: скрипты только с сайта и проверенного CDN, соединения только с базой и сервером знакомства -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://udkxmgflbxetfzziftla.supabase.co wss://udkxmgflbxetfzziftla.supabase.co https://bilimarena-signal.bilimarena-signal.workers.dev wss://bilimarena-signal.bilimarena-signal.workers.dev https://0.peerjs.com wss://0.peerjs.com https://cdn.jsdelivr.net; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://udkxmgflbxetfzziftla.supabase.co wss://udkxmgflbxetfzziftla.supabase.co https://bilimarena-signal.bilimarena-signal.workers.dev wss://bilimarena-signal.bilimarena-signal.workers.dev https://0.peerjs.com wss://0.peerjs.com; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#F7F8FC" />
@@ -11,7 +11,7 @@
   <title>Тесттер — Билим Арена</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
-  <link rel="stylesheet" href="./core/ui.css?v=18" />
+  <link rel="stylesheet" href="./core/ui.css?v=19" />
   <link rel="stylesheet" href="./home.css?v=17" />
 </head>
 
@@ -27,7 +27,7 @@
         <h1 data-i18n="tst_title">Менин тесттерим</h1>
         <div class="row" style="gap:8px">
           <a class="btn ghost" href="./questions.html" data-i18n="qb_title">Менин суроолорум</a>
-          <button class="btn primary" id="createBtn" type="button" data-i18n="tst_create">Тест түзүү</button>
+          <button class="btn primary" id="createBtn" type="button" disabled data-i18n="tst_create">Тест түзүү</button>
         </div>
       </div>
       <p class="muted" data-i18n="tst_hint">Тестке даяр банктан жана өзүңүздүн суроолоруңуздан суроо кошуңуз. Тестти доскада ойнотсоңуз, үй тапшырма катары берсеңиз же басып чыгарсаңыз болот.</p>
@@ -124,6 +124,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./tests.js?v=5"></script>
+  <script type="module" src="./tests.js?v=6"></script>
 </body>
 </html>

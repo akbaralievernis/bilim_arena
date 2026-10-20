@@ -11,6 +11,10 @@ const chrome = process.env.PW_CHROME_PATH
   ? { launchOptions: { executablePath: process.env.PW_CHROME_PATH } }
   : { channel: 'chrome' };
 
+// Linux без заданной кодировки (LANG пустой — так бывает в контейнерах): Chromium не может
+// дать скачанному файлу кириллическое имя и называет его «download». У пользователей так не бывает.
+if (process.platform === 'linux' && !process.env.LANG && !process.env.LC_ALL) process.env.LANG = 'C.UTF-8';
+
 export default defineConfig({
   testDir: 'tests/e2e',
   timeout: 90_000,
@@ -26,7 +30,7 @@ export default defineConfig({
   },
   projects: [
     // Страницы — с настоящей Content-Security-Policy
-    { name: 'pages', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic|cycles|games-standalone|student|a11y|a11y-games)\.spec\.js/, use: { ...chrome } },
+    { name: 'pages', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic|cycles|class-practice|games-standalone|student|a11y|a11y-games)\.spec\.js/, use: { ...chrome } },
     // Урок и конструктор: телефоны говорят с локальным сервером знакомства,
     // которого нет в CSP сайта, поэтому CSP здесь отключена
     { name: 'classroom', testMatch: /(classroom|import|mafia|games-board)\.spec\.js/, use: { ...chrome, bypassCSP: true } },

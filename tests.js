@@ -43,9 +43,18 @@ const promptOf = (q) => pick(q.prompt, getLang());
 const boardUrl = (x) => `./board.html?${new URLSearchParams({ subject: x.subject, topic: x.topic, mode: 'review', test: x.id, questions: x.questionIds.join(',') })}`;
 const homeworkUrl = (x) => `./homework.html?${new URLSearchParams({ topic: x.topic, questions: x.questionIds.join(',') })}`;
 
+/**
+ * Экран, открытый последним: запоздавшая отрисовка прежнего экрана (начальный список тестов
+ * на медленном телефоне) не должна закрыть редактор, который учитель уже открыл.
+ */
+let viewSeq = 0;
+const nextView = () => { const n = ++viewSeq; return () => n === viewSeq; };
+
 async function renderList() {
+  const current = nextView();
   const lang = getLang();
   const list = (await allTests()).sort((a, b) => b.updatedAt - a.updatedAt);
+  if (!current()) return;
   const cards = list.map((x) => el('div', { class: 'card stack' },
     el('div', { class: 'row between' },
       el('b', {}, x.title || '—'),
@@ -117,11 +126,22 @@ function syncTopics(topicId = null) {
   fillSelect($('#tTopic'), topics.map((tp) => ({ value: tp.id, label: `${pick(tp.title, lang)} (${t('grade', { n: tp.grade })})` })), topicId || topics[0]?.id);
 }
 
+/** Загрузка вопросов темы, которая идёт сейчас (её ждут «Случайные вопросы») */
+let poolLoad = Promise.resolve();
+
 /** Все вопросы темы: банк по порядку, затем вопросы учителя */
-async function loadPool() {
-  const topic = $('#tTopic').value;
+function loadPool() {
+  const run = fillPool($('#tTopic').value, () => poolLoad === run);
+  poolLoad = run;
+  return run;
+}
+
+async function fillPool(topic, current) {
   const bank = await loadBank(topic);
   const own = (await getQuestions({ topic, count: 10000 })).filter((q) => q.custom);
+  // Тему успели сменить, пока шла загрузка: запоздавший ответ не должен затереть вопросы новой темы
+  // (иначе случайные вопросы добавлялись из прежней темы)
+  if (!current()) return;
   state.pool = [...bank, ...own].filter((q) => PAPER_TYPES.includes(q.type) && !q.vote).map((q) => ({ ...q, topic: q.topic || topic }));
   state.pool.forEach((q) => state.cache.set(questionRef(q), q));
   const lang = getLang();
@@ -189,12 +209,14 @@ function renderEditor() {
 }
 
 async function openEdit(id = null) {
+  const current = nextView();
   const lang = getLang();
   const test = id ? await getTest(id) : null;
+  const existing = test ? await testQuestions(test) : [];
+  if (!current()) return;
   state.editing = test;
   // Старые тесты хранят просто id — приводим к ссылкам «тема::id»
   state.cache = new Map();
-  const existing = test ? await testQuestions(test) : [];
   existing.forEach((q) => state.cache.set(questionRef(q), q));
   state.sel = existing.map(questionRef);
   $('#editTitle').textContent = test ? t('tst_edit') : t('tst_create');
@@ -206,12 +228,14 @@ async function openEdit(id = null) {
     { value: 1, label: t('difficulty_1') }, { value: 2, label: t('difficulty_2') }, { value: 3, label: t('difficulty_3') }], '');
   $('#fSearch').value = '';
   await loadPool();
+  if (!current()) return;
   renderEditor();
   show('editScreen');
 }
 
 /** Случайные N вопросов из отфильтрованных, которых ещё нет в тесте */
-function addRandom() {
+async function addRandom() {
+  await poolLoad; // вопросы выбранной темы ещё загружаются
   const n = Math.max(1, Math.min(50, Number($('#randomN').value) || 5));
   const free = filtered().filter((q) => !state.sel.includes(questionRef(q)));
   for (let i = free.length - 1; i > 0; i--) {
@@ -273,9 +297,13 @@ function resultRow() {
 }
 
 async function openResults(id) {
-  state.test = await getTest(id);
-  if (!state.test) return renderList();
-  state.questions = await testQuestions(state.test);
+  const current = nextView();
+  const test = await getTest(id);
+  const questions = test ? await testQuestions(test) : [];
+  if (!current()) return;
+  if (!test) return renderList();
+  state.test = test;
+  state.questions = questions;
   $('#resultsIntro').textContent = t('tst_results_intro', { title: state.test.title, n: buildVariant(state.test, state.questions, 0, getLang()).length });
   $('#isCheck').checked = false;
   $('#resultRows').replaceChildren(resultRow(), resultRow(), resultRow());
@@ -320,6 +348,8 @@ async function saveResults() {
   $('#resultsBackBtn').addEventListener('click', renderList);
   $('#addRowBtn').addEventListener('click', () => $('#resultRows').append(resultRow()));
   $('#saveResultsBtn').addEventListener('click', saveResults);
+  // Кнопка оживает, только когда страница готова: на медленном телефоне нажатие раньше терялось
+  $('#createBtn').disabled = false;
 
   const params = new URLSearchParams(location.search);
   if (params.get('edit')) await openEdit(params.get('edit'));

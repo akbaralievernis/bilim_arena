@@ -1,9 +1,8 @@
-// Загрузчик для теста: CDN supabase-js → мок; модули проекта — отдельная копия на «устройство»
-const MOCK = new URL('./mock-supabase.mjs', import.meta.url).href;
+// Загрузчик для теста: модули проекта — отдельная копия на «устройство».
+// supabase-js подменяется в cloud.test.mjs через window.supabase (core/cloud.js берёт его оттуда)
 const PROJECT = new URL('../../', import.meta.url).href;
 
 export async function resolve(specifier, context, next) {
-  if (specifier.startsWith('https://cdn.jsdelivr.net/npm/@supabase/supabase-js')) return { url: MOCK, shortCircuit: true };
   const r = await next(specifier, context);
   const dev = context.parentURL ? new URL(context.parentURL).searchParams.get('device') : null;
   if (dev && r.url.startsWith('file:') && r.url.startsWith(PROJECT) && !r.url.includes('?device=')) {

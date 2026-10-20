@@ -19,25 +19,48 @@ import { allAssignments, allSubmissions } from './assignments.js';
 import { allQuestions } from './questions.js';
 import { mergeAssignments, mergeSubmissions } from './sync.js';
 
-// Точная версия: обновление библиотеки — осознанное решение, а не сюрприз на уроке
-const CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/+esm';
+// Точная версия: обновление библиотеки — осознанное решение, а не сюрприз на уроке.
+// Файл лежит на самом сайте (vendor/, npm @supabase/supabase-js@2.117.3, dist/umd): школьная сеть
+// может закрывать CDN, и тогда вход в аккаунт не работал. Грузится только при входе в облако.
+const LIB_SRC = new URL('../vendor/supabase-js-2.117.3.js', import.meta.url).href;
+const LIB_SRI = 'sha384-BWcjm9OdFth9TbhCxZPdm+gAOUMAzQy9nmTs12ioXdCcbVnJaPMn+fMUoQCLt60R';
+const LIB_TIMEOUT = 20000;
+
+/** Библиотека облака (window.supabase) — один раз, с проверкой SRI и ограничением по времени */
+function loadSupabase() {
+  if (window.supabase?.createClient) return Promise.resolve(window.supabase);
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    const fail = (msg) => { clearTimeout(timer); s.remove(); reject(new Error(msg)); };
+    const timer = setTimeout(() => fail('supabase-timeout'), LIB_TIMEOUT);
+    s.src = LIB_SRC;
+    s.integrity = LIB_SRI;
+    s.onload = () => {
+      clearTimeout(timer);
+      if (window.supabase?.createClient) resolve(window.supabase); else fail('supabase-load-failed');
+    };
+    s.onerror = () => fail('supabase-load-failed');
+    document.head.appendChild(s);
+  });
+}
 
 /** Какие личные данные синхронизируются у каждой роли */
 const PERSONAL = {
   student: [KEYS.profile, KEYS.progress, KEYS.errors, KEYS.history],
-  teacher: [KEYS.profile, 'questions', KEYS.lessons, 'tests', 'cycles']
+  teacher: [KEYS.profile, 'questions', KEYS.lessons, 'tests', 'cycles', 'dup_reviewed']
 };
 /** Ключи, которые база может ещё не принимать (миграция не применена) — тогда они остаются на устройстве */
-const OPTIONAL_KEYS = ['tests', 'cycles'];
+const OPTIONAL_KEYS = ['tests', 'cycles', 'dup_reviewed'];
 let unsupported = new Set();
 /** Всё, что относится к пользователю на этом устройстве (очищается при смене аккаунта) */
 const LOCAL_USER_KEYS = [KEYS.profile, KEYS.progress, KEYS.errors, KEYS.history, 'questions', KEYS.lessons,
-  KEYS.assignments, 'submissions', KEYS.classes, 'tests', 'cycles'];
+  KEYS.assignments, 'submissions', KEYS.classes, 'tests', 'cycles', 'dup_reviewed', 'class_practice'];
 
 const META = 'sync_meta';     // { key: время последнего изменения на устройстве }
 const OWNER = 'sync_owner';   // чьи данные сейчас на устройстве
 const LAST = 'sync_last';     // время последней успешной синхронизации
 const KNOWN = 'sync_known';   // id заданий учителя, уже синхронизированных с этим устройством
+const SEEN = 'sync_seen';     // { key: версия в облаке (updated_ms), с которой это устройство уже сверилось }
 
 export const cloudConfigured = () => !!(SUPABASE.url && SUPABASE.anonKey);
 
@@ -51,7 +74,7 @@ const status = { state: 'idle', error: null }; // idle | syncing | ok | error | 
 export function getClient() {
   if (!cloudConfigured()) return Promise.resolve(null);
   if (!clientPromise) {
-    clientPromise = import(CDN)
+    clientPromise = loadSupabase()
       .then(({ createClient }) => createClient(SUPABASE.url, SUPABASE.anonKey, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
       }))
@@ -107,6 +130,7 @@ async function adoptDevice() {
   if (owner && owner !== user.id) {
     for (const key of LOCAL_USER_KEYS) await store.remove(key);
     await store.remove(META);
+    await store.remove(SEEN);
     await store.remove(KNOWN);
     invalidateProfile();
     invalidateProgress();
@@ -191,7 +215,7 @@ export async function signOut({ force = false } = {}) {
   store.onWrite = null;
   await c.auth.signOut();
   for (const key of LOCAL_USER_KEYS) await store.remove(key);
-  for (const key of [META, OWNER, LAST, KNOWN]) await store.remove(key);
+  for (const key of [META, SEEN, OWNER, LAST, KNOWN]) await store.remove(key);
   invalidateProfile();
   invalidateProgress();
   user = null;
@@ -241,6 +265,28 @@ async function pullTeacherClasses() {
   return cloud;
 }
 
+/**
+ * Тренировки учеников своих классов («Практика» в аккаунте ученика): только итоги по темам и
+ * итоговые проверки. Учителю их показывает правило RLS user_data_teacher. Хранятся на устройстве
+ * учителя как 'class_practice' и стираются при выходе вместе с остальными данными аккаунта.
+ */
+async function pullClassPractice(classes) {
+  const members = new Map();
+  classes.forEach((cl) => (cl.members || []).forEach((m) => members.set(m.id, { name: m.name, classId: cl.id })));
+  if (!members.size) return store.set('class_practice', {}, { silent: true });
+  const c = await getClient();
+  const { data, error } = await c.from('user_data').select('user_id, value, updated_ms')
+    .eq('key', KEYS.progress).in('user_id', [...members.keys()]);
+  if (error) throw error;
+  const out = {};
+  for (const row of data || []) {
+    const m = members.get(row.user_id);
+    if (!m || !row.value || typeof row.value !== 'object') continue;
+    out[row.user_id] = { ...m, at: row.updated_ms, topics: row.value.topics || {}, checks: row.value.checks || {} };
+  }
+  await store.set('class_practice', out, { silent: true });
+}
+
 // ─── Синхронизация ────────────────────────────────────────────────────────────
 
 let syncing = null;
@@ -250,11 +296,13 @@ export async function syncAll() {
   if (!user) return;
   if (syncing) return syncing;
   syncing = (async () => {
+    await metaWrites;
     setStatus('syncing');
     try {
       const changed = await syncPersonal();
       if (role === 'teacher') {
         const classes = await pullTeacherClasses();
+        await pullClassPractice(classes);
         await syncTeacherAssignments(classes);
         await pullSubmissions(classes.map((x) => x.id));
       } else {
@@ -289,33 +337,51 @@ async function syncPersonal() {
   const remote = Object.fromEntries(rows.map((r) => [r.key, r]));
   const changed = [];
   const upserts = [];
-  const lastSync = (await store.get(LAST, 0)) || 0;
+  // С какой версией облака устройство уже сверялось — точное совпадение, без сравнения часов
+  // разных устройств: раньше при расхождении часов (или в ту же миллисекунду) записи другого
+  // устройства считались «уже виденными» и молча затирались.
+  const seen = await store.get(SEEN, {});
 
   for (const key of keys) {
     const local = await store.get(key, null);
     const r = remote[key];
     const localMs = meta[key] || 0;
+    // Локальные изменения после последней сверки: метка изменения уже не та, что была при сверке
+    const localChanged = local !== null && localMs !== seen[key];
 
     if (r && (local === null || r.updated_ms > localMs)) {
       let value = r.value;
       // Локальных изменений после прошлой синхронизации не было — облако побеждает
       // целиком (так доходят удаления с другого устройства); иначе объединяем
-      const localChanged = localMs > lastSync;
       if (localChanged && Array.isArray(value) && Array.isArray(local)) value = mergeLog(local, value);
       await store.set(key, value, { silent: true });
-      meta[key] = r.updated_ms;
+      meta[key] = seen[key] = r.updated_ms;
       changed.push(key);
-      if (Array.isArray(value) && value.length !== r.value.length) upserts.push({ key, value, updated_ms: Date.now() });
+      if (Array.isArray(value) && value.length !== r.value.length) {
+        const ms = Date.now();
+        meta[key] = seen[key] = ms;
+        upserts.push({ key, value, updated_ms: ms });
+      }
     } else if (local !== null && (!r || localMs > r.updated_ms)) {
       let value = local;
-      // Облачная версия уже была на этом устройстве (синхронизация была позже) —
-      // значит, всё, чего нет локально, здесь удалили: локальная версия побеждает целиком.
+      // Облачная версия уже сверена с этим устройством — значит, всё, чего нет локально,
+      // здесь удалили: локальная версия побеждает целиком.
       // Иначе в облаке могли появиться записи с другого устройства — объединяем.
-      const remoteSeenHere = r && lastSync >= r.updated_ms;
-      if (r && !remoteSeenHere && Array.isArray(local) && Array.isArray(r.value)) value = mergeLog(local, r.value);
+      const remoteSeenHere = r && seen[key] === r.updated_ms;
+      if (r && !remoteSeenHere && Array.isArray(local) && Array.isArray(r.value)) {
+        value = mergeLog(local, r.value);
+        // Объединённое — и на это устройство: иначе записи с другого устройства сюда бы не пришли
+        // (в облаке та же метка времени, что здесь, и следующая синхронизация их не заберёт)
+        if (JSON.stringify(value) !== JSON.stringify(local)) {
+          await store.set(key, value, { silent: true });
+          changed.push(key);
+        }
+      }
       const ms = localMs || Date.now();
-      meta[key] = ms;
+      meta[key] = seen[key] = ms;
       upserts.push({ key, value, updated_ms: ms });
+    } else if (r && r.updated_ms === localMs) {
+      seen[key] = r.updated_ms; // уже совпадает (например, после обновления со старой версии сайта)
     }
   }
 
@@ -330,12 +396,13 @@ async function syncPersonal() {
       for (const u of upserts.filter((x) => OPTIONAL_KEYS.includes(x.key))) {
         if (e2) break;
         const { error } = await send([u]);
-        if (error?.code === '23514') { unsupported.add(u.key); delete meta[u.key]; } else e2 = error;
+        if (error?.code === '23514') { unsupported.add(u.key); delete meta[u.key]; delete seen[u.key]; } else e2 = error;
       }
     }
     if (e2) throw e2;
   }
   await store.set(META, meta, { silent: true });
+  await store.set(SEEN, seen, { silent: true });
   if (changed.includes(KEYS.profile)) invalidateProfile();
   if (changed.includes(KEYS.progress)) invalidateProgress();
   return changed;
@@ -439,6 +506,8 @@ async function pushSubmissions() {
 
 const pending = new Set();
 let timer = null;
+/** Записи времени изменения (sync_meta), которые ещё идут: отправка их дожидается, иначе прочитала бы старое */
+let metaWrites = Promise.resolve();
 
 /** Вызывается хранилищем при каждой локальной записи */
 async function onLocalWrite(key) {
@@ -448,12 +517,17 @@ async function onLocalWrite(key) {
     || (role === 'student' && key === 'submissions');
   if (!personal && !shared) return;
 
-  if (personal) {
-    const meta = await store.get(META, {});
-    meta[key] = Date.now();
-    await store.set(META, meta, { silent: true });
-  }
+  // В очередь — сразу, до первого await: flush() сразу после записи (вкладку закрывают) должен её увидеть
   pending.add(key);
+  if (personal) {
+    const at = Date.now();
+    metaWrites = metaWrites.then(async () => {
+      const meta = await store.get(META, {});
+      meta[key] = at;
+      await store.set(META, meta, { silent: true });
+    }).catch(() => {});
+    await metaWrites;
+  }
   clearTimeout(timer);
   timer = setTimeout(flush, 1500); // собираем несколько изменений в одну отправку
 }
@@ -462,6 +536,7 @@ async function onLocalWrite(key) {
 export async function flush() {
   clearTimeout(timer);
   if (!user || !pending.size) return;
+  await metaWrites;
   const keys = [...pending];
   pending.clear();
   try {
