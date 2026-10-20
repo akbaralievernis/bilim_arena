@@ -17,15 +17,18 @@ await db.exec(`
   create role authenticated nologin;
   grant usage on schema auth to anon, authenticated;
   grant execute on all functions in schema auth to anon, authenticated;
+  -- Права по умолчанию, как в Supabase: выдаются при создании таблицы,
+  -- поэтому revoke/grant внутри schema.sql действуют поверх них
+  grant usage on schema public to anon, authenticated;
+  alter default privileges in schema public grant all on tables to anon, authenticated;
+  alter default privileges in schema public grant all on sequences to anon, authenticated;
 `);
 
 await db.exec(schema);
 await db.exec(schema); // повторный запуск не должен падать
 
-// Права по умолчанию, как в Supabase (RLS решает, что на самом деле видно)
+// RLS решает, что на самом деле видно
 await db.exec(`
-  grant usage on schema public to anon, authenticated;
-  grant all on all tables in schema public to anon, authenticated;
   grant execute on function public.is_class_teacher(uuid), public.is_class_member(uuid),
     public.teaches_student(uuid), public.is_full_account(), public.gen_join_code() to anon, authenticated;
 `);
@@ -92,6 +95,36 @@ await expectDenied('без входа (роль anon) вступить нель�
 await expectDenied('в обход функции вступить нельзя', () => as('S2', true, () =>
   db.query('insert into class_members (class_id, user_id, name) values ($1, $2, $3)', [classId, ids.S2, 'Хакер'])));
 await expectOk('ученик видит свой класс', () => as('S1', true, () => db.query('select * from classes')), rows(1));
+
+console.log('Запись ученика в классе (UPDATE)');
+let otherClassId;
+await expectOk('второй учитель создаёт свой класс', () => as('T2', false, () =>
+  db.query(`insert into classes (name, grade) values ('7-Б', 7) returning id`)), (r) => { otherClassId = r.rows[0]?.id; return !!otherClassId; });
+const membership = () => db.query('select class_id, user_id, name from class_members where user_id = $1', [ids.S1]);
+const stillInOwnClass = (r) => r.rows.length === 1 && r.rows[0].class_id === classId && r.rows[0].user_id === ids.S1;
+await expectDenied('ученик не переносит свою запись в чужой класс', () => as('S1', true, () =>
+  db.query('update class_members set class_id = $1 where user_id = $2', [otherClassId, ids.S1])));
+await expectDenied('ученик не меняет user_id своей записи', () => as('S1', true, () =>
+  db.query('update class_members set user_id = $1 where user_id = $2', [ids.S2, ids.S1])));
+await expectDenied('учитель не правит запись ученика', () => as('T1', false, () =>
+  db.query(`update class_members set name = 'Чужое' where user_id = $1`, [ids.S1])));
+await expectOk('запись ученика осталась в его классе', () => membership(), stillInOwnClass);
+await expectDenied('чужой учитель не видит ученика', () => as('T2', false, () => db.query('select * from class_members')));
+await expectOk('ученик меняет своё имя', () => as('S1', true, () =>
+  db.query(`update class_members set name = 'Айбек Т.' where user_id = $1`, [ids.S1])), (r) => r.affectedRows === 1);
+await expectOk('новое имя сохранено, класс тот же', () => membership(),
+  (r) => stillInOwnClass(r) && r.rows[0].name === 'Айбек Т.');
+await expectOk('join_class по-прежнему обновляет имя', () => as('S1', true, () =>
+  db.query('select * from join_class($1, $2)', [code, 'Айбек'])), (r) => r.rows[0]?.class_id === classId);
+await expectOk('имя из join_class сохранено', () => membership(), (r) => stillInOwnClass(r) && r.rows[0].name === 'Айбек');
+// Второй рубеж: даже если права на UPDATE снова выдадут на всю таблицу
+// (например, «grant all» из панели Supabase), перенос блокирует триггер
+await db.exec('grant update on public.class_members to authenticated');
+await expectOk('перенос в чужой класс запрещён и при полном праве UPDATE', () => as('S1', true, () =>
+  db.query('update class_members set class_id = $1 where user_id = $2', [otherClassId, ids.S1])
+    .then(() => 'прошло', (e) => e.message)), (m) => m === 'class_members_keys_immutable');
+await db.exec('revoke update on public.class_members from authenticated; grant update (name) on public.class_members to authenticated');
+await expectOk('запись ученика по-прежнему в его классе', () => membership(), stillInOwnClass);
 await expectDenied('ученик не видит одноклассников', () => as('S1', true, () =>
   db.query('select * from class_members where user_id <> $1', [ids.S1])));
 
