@@ -1,7 +1,7 @@
 // node --test tests/realtime.test.mjs — защита доски от лишних и поддельных сообщений.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { acceptMessage, cleanPlayerName, rateLimiter } from '../core/realtime.js';
+import { acceptMessage, cleanPlayerName, connectionGuard, rateLimiter } from '../core/realtime.js';
 
 test('names: no control or invisible characters, at most 20 letters', () => {
   assert.equal(cleanPlayerName('  Эрнис\n  А. '), 'Эрнис А.');
@@ -56,4 +56,23 @@ test('error reports: no URL parameters, noise ignored', async () => {
   assert.equal(buildReport('Script error.'), null);
   assert.equal(buildReport(new Error('NotAllowedError: Permission denied')), null);
   assert.equal(buildReport(''), null);
+});
+
+test('board: extra connections are closed, silent ones are dropped after a timeout', () => {
+  const timers = [];
+  const guard = connectionGuard({ max: 3, joinTimeout: 20000, later: (fn) => timers.push(fn) && timers.length, cancel: () => {} });
+  const conn = () => ({ closed: false, close() { this.closed = true; } });
+  const [a, b, c, d] = [conn(), conn(), conn(), conn()];
+  assert.equal(guard.admit(a), true);
+  assert.equal(guard.admit(b), true);
+  assert.equal(guard.admit(c), true);
+  assert.equal(guard.admit(d), false, 'the fourth is refused');
+  assert.equal(d.closed, true);
+  guard.joined(a);
+  timers.forEach((fire) => fire());
+  assert.equal(a.closed, false, 'a joined student stays');
+  assert.equal(b.closed, true, 'a silent connection is dropped');
+  guard.closed(b); guard.closed(c);
+  assert.equal(guard.size, 1, 'closed connections free their places');
+  assert.equal(guard.admit(conn()), true);
 });

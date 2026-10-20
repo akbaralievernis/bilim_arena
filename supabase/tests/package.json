@@ -4,8 +4,9 @@
   "type": "module",
   "description": "Проверка supabase/schema.sql (RLS) и core/cloud.js на Postgres в WebAssembly (PGlite)",
   "scripts": {
-    "test": "npm run test:rls && npm run test:cloud",
+    "test": "npm run test:rls && npm run test:abuse && npm run test:cloud",
     "test:rls": "node rls.test.mjs",
+    "test:abuse": "node abuse.test.mjs",
     "test:cloud": "node --import ./register.mjs cloud.test.mjs"
   },
   "devDependencies": {

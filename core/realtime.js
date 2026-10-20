@@ -114,6 +114,8 @@ const MAX_MESSAGE_CHARS = 8000;
 const RATE_WINDOW_MS = 10000;
 const RATE_LIMIT = 60;        // сообщений за 10 с — с большим запасом для любой игры
 const RATE_HARD_LIMIT = 300;  // заведомый спам — соединение закрывается
+const MAX_CONNECTIONS = MAX_PLAYERS + 50; // открытых соединений с доской (с запасом на переподключения)
+const JOIN_TIMEOUT_MS = TIMING.connect + 15000; // без «join» дольше — закрывается (медленному TURN хватит)
 const PLAYER_ID = /^[A-Za-z0-9_-]{1,64}$/;
 
 /** Имя ученика: без управляющих символов, без лишних пробелов, до 20 символов. */
@@ -143,6 +145,27 @@ export function rateLimiter(now = () => Date.now()) {
     count += 1;
     if (count > RATE_HARD_LIMIT) return 'close';
     return count > RATE_LIMIT ? 'drop' : 'ok';
+  };
+}
+
+/**
+ * Сколько соединений держит доска. Знающий код может открыть сотни соединений
+ * и ничего не отправлять — браузер учителя от этого тормозит. Лишние закрываются
+ * сразу, молчащие — через JOIN_TIMEOUT_MS.
+ */
+export function connectionGuard({ max = MAX_CONNECTIONS, joinTimeout = JOIN_TIMEOUT_MS, later = setTimeout, cancel = clearTimeout } = {}) {
+  const open = new Map(); // conn -> таймер ожидания join (null — уже вошёл)
+  const drop = (conn) => { try { conn.close(); } catch { /* закрыт */ } };
+  return {
+    /** Новое соединение: false — уже закрыто, доска полна */
+    admit(conn) {
+      if (open.size >= max) { drop(conn); return false; }
+      open.set(conn, later(() => { if (open.get(conn)) drop(conn); }, joinTimeout));
+      return true;
+    },
+    joined(conn) { cancel(open.get(conn)); if (open.has(conn)) open.set(conn, null); },
+    closed(conn) { cancel(open.get(conn)); open.delete(conn); },
+    get size() { return open.size; }
   };
 }
 
@@ -359,7 +382,10 @@ export async function createRoom({ onJoin, onLeave, onMessage, prefix = ROOM_PRE
     for (let n = 2; ; n++) if (!taken.has(nameKey(`${base} ${n}`))) return `${base} ${n}`;
   }
 
+  const guard = connectionGuard();
+
   function onConnection(conn) {
+    if (!guard.admit(conn)) return;
     const limit = rateLimiter();
     conn.on('data', (raw) => {
       const verdict = limit();
@@ -385,6 +411,7 @@ export async function createRoom({ onJoin, onLeave, onMessage, prefix = ROOM_PRE
         const player = { id, name: uniqueName(requested, id) };
         requestedNames.set(id, requested);
         players.set(id, player);
+        guard.joined(conn);
         // Имя уже занято другим телефоном — иначе ответы двух учеников слились бы в отчёте в одного
         if (player.name !== requested) safeSend(conn, { type: 'name', name: player.name, requested });
         onJoin?.(player);
@@ -396,6 +423,7 @@ export async function createRoom({ onJoin, onLeave, onMessage, prefix = ROOM_PRE
     });
 
     conn.on('close', () => {
+      guard.closed(conn);
       const id = conn._playerId;
       if (id && conns.get(id) === conn) {
         conns.delete(id);

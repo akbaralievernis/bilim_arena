@@ -455,6 +455,9 @@ export default {
   acc_err_teacher_session: 'A teacher is signed in on this device — sign out first',
   acc_err_unsynced: 'Recent changes have not reached the cloud yet. Sign out anyway?',
   acc_err_network: 'No internet or the cloud is unreachable',
+  acc_err_rate: 'Too many attempts. Please wait a little and try again',
+  acc_err_class_full: 'This class is full: the student limit has been reached',
+  acc_err_limit: 'Limit reached. Remove something old and try again',
   acc_err_generic: 'Something went wrong. Please try again',
 
   // New interface: navigation, home, catalogue

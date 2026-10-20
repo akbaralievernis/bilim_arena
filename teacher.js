@@ -80,7 +80,12 @@ function startLesson() {
 
 /** Облачный модуль — только если облако настроено */
 const cloud = () => (SUPABASE.url ? import('./core/cloud.js') : Promise.resolve(null));
-const cloudError = (e) => (/fetch|network/i.test(String(e?.message)) ? t('acc_err_network') : t('acc_err_generic'));
+const cloudError = (e) => {
+  const m = String(e?.message);
+  if (/too_many_(classes|assignments)|payload_too_large/.test(m)) return t('acc_err_limit');
+  if (/rate_limited/.test(m)) return t('acc_err_rate');
+  return /fetch|network/i.test(m) ? t('acc_err_network') : t('acc_err_generic');
+};
 
 async function renderClasses() {
   state.classes = await store.get(KEYS.classes, []);

@@ -21,6 +21,9 @@ const show = (id) => ['localScreen', 'signedOutScreen', 'signedInScreen']
 function errorText(e) {
   const m = String(e?.message || e);
   if (/class_not_found/.test(m)) return t('acc_err_code');
+  if (/class_full/.test(m)) return t('acc_err_class_full');
+  if (/too_many_(classes|assignments)|payload_too_large/.test(m)) return t('acc_err_limit');
+  if (/rate_limited|rate limit|too many requests|For security purposes/i.test(m)) return t('acc_err_rate');
   if (/name_required/.test(m)) return t('err_enter_name');
   if (/Invalid login credentials/i.test(m)) return t('acc_err_login');
   if (/already registered/i.test(m)) return t('acc_err_exists');

@@ -11,8 +11,11 @@ const ORIGIN = 'http://localhost:8765';
 const WS = BASE.replace(/^http/, 'ws');
 
 /** Клиент PeerJS-протокола: ждёт сообщения по типу */
-function client(id, token, { key = 'bilimarena', origin = ORIGIN } = {}) {
-  const ws = new WebSocket(`${WS}/peerjs?key=${key}&id=${id}&token=${token}&version=1.5.5`, { headers: { Origin: origin } });
+function client(id, token, { key = 'bilimarena', origin = ORIGIN, ip = null } = {}) {
+  // Локально (wrangler dev) CF-Connecting-IP можно задать самому — так тесты лимитов по IP
+  // не мешают друг другу. В Cloudflare этот заголовок ставит сеть и подменить его нельзя.
+  const headers = { Origin: origin, ...(ip ? { 'CF-Connecting-IP': ip } : {}) };
+  const ws = new WebSocket(`${WS}/peerjs?key=${key}&id=${id}&token=${token}&version=1.5.5`, { headers });
   const inbox = [];
   const waiters = [];
   ws.addEventListener('message', (e) => {
@@ -102,4 +105,34 @@ test('heartbeat is answered without breaking the connection', async () => {
   c.send({ type: 'HEARTBEAT' });
   assert.equal((await c.next('PONG')).type, 'PONG');
   c.close();
+});
+
+test('malformed messages are ignored and the connection stays usable', async () => {
+  const c = client(uid('bad'), 'tok');
+  await c.next('OPEN');
+  for (const raw of ['not json', '{"type":"OFFER"}', '{"type":"OFFER","dst":"../../x"}', '{"type":"EVIL","dst":"a"}',
+    '[]', 'null', '{"type":"OFFER","dst":{"$ne":1}}', JSON.stringify({ type: 'OFFER', dst: 'a', payload: 'x'.repeat(40 * 1024) })]) {
+    c.ws.send(raw);
+  }
+  c.send({ type: 'HEARTBEAT' });
+  assert.equal((await c.next('PONG')).type, 'PONG');
+  c.close();
+});
+
+test('one wrong room code is a single miss, even with many candidates', async () => {
+  const ip = `203.0.113.${Math.floor(Math.random() * 200) + 1}`;
+  const phone = client(uid('phone'), 'tok', { ip });
+  await phone.next('OPEN');
+  for (let i = 0; i < 80; i++) phone.send({ type: i ? 'CANDIDATE' : 'OFFER', dst: 'bilimarena-room-MISS', payload: {} });
+  phone.send({ type: 'HEARTBEAT' });
+  assert.equal((await phone.next('PONG')).type, 'PONG');
+  phone.close();
+});
+
+test('guessing many room codes from one address closes the connection', async () => {
+  const ip = `198.51.100.${Math.floor(Math.random() * 200) + 1}`;
+  const phone = client(uid('guess'), 'tok', { ip });
+  await phone.next('OPEN');
+  for (let i = 0; i < 70; i++) phone.send({ type: 'OFFER', dst: `bilimarena-room-G${i}`, payload: {} });
+  assert.equal(await phone.closed, 1008);
 });

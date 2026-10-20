@@ -22,16 +22,11 @@ await db.exec(`
   grant usage on schema public to anon, authenticated;
   alter default privileges in schema public grant all on tables to anon, authenticated;
   alter default privileges in schema public grant all on sequences to anon, authenticated;
+  alter default privileges in schema public grant execute on functions to anon, authenticated;
 `);
 
 await db.exec(schema);
 await db.exec(schema); // повторный запуск не должен падать
-
-// RLS решает, что на самом деле видно
-await db.exec(`
-  grant execute on function public.is_class_teacher(uuid), public.is_class_member(uuid),
-    public.teaches_student(uuid), public.is_full_account(), public.gen_join_code() to anon, authenticated;
-`);
 
 const ids = {
   T1: '11111111-1111-1111-1111-111111111111', T2: '22222222-2222-2222-2222-222222222222',
