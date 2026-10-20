@@ -66,3 +66,16 @@ test('sentence: confirming an empty text keeps the panel open with a hint', asyn
   await expect(page.locator('#setupOverlay')).toHaveClass(/show/);
   await expect(page.locator('#textInput')).toHaveAttribute('aria-invalid', 'true');
 });
+
+test('focus duel: resetting the match right after an answer does not start a round by itself', async ({ page }) => {
+  page.on('dialog', (d) => d.accept());
+  await page.goto('/games/focus-duel/index.html');
+  await page.locator('#btnStartNow').click();
+  await expect(page.locator('#roundNum')).toHaveText('1');
+  await page.locator('.answerBtn:not([disabled]), .sideChoiceBtn:not([disabled])').first().click();
+  await page.locator('#btnReset').click();
+  await expect(page.locator('#roundNum')).toHaveText('0');
+  await page.waitForTimeout(2500);
+  // Раньше через 1,4 с матч сам начинался заново (раунд 1)
+  await expect(page.locator('#roundNum')).toHaveText('0');
+});

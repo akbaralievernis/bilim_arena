@@ -206,8 +206,15 @@
   }
 
   /* ---------- Game Core ---------- */
+  /** Отложенный шаг матча: не сработает, если матч уже сбросили или начали заново */
+  function later(fn, ms) {
+    const session = State.session;
+    setTimeout(() => { if (State.session === session) fn(); }, ms);
+  }
+
   function resetMatch() {
     stopTimer();
+    State.session = (State.session || 0) + 1;
     State.round = 0;
     State.scoreA = State.scoreB = 0;
     State.streakA = State.streakB = 0;
@@ -264,7 +271,10 @@
     const opts = q.options ? [...q.options] : [];
     if (!opts.some((o) => o.trim().toLowerCase() === q.correct.trim().toLowerCase())) opts.push(q.correct);
     // Правильный ответ всегда среди показанных вариантов
-    const wrong = shuffle(opts.filter((o) => o.trim().toLowerCase() !== q.correct.trim().toLowerCase())).slice(0, 5);
+    // Одинаковые варианты (с разным регистром/пробелами) показываются один раз
+    const seen = new Set([q.correct.trim().toLowerCase()]);
+    const unique = opts.filter((o) => { const k = o.trim().toLowerCase(); if (!k || seen.has(k)) return false; seen.add(k); return true; });
+    const wrong = shuffle(unique).slice(0, 5);
     return shuffle([q.correct, ...wrong]);
   }
 
@@ -317,7 +327,7 @@
     }
     updateHUD();
 
-    setTimeout(() => {
+    later(() => {
       if (State.mode === "duel") State.turn = State.turn === "A" ? "B" : "A";
       startRound();
     }, 1400);
@@ -363,7 +373,7 @@
     UI.status.textContent = T("Убакыт бүттү!");
     markCorrect();
     updateHUD();
-    setTimeout(() => {
+    later(() => {
       if (State.mode === "duel") State.turn = State.turn === "A" ? "B" : "A";
       startRound();
     }, 1500);
