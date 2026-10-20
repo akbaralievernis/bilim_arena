@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
+import { normalizeRoomCode } from '../net/Transport';
 import { Camera, ArrowLeft } from 'lucide-react';
 import { useTranslation, LANGS } from '../utils/i18n';
 
@@ -13,12 +14,12 @@ export default function Home() {
     const fromSearch = new URLSearchParams(window.location.search).get('room');
     const hash = window.location.hash;
     const fromHash = hash.includes('?') ? new URLSearchParams(hash.slice(hash.indexOf('?'))).get('room') : null;
-    if (fromSearch || fromHash) return (fromSearch || fromHash).toUpperCase();
+    if (fromSearch || fromHash) return normalizeRoomCode(fromSearch || fromHash);
     // После перезагрузки страницы код прошлой комнаты подставляется сам,
     // чтобы игрок вернулся в игру одним нажатием (ведущий его узнает по id).
     try {
       const saved = JSON.parse(sessionStorage.getItem('mafia_session') || 'null');
-      if (saved && !saved.isHost) return String(saved.code).toUpperCase();
+      if (saved && !saved.isHost) return normalizeRoomCode(saved.code);
     } catch { /* приватный режим */ }
     return '';
   });
@@ -76,12 +77,12 @@ export default function Home() {
         navigate(`/room/${result.room.id}`);
       } else {
         const key = 'err_' + (result?.error || 'no_connection');
-        setMsg(t(key) !== key ? t(key) : result?.error);
+        setMsg(t(key) !== key ? t(key, { code: result?.code || '' }) : result?.error);
       }
     };
 
     if (code.trim()) {
-      socket.emit('join_room', { roomCode: code.trim().toUpperCase(), playerName, avatar }, done);
+      socket.emit('join_room', { roomCode: normalizeRoomCode(code), playerName, avatar }, done);
     } else {
       socket.emit('create_room', { playerName, avatar }, done);
     }
@@ -156,7 +157,7 @@ export default function Home() {
             className="input-glass"
             placeholder={t('enter_code')}
             value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+            onChange={(e) => setCode(normalizeRoomCode(e.target.value))}
             onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
             maxLength={6}
             inputMode="latin"

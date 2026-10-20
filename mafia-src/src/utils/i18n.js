@@ -106,7 +106,7 @@ const translations = {
     // Connection
     conn_online: 'Байланыш бар',
     conn_offline: 'Байланыш үзүлдү — кайра кошулууда...',
-    err_room_not_found: 'Мындай бөлмө табылган жок. Кодду текшериңиз.',
+    err_room_not_found: '{code} коддуу бөлмө табылган жок. Алып баруучунун экранындагы кодду текшериңиз.',
     err_no_connection: 'Интернет байланышы жок же бөлмө жабык.',
     err_name_taken: 'Бул ат ээленген, башкасын жазыңыз.',
     err_room_full: 'Бөлмө толуп калды.',
@@ -141,7 +141,9 @@ const translations = {
     return_to_lobby: 'Лоббиге кайтуу',
     home: 'Башкы бетке',
     waiting_host_lobby: 'Алып баруучу баарын лоббиге кайтарганын күтүңүз...',
-    leave_confirm: 'Оюндан чыгасызбы?'
+    leave_confirm: 'Оюндан чыгасызбы?',
+    err_room_unsure: '{code} бөлмөсү табылган жок, бирок негизги сервер жооп берген жок — интернет жай болушу мүмкүн. Дагы бир жолу басыңыз.',
+    err_connect_slow: 'Бөлмө табылды, бирок байланыш түзүлбөй жатат. Дагы бир жолу басыңыз же мобилдик интернетти күйгүзүңүз.',
   },
   ru: {
     app_title: 'МАФИЯ',
@@ -235,7 +237,7 @@ const translations = {
 
     conn_online: 'Связь есть',
     conn_offline: 'Связь потеряна — переподключаемся...',
-    err_room_not_found: 'Комната не найдена. Проверьте код.',
+    err_room_not_found: 'Комната {code} не найдена. Сверьте код с экраном ведущего.',
     err_no_connection: 'Нет соединения или комната закрыта.',
     err_name_taken: 'Это имя занято, выберите другое.',
     err_room_full: 'Комната заполнена.',
@@ -268,7 +270,9 @@ const translations = {
     return_to_lobby: 'Вернуться в лобби',
     home: 'На главную',
     waiting_host_lobby: 'Ждём, пока ведущий вернёт всех в лобби...',
-    leave_confirm: 'Выйти из игры?'
+    leave_confirm: 'Выйти из игры?',
+    err_room_unsure: 'Комната {code} не найдена, но основной сервер не ответил — возможно, медленный интернет. Нажмите ещё раз.',
+    err_connect_slow: 'Комната найдена, но соединение не устанавливается. Нажмите ещё раз или включите мобильный интернет.',
   },
   en: {
     app_title: 'MAFIA',
@@ -362,7 +366,7 @@ const translations = {
 
     conn_online: 'Connected',
     conn_offline: 'Connection lost — reconnecting...',
-    err_room_not_found: 'Room not found. Check the code.',
+    err_room_not_found: 'Room {code} was not found. Check the code on the host’s screen.',
     err_no_connection: 'No connection, or the room is closed.',
     err_name_taken: 'This name is taken, choose another one.',
     err_room_full: 'The room is full.',
@@ -395,7 +399,9 @@ const translations = {
     return_to_lobby: 'Back to the lobby',
     home: 'Home',
     waiting_host_lobby: 'Waiting for the host to bring everyone back to the lobby...',
-    leave_confirm: 'Leave the game?'
+    leave_confirm: 'Leave the game?',
+    err_room_unsure: 'Room {code} was not found, but the main server did not answer — the internet may be slow. Try again.',
+    err_connect_slow: 'The room was found, but the connection does not open. Try again or turn on mobile data.',
   }
 };
 

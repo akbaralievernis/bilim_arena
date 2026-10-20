@@ -15,7 +15,11 @@ export default function Lobby({ roomData, onStart, isHost, socket }) {
   // Ссылка работает и на GitHub Pages в подпапке, и локально
   const joinUrl = useMemo(() => {
     const base = window.location.origin + window.location.pathname;
-    return `${base}?room=${roomData?.id}`;
+    const params = new URLSearchParams({ room: roomData?.id || '' });
+    // Режимы проверки связи (?signal=…, ?relay=1) переходят на телефоны вместе со ссылкой
+    const here = new URLSearchParams(window.location.search);
+    for (const k of ['signal', 'relay']) if (here.get(k)) params.set(k, here.get(k));
+    return `${base}?${params}`;
   }, [roomData?.id]);
 
   if (!roomData) return null;

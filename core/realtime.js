@@ -17,9 +17,12 @@ import { SIGNAL } from './config.js';
 // Библиотеки лежат на самом сайте (vendor/): школьная сеть может резать или
 // тормозить CDN, а сайт уже открылся — значит, и они загрузятся (и есть в офлайн-кэше).
 // Файлы байт в байт совпадают с npm-пакетами peerjs@1.5.5 и qrcode-generator@1.4.4 (SRI).
-const PEER_SRC = new URL('../vendor/peerjs-1.5.5.min.js', import.meta.url).href;
+// (адрес модуля — через переменную: так сборщик «Мафии» не копирует эти файлы к себе,
+// там PeerJS уже встроен и передаётся через window.Peer)
+const HERE = import.meta.url;
+const PEER_SRC = new URL('../vendor/peerjs-1.5.5.min.js', HERE).href;
 const PEER_SRI = 'sha384-x0YgkOr/3UOZP2CRDxGW9e0Q+2Qjyr3uJrm4xU32Y7ZCNAo7Cc7bjhrZMi/dwczu';
-const QR_SRC = new URL('../vendor/qrcode-generator-1.4.4.js', import.meta.url).href;
+const QR_SRC = new URL('../vendor/qrcode-generator-1.4.4.js', HERE).href;
 const QR_SRI = 'sha384-8FWZA6BGMXhsfO+BLtrJK0We6gg5o1JyO8xQm6peWDEUs17ACA5ziE/NIAkl9z2k';
 
 /** Сроки ожидания, мс (в тестах уменьшаются) */
@@ -121,13 +124,13 @@ export function cleanPlayerName(value) {
 }
 
 /** Сообщение телефона, которое доска готова обработать; null — отбросить. */
-export function acceptMessage(msg) {
+export function acceptMessage(msg, maxChars = MAX_MESSAGE_CHARS) {
   if (!msg || typeof msg !== 'object' || Array.isArray(msg)) return null;
   if (typeof msg.type !== 'string' || msg.type.length > 40) return null;
   if (typeof msg.playerId !== 'string' || !PLAYER_ID.test(msg.playerId)) return null;
   let size = 0;
   try { size = JSON.stringify(msg).length; } catch { return null; }
-  return size <= MAX_MESSAGE_CHARS ? msg : null;
+  return size <= maxChars ? msg : null;
 }
 
 /** Счётчик сообщений одного соединения: 'ok' | 'drop' | 'close'. */
@@ -152,7 +155,7 @@ const randomSecret = () => {
 export const roomCode = (len = 4) =>
   Array.from({ length: len }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join('');
 
-const peerIdFor = (code) => ROOM_PREFIX + String(code).toUpperCase();
+const peerIdFor = (code, prefix = ROOM_PREFIX) => prefix + String(code).toUpperCase();
 
 /** Ссылка для QR-кода: открывает контроллер с уже вписанным кодом */
 export function joinUrl(code, server = null) {
@@ -187,7 +190,7 @@ function firstOpen(regs) {
  * @param {(playerId:string)=>void} handlers.onLeave
  * @param {(playerId:string, msg:object)=>void} handlers.onMessage
  */
-export async function createRoom({ onJoin, onLeave, onMessage } = {}) {
+export async function createRoom({ onJoin, onLeave, onMessage, prefix = ROOM_PREFIX, maxMessage = MAX_MESSAGE_CHARS } = {}) {
   const [Peer, baseOptions] = await Promise.all([loadPeer(), peerOptions()]);
   const conns = new Map();   // playerId -> connection
   const players = new Map(); // playerId -> { id, name }
@@ -255,7 +258,7 @@ export async function createRoom({ onJoin, onLeave, onMessage } = {}) {
     const start = () => {
       if (closed || reg.stopped) return;
       since = Date.now();
-      const p = new Peer(peerIdFor(roomId), { ...baseOptions, ...candidate.options, token });
+      const p = new Peer(peerIdFor(roomId, prefix), { ...baseOptions, ...candidate.options, token });
       reg.peer = p;
       let opened = false;
       const timer = setTimeout(() => { if (!opened && reg.peer === p) lost(p, new Error('timeout')); }, limit);
@@ -349,7 +352,7 @@ export async function createRoom({ onJoin, onLeave, onMessage } = {}) {
       const verdict = limit();
       if (verdict === 'close') { try { conn.close(); } catch { /* закрыт */ } return; }
       if (verdict === 'drop') return;
-      const msg = acceptMessage(raw);
+      const msg = acceptMessage(raw, maxMessage);
       if (!msg) return;
       const id = msg.playerId;
 
@@ -436,13 +439,13 @@ export async function createRoom({ onJoin, onLeave, onMessage } = {}) {
  * Подключение к комнате. Сам переподключается, если связь оборвалась
  * (телефон заблокировался, Wi-Fi моргнул).
  */
-export async function joinRoom({ code, name, playerId, secret, onMessage, onStatus, server = null } = {}) {
+export async function joinRoom({ code, name, playerId, secret, onMessage, onStatus, server = null, prefix = ROOM_PREFIX } = {}) {
   const [Peer, baseOptions] = await Promise.all([loadPeer(), peerOptions()]);
   let servers = signalServers();
   // Подсказка из QR: комната на общем сервере — начинаем с него
   if (server) servers = [...servers.filter((s) => s.name === server), ...servers.filter((s) => s.name !== server)];
   const room = normalizeRoomCode(code);
-  const opts = { code: room, name, playerId, secret, onMessage, onStatus };
+  const opts = { code: room, name, playerId, secret, onMessage, onStatus, prefix };
 
   // Первый проход — быстрый: есть запасной сервер, долго не ждём.
   // Второй — терпеливый, только к серверам, до которых телефон не достучался:
@@ -484,11 +487,11 @@ export async function joinRoom({ code, name, playerId, secret, onMessage, onStat
  * quickMiss — есть запасной сервер: если комнаты здесь нет (два ответа
  * «адресата нет» подряд), сразу сдаёмся, чтобы проверить следующий.
  */
-async function joinVia(Peer, options, { code, name, playerId, secret, onMessage, onStatus, quickMiss = false, openTimeout = TIMING.phoneOpen }) {
+async function joinVia(Peer, options, { code, name, playerId, secret, onMessage, onStatus, quickMiss = false, openTimeout = TIMING.phoneOpen, prefix = ROOM_PREFIX }) {
   const id = playerId || `s_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
   // Секрет телефона: только он может вернуться на это место после обрыва
   const key = typeof secret === 'string' && secret ? secret : randomSecret();
-  const target = peerIdFor(code);
+  const target = peerIdFor(code, prefix);
 
   let conn = null;
   let lastOpen = null; // последнее соединение, которое действительно открылось
@@ -533,9 +536,9 @@ async function joinVia(Peer, options, { code, name, playerId, secret, onMessage,
     c.on('iceStateChanged', () => { boardFound = true; });
     c.on('open', () => {
       lastOpen = c;
-      onStatus?.('online');
       if (retry) { clearInterval(retry); retry = null; }
-      hello();
+      hello(); // сначала представиться: иначе доска не примет сообщения, отправленные в onStatus
+      onStatus?.('online');
       onOpen?.();
     });
     c.on('data', (msg) => { if (msg && typeof msg === 'object') onMessage?.(msg); });

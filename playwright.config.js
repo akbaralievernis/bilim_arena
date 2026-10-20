@@ -29,7 +29,7 @@ export default defineConfig({
     { name: 'pages', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic|cycles|a11y|a11y-games)\.spec\.js/, use: { ...chrome } },
     // Урок и конструктор: телефоны говорят с локальным сервером знакомства,
     // которого нет в CSP сайта, поэтому CSP здесь отключена
-    { name: 'classroom', testMatch: /(classroom|import)\.spec\.js/, use: { ...chrome, bypassCSP: true } },
+    { name: 'classroom', testMatch: /(classroom|import|mafia)\.spec\.js/, use: { ...chrome, bypassCSP: true } },
     // Офлайн: здесь service worker включён (в остальных проектах он выключен)
     { name: 'offline', testMatch: /offline\.spec\.js/, use: { ...chrome, serviceWorkers: 'allow' } },
     // Те же страницы в движках Safari и Firefox — по явному запросу:
