@@ -18,6 +18,7 @@ const P = {
   close: '<path d="M6 6l12 12M18 6L6 18"/>',
   chevron: '<path d="M9 5l7 7-7 7"/>',
   back: '<path d="M15 5l-7 7 7 7"/>',
+  up: '<path d="M12 19V5M5 12l7-7 7 7"/>',
   play: '<path d="M8 5.5v13l11-6.5z"/>',
   globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.8 3 2.8 15 0 18M12 3c-2.8 3-2.8 15 0 18"/>',
   cloud: '<path d="M7 18.5h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 18.5z"/>',

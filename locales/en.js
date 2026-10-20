@@ -460,6 +460,7 @@ export default {
   // New interface: navigation, home, catalogue
   skip_to_content: 'Skip to content',
   nav_main: 'Main menu',
+  to_top: 'Back to top',
   nav_for_teachers: 'For teachers',
   nav_join: 'Join a lesson',
   nav_student_view: 'Student view',

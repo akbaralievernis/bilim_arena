@@ -65,7 +65,16 @@
   --shadow: 0 1px 3px rgba(16, 24, 40, 0.06), 0 4px 12px rgba(16, 24, 40, 0.05);
   --shadow-lg: 0 2px 4px rgba(16, 24, 40, 0.06), 0 12px 24px rgba(16, 24, 40, 0.08);
   --border: rgba(16, 24, 40, 0.08);
+  --line-strong: #CDD2E4;      /* граница при наведении */
+  --placeholder: #8A93AD;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 0.15s;
+  --dur: 0.25s;
+  --header-h: 68px;            /* высота шапки: якоря не прячутся под неё */
+
+  /* Орнамент «кочкор мүйүз» (бараньи рога) — узор с кыргызских шырдаков. Свой знак сайта:
+     полоса под заголовками, угол приветствия, разделители. Цвет задаётся маской (background-color). */
+  --ornament: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='16' viewBox='0 0 48 16'%3E%3Cpath d='M24 15v-3c0-4-2-7-6-7.5S11 7 12.5 10s5 2.5 5.5 0-1.5-3-3-1.5M24 12c0-4 2-7 6-7.5S37 7 35.5 10s-5 2.5-5.5 0 1.5-3 3-1.5' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -168,9 +177,9 @@ a.card { text-decoration: none; color: inherit; }
 .btn.block { width: 100%; }
 .btn.icon-only { padding: 0; width: var(--tap); }
 @media (hover: hover) {
-  .btn:hover { border-color: #CDD2E4; }
+  .btn:hover { border-color: var(--line-strong); }
   .btn.primary:hover { background: var(--primary-hover); }
-  .btn.soft:hover { background: #E3E1FF; }
+  .btn.soft:hover { background: color-mix(in srgb, var(--primary) 16%, #fff); }
   .btn.ghost:hover { background: var(--surface-2); }
 }
 
@@ -186,7 +195,7 @@ a.card { text-decoration: none; color: inherit; }
   font: inherit;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-.input::placeholder { color: #8A93AD; }
+.input::placeholder { color: var(--placeholder); }
 .input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent); }
 select.input { appearance: none; padding-right: 2.4em; cursor: pointer;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%235B6583' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -213,7 +222,7 @@ select.input { appearance: none; padding-right: 2.4em; cursor: pointer;
   touch-action: manipulation;
   transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
-button.chip:not([disabled]):hover { border-color: #CDD2E4; }
+button.chip:not([disabled]):hover { border-color: var(--line-strong); }
 .chip[aria-pressed='true'], .chip.on {
   background: var(--primary); border-color: var(--primary); color: #fff;
 }
@@ -920,3 +929,99 @@ button.option:not([disabled]):hover { border-color: var(--primary); }
 .prompt-image-wrap { display: flex; justify-content: center; margin: 4px 0 12px; }
 .prompt-image { display: block; max-width: 100%; max-height: 38vh; border-radius: var(--radius-sm); border: 1px solid var(--line); background: #fff; object-fit: contain; }
 body.board-mode .prompt-image { max-height: 46vh; }
+
+/* ═══ Прокрутка ═══════════════════════════════════════════════════════════════
+   Плавная прокрутка (если человек не просил меньше движения), якоря не прячутся под шапку,
+   длинные ряды чипов и вкладок на телефоне — одной прокручиваемой строкой, а не стеной кнопок. */
+html { scroll-padding-top: calc(var(--header-h) + 12px); }
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+body { overscroll-behavior-y: none; }
+
+/* Тонкие полосы прокрутки в цветах сайта (таблицы, списки) */
+* { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 999px; border: 3px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background-color: #A9B0C6; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Шапка при прокрутке: лёгкая тень и размытие под ней (класс ставит core/ui.js) */
+.topbar { transition: box-shadow var(--dur) var(--ease), background-color var(--dur); }
+.topbar.scrolled { box-shadow: 0 6px 20px -12px rgba(16, 24, 40, 0.28); }
+@supports (backdrop-filter: blur(8px)) {
+  .topbar { background: rgba(255, 255, 255, 0.86); backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px); }
+}
+
+/* Ряд, который на телефоне прокручивается вбок: предметы, темы, вкладки */
+@media (max-width: 720px) {
+  .scroll-x, .row.tabs {
+    flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity; scroll-padding-inline: 16px;
+    margin-inline: calc(-1 * clamp(16px, 3vw, 28px)); padding: 2px clamp(16px, 3vw, 28px) 6px;
+    scrollbar-width: none;
+    /* Края растворяются — видно, что дальше есть ещё */
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 28px), transparent);
+  }
+  .card .scroll-x { margin-inline: -20px; padding-inline: 20px; scroll-padding-inline: 20px; }
+  .scroll-x::-webkit-scrollbar, .row.tabs::-webkit-scrollbar { display: none; }
+  .scroll-x > *, .row.tabs > * { flex: none; scroll-snap-align: start; }
+}
+
+/* Кнопка «Наверх» на длинных страницах (над нижним меню телефона) */
+.to-top {
+  position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: calc(24px + env(safe-area-inset-bottom)); z-index: 40;
+  width: 48px; height: 48px; border-radius: 999px; border: 1px solid var(--line);
+  display: grid; place-items: center; cursor: pointer;
+  background: var(--surface); color: var(--text); box-shadow: var(--shadow-lg);
+  opacity: 0; transform: translateY(12px) scale(0.9); pointer-events: none;
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.to-top.show { opacity: 1; transform: none; pointer-events: auto; }
+.to-top:hover { border-color: var(--line-strong); }
+.to-top:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+@media (max-width: 767px) { body.has-tabbar .to-top { bottom: calc(88px + env(safe-area-inset-bottom)); } }
+@media print { .to-top { display: none !important; } }
+
+/* Карточки мягко «приезжают» при прокрутке — только сдвиг, без прозрачности (контраст не страдает) */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    main .card, main .game-card, main .cat-card {
+      animation: ba-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+  }
+}
+@keyframes ba-rise { from { transform: translateY(18px) scale(0.985); } to { transform: none; } }
+
+/* ═══ Характер сайта: орнамент «кочкор мүйүз» ═════════════════════════════════ */
+.ornament {
+  display: block; height: 16px; width: 144px; margin: 6px 0 14px;
+  background-color: var(--primary);
+  -webkit-mask: var(--ornament) repeat-x left center / 48px 16px;
+  mask: var(--ornament) repeat-x left center / 48px 16px;
+}
+/* Заголовок страницы с короткой полосой орнамента */
+main h1:not(.center):not(.profile-name):not(#heroTitle)::after {
+  content: ''; display: block; height: 14px; width: 126px; margin-top: 8px;
+  background-color: var(--primary);
+  -webkit-mask: var(--ornament) repeat-x left center / 42px 14px;
+  mask: var(--ornament) repeat-x left center / 42px 14px;
+}
+main .row h1:not(.center)::after, main .row.between h1::after { margin-bottom: 0; }
+body.board-mode main h1::after { display: none; }
+@media print { main h1::after { display: none !important; } }
+
+/* Пустое состояние: спокойнее и понятнее, с узором */
+.card.center.muted {
+  position: relative; padding-top: 44px; overflow: hidden;
+  background: linear-gradient(180deg, var(--surface-2), var(--surface) 70%);
+}
+.card.center.muted::before {
+  content: ''; position: absolute; left: 50%; top: 14px; width: 48px; height: 16px; transform: translateX(-50%);
+  background-color: var(--line-strong);
+  -webkit-mask: var(--ornament) no-repeat center / 48px 16px;
+  mask: var(--ornament) no-repeat center / 48px 16px;
+}

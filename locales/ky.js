@@ -477,6 +477,7 @@ export default {
   // Жаңы интерфейс: навигация, башкы бет, каталог
   skip_to_content: 'Мазмунга өтүү',
   nav_main: 'Негизги меню',
+  to_top: 'Өйдө',
   nav_for_teachers: 'Мугалимдерге',
   nav_join: 'Сабакка кирүү',
   nav_student_view: 'Окуучунун бети',

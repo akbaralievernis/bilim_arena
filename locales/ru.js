@@ -460,6 +460,7 @@ export default {
   // Новый интерфейс: навигация, главная, каталог
   skip_to_content: 'Перейти к содержимому',
   nav_main: 'Главное меню',
+  to_top: 'Наверх',
   nav_for_teachers: 'Учителям',
   nav_join: 'Войти на урок',
   nav_student_view: 'Страница ученика',
