@@ -6,11 +6,12 @@ import { useTranslation, roleName as tRole } from '../utils/i18n';
 import PhaseTimer from './PhaseTimer';
 import PlayerCard from './PlayerCard';
 import RoleIcon from './RoleIcon';
+import { announceNow } from '../voice/announcer';
 
 const iconRow = { display: 'inline-flex', alignItems: 'center', gap: '0.4rem' };
 
 const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const { socket, leaveRoom } = useSocket();
 
   const [selectedId, setSelectedId] = useState(null);
@@ -51,6 +52,13 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
     setCurrentVotes({});
     setRevoteData(null);
   }
+
+  // Итог игры вслух — только у ведущего (его экран на проекторе)
+  const winners = gameOverData?.winners;
+  useEffect(() => {
+    if (!isHost || phase !== 'end' || !winners) return;
+    announceNow(winners === 'mafia' ? 'win_mafia' : winners === 'maniac' ? 'win_maniac' : 'win_citizens', lang);
+  }, [isHost, phase, winners, lang]);
 
   useEffect(() => {
     document.body.classList.toggle('night-mode', phase === 'night');
@@ -158,10 +166,10 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
       <div className="role-reveal-overlay">
         <motion.div initial={{ scale: 0, rotateY: 180 }} animate={{ scale: 1, rotateY: 0 }} transition={{ duration: 0.8, type: 'spring' }}>
           <div className="role-card">
-            <h1 style={{ color: 'var(--accent-purple)', fontSize: '1.6rem', marginBottom: '1rem' }}>{t('your_role')}</h1>
-            <div style={{ marginBottom: '1rem', color: 'var(--accent-purple)', display: 'flex', justifyContent: 'center' }}><RoleIcon role={myRole} size={64} /></div>
-            <h2 style={{ fontSize: '1.8rem', textTransform: 'uppercase' }}>{tRole(myRole)}</h2>
-            <p style={{ fontSize: '0.8rem', opacity: 0.75, marginTop: '1rem', lineHeight: 1.4 }}>
+            <p className="text-secondary" style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '1rem' }}>{t('your_role')}</p>
+            <div className="role-name" style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}><RoleIcon role={myRole} size={64} /></div>
+            <h1 className="role-name">{tRole(myRole)}</h1>
+            <p className="text-secondary" style={{ fontSize: '0.95rem', marginTop: '1rem', lineHeight: 1.5 }}>
               {t(`desc_${myRole}`)}
             </p>
           </div>
@@ -179,10 +187,9 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
 
   // ── Экран конца игры ───────────────────────────────────────────────────────
   if (phase === 'end') {
-    const winners = gameOverData?.winners;
     const isMafiaWin = winners === 'mafia';
     const isManiacWin = winners === 'maniac';
-    const themeColor = isMafiaWin || isManiacWin ? 'var(--accent-red)' : 'var(--accent-blue)';
+    const themeColor = isMafiaWin || isManiacWin ? 'var(--primary-ink)' : 'var(--accent-blue)';
     const winTitle = isMafiaWin ? t('winners_mafia') : isManiacWin ? t('winners_maniac') : t('winners_citizens');
     const winText = isMafiaWin ? t('msg_win_mafia') : isManiacWin ? t('msg_win_maniac') : t('msg_win_citizens');
 
@@ -190,35 +197,30 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         className="end-screen"
-        style={{
-          background: isMafiaWin || isManiacWin
-            ? 'radial-gradient(circle at center, #300 0%, #000 100%)'
-            : 'radial-gradient(circle at center, #001a33 0%, #000 100%)'
-        }}
       >
         <motion.div
           initial={{ scale: 0.9, y: 20, opacity: 0 }}
           animate={{ scale: 1, y: 0, opacity: 1 }}
           transition={{ type: 'spring', damping: 15 }}
           className="glass-panel end-card"
-          style={{ border: `1px solid ${themeColor}`, boxShadow: `0 0 40px ${themeColor}33` }}
+          style={{ '--end-color': themeColor }}
         >
           <div style={{ marginBottom: '0.5rem', color: themeColor, display: 'flex', justifyContent: 'center' }}>
             {isMafiaWin ? <Skull size={56} aria-hidden="true" /> : isManiacWin ? <RoleIcon role="maniac" size={56} /> : <Trophy size={56} aria-hidden="true" />}
           </div>
 
-          <h1 style={{ fontSize: 'clamp(1.6rem, 6vw, 2.4rem)', fontWeight: 900, color: themeColor, textShadow: `0 0 20px ${themeColor}` }}>
+          <h1 style={{ fontSize: 'clamp(1.6rem, 6vw, 2.4rem)', fontWeight: 900, color: themeColor }}>
             {t('game_over')}
           </h1>
           <h2 style={{ fontSize: 'clamp(1.1rem, 4vw, 1.5rem)', margin: '0.5rem 0 1rem' }}>{winTitle}</h2>
-          <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.7)', marginBottom: '1.5rem', lineHeight: 1.4 }}>{winText}</p>
+          <p className="text-secondary" style={{ fontSize: '1rem', marginBottom: '1.5rem', lineHeight: 1.5 }}>{winText}</p>
 
           <h3 style={{ fontSize: '0.8rem', color: themeColor, textTransform: 'uppercase', marginBottom: '0.8rem' }}>{t('roles_summary')}</h3>
           <div className="roles-summary">
             {players.filter((p) => !p.isHost).map((p) => (
               <div key={p.id} className="roles-summary__row">
                 <span style={{ fontSize: '0.85rem' }}>{p.name}</span>
-                <span style={{ fontSize: '0.7rem', opacity: 0.7, fontWeight: 'bold' }}>{tRole(roles[p.id])}</span>
+                <span className="text-secondary" style={{ fontSize: '0.75rem', fontWeight: 700 }}>{tRole(roles[p.id])}</span>
               </div>
             ))}
           </div>
@@ -229,14 +231,13 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
               <button
                 className="btn-primary"
                 onClick={() => socket.emit('reset_game', {})}
-                style={{ background: `linear-gradient(45deg, ${themeColor}, var(--accent-purple))` }}
               >
                 {t('return_to_lobby')}
               </button>
             )}
           </div>
           {!isHost && (
-            <p style={{ marginTop: '1.2rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.45)' }}>{t('waiting_host_lobby')}</p>
+            <p className="text-secondary" style={{ marginTop: '1.2rem', fontSize: '0.9rem' }}>{t('waiting_host_lobby')}</p>
           )}
         </motion.div>
       </motion.div>
@@ -248,7 +249,7 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
       <div className="glass-panel game-header">
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            {isNight ? <Moon size={22} color="var(--accent-purple)" /> : <Sun size={22} color="#FFD700" />}
+            {isNight ? <Moon size={22} color="#C9D3FF" aria-hidden="true" /> : <Sun size={22} color="#D97706" aria-hidden="true" />}
             <h2 style={{ fontSize: '1.1rem', fontWeight: 800 }}>
               {isNight ? t('phase_night') : isVoting ? t('phase_vote') : t('phase_day')}
             </h2>
@@ -258,10 +259,10 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
         </div>
         <div style={{ textAlign: 'right' }}>
           <p className="text-secondary" style={{ fontSize: '0.7rem', textTransform: 'uppercase' }}>{t('your_role')}</p>
-          <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--accent-purple)' }}>
+          <h3 className="role-name" style={{ fontSize: '1rem', fontWeight: 700 }}>
             <span style={iconRow}><RoleIcon role={myRole} size={16} /> {tRole(myRole)}</span>
           </h3>
-          {!amIAlive && <span style={{ fontSize: '0.7rem', color: 'var(--accent-red)' }}>{t('dead')}</span>}
+          {!amIAlive && <span className="role-name" style={{ fontSize: '0.8rem', fontWeight: 700 }}>{t('dead')}</span>}
         </div>
       </div>
 
@@ -300,10 +301,10 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
             initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }}
             className="glass-panel action-banner"
           >
-            <ShieldAlert size={20} color="var(--accent-red)" />
+            <ShieldAlert size={20} color="var(--primary-ink)" aria-hidden="true" />
             <div>
               <p style={{ fontWeight: 700, fontSize: '0.85rem' }}>{t('action_required')}</p>
-              <p className="text-secondary" style={{ fontSize: '0.75rem' }}>{isNight ? t('action_night') : t('action_vote')}</p>
+              <p className="text-secondary" style={{ fontSize: '0.85rem' }}>{isNight ? t('action_night') : t('action_vote')}</p>
             </div>
           </motion.div>
         )}
@@ -344,8 +345,8 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
         <div className="glass-panel chat-box">
           <div className="chat-box__list">
             {chatMessages.map((msg, i) => (
-              <div key={i} style={{ fontSize: '0.82rem' }}>
-                <strong style={{ color: 'var(--accent-purple)' }}>{msg.senderName}:</strong> {msg.text}
+              <div key={i} style={{ fontSize: '0.9rem', overflowWrap: 'anywhere' }}>
+                <strong className="chat-box__name">{msg.senderName}:</strong> {msg.text}
               </div>
             ))}
             <div ref={chatEndRef} />
@@ -358,9 +359,10 @@ const Game = React.memo(({ gameState, myId, onAction, isHost }) => {
               placeholder={t('chat_placeholder')}
               className="input-glass"
               maxLength={200}
-              style={{ flex: 1, padding: '0.5rem 0.8rem', fontSize: '0.85rem' }}
+              aria-label={t('chat_placeholder')}
+              style={{ flex: 1 }}
             />
-            <button className="btn-primary" onClick={sendChat} style={{ padding: '0.5rem 1rem' }} aria-label={t('send')}><Send size={16} aria-hidden="true" /></button>
+            <button className="btn-primary" onClick={sendChat} style={{ padding: '0.5rem 1rem' }} aria-label={t('send')} title={t('send')}><Send size={16} aria-hidden="true" /></button>
           </div>
         </div>
       )}

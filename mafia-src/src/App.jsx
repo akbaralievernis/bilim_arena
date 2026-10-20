@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { SocketProvider, useSocket } from './context/SocketContext';
 import { useTranslation } from './utils/i18n';
-import { TriangleAlert, Plug, Sun, Moon } from 'lucide-react';
+import { TriangleAlert, Plug } from 'lucide-react';
 import Home from './components/Home';
 import Lobby from './components/Lobby';
 import Game from './components/Game';
@@ -59,38 +59,10 @@ const RoomRouter = () => {
   return <Game gameState={roomData} myId={myPlayerId} onAction={handleAction} isHost={isHostPlayer} />;
 };
 
-const ThemeToggle = () => {
-  const { t } = useTranslation();
-  const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem('mafia_theme');
-    if (saved) return saved === 'dark';
-    return !window.matchMedia?.('(prefers-color-scheme: light)').matches;
-  });
-
-  useEffect(() => {
-    // В теме по умолчанию тёмные переменные лежат в :root,
-    // поэтому светлый режим включается атрибутом data-theme="light".
-    document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    localStorage.setItem('mafia_theme', isDark ? 'dark' : 'light');
-  }, [isDark]);
-
-  return (
-    <button
-      className="theme-toggle"
-      onClick={() => setIsDark((v) => !v)}
-      title={t('theme')}
-      aria-label={t('theme')}
-    >
-      {isDark ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
-    </button>
-  );
-};
-
 function App() {
   return (
     <Router>
       <SocketProvider>
-        <ThemeToggle />
         <StatusLayer />
         <Routes>
           <Route path="/" element={<Home />} />
