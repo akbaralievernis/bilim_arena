@@ -6,7 +6,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://udkxmgflbxetfzziftla.supabase.co wss://udkxmgflbxetfzziftla.supabase.co https://bilimarena-signal.bilimarena-signal.workers.dev wss://bilimarena-signal.bilimarena-signal.workers.dev https://0.peerjs.com wss://0.peerjs.com https://cdn.jsdelivr.net; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#F7F8FC" />
+  <meta name="theme-color" content="#F8F9FA" />
   <meta name="description" content="Билим Арена — мектеп окуучулары үчүн билим берүүчү оюн платформасы: тил үйрөнүү, логика, командалык жана интерактивдүү оюндар." />
   <title>Билим Арена — ойноп үйрөн</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
@@ -18,7 +18,7 @@
   <meta property="og:image" content="./assets/suilom.webp" />
 
   <link rel="stylesheet" href="./core/ui.css?v=19" />
-  <link rel="stylesheet" href="./home.css?v=20" />
+  <link rel="stylesheet" href="./home.css?v=21" />
 </head>
 
 <body>
@@ -26,7 +26,7 @@
   <div id="header"></div>
 
   <main id="main" class="page home">
-    <!-- 1. Приветствие -->
+    <!-- 1. Первый экран: что это, главное действие, своя иллюстрация -->
     <section class="hero wrap" aria-labelledby="heroTitle">
       <div class="hero-card">
         <div class="hero-text">
@@ -35,8 +35,13 @@
           <p class="hero-sub" data-i18n="home_intro">Ойно, үйрөн жана өз прогрессиңди көр.</p>
           <div class="hero-actions">
             <a class="btn primary big" href="./games.html" id="heroGames"></a>
-            <a class="btn big" href="./progress.html" id="heroProgress"></a>
+            <a class="btn big" href="./practice.html" id="heroSubjects"></a>
           </div>
+          <form class="search-box hero-search" id="homeSearch" role="search" action="./games.html">
+            <label class="sr-only" for="homeSearchInput" data-i18n="cat_search">Оюн издөө</label>
+            <input class="input" id="homeSearchInput" name="q" type="search" autocomplete="off" enterkeyhint="search" />
+            <button class="btn" type="submit" id="homeSearchBtn"></button>
+          </form>
         </div>
         <div class="hero-art" id="heroArt" aria-hidden="true"></div>
       </div>
@@ -47,31 +52,31 @@
       <div class="card stack" id="tasksHome"></div>
     </section>
 
-    <!-- 2. Поиск игры -->
-    <section class="wrap home-search" aria-labelledby="searchTitle">
-      <h2 id="searchTitle" class="sr-only" data-i18n="cat_search">Оюн издөө</h2>
-      <form class="search-box big-search" id="homeSearch" role="search" action="./games.html">
-        <label class="sr-only" for="homeSearchInput" data-i18n="cat_search">Оюн издөө</label>
-        <input class="input" id="homeSearchInput" name="q" type="search" autocomplete="off" enterkeyhint="search" />
-        <button class="btn primary" type="submit" id="homeSearchBtn"></button>
-      </form>
-    </section>
-
-    <!-- 3. Категории -->
-    <section class="wrap section" aria-labelledby="catTitle">
-      <div class="section-head">
-        <h2 id="catTitle" data-i18n="home_categories">Оюнду танда</h2>
-      </div>
-      <div class="cat-grid" id="catGrid"></div>
-    </section>
-
-    <!-- 4. Популярные -->
+    <!-- 2. Популярные игры + разделы каталога -->
     <section class="wrap section" aria-labelledby="popTitle">
       <div class="section-head">
         <h2 id="popTitle" data-i18n="home_popular">Популярдуу оюндар</h2>
         <a class="section-link" href="./games.html" id="popAll"></a>
       </div>
+      <nav class="cat-chips" id="catChips"></nav>
       <div class="game-grid popular-grid" id="popularGrid"></div>
+    </section>
+
+    <!-- 3. Предметы -->
+    <section class="wrap section" aria-labelledby="subjTitle">
+      <div class="section-head">
+        <h2 id="subjTitle" data-i18n="nav_subjects">Сабактар</h2>
+        <a class="section-link" href="./practice.html" id="subjAll"></a>
+      </div>
+      <ul class="subject-grid" id="subjectGrid"></ul>
+    </section>
+
+    <!-- 4. Рекомендации — только по настоящим данным ученика -->
+    <section class="wrap section hidden" id="recSection" aria-labelledby="recTitle">
+      <div class="section-head">
+        <h2 id="recTitle" data-i18n="home_recommended">Сага сунуштайбыз</h2>
+      </div>
+      <ul class="rec-list" id="recList"></ul>
     </section>
 
     <!-- 5. Продолжить  ·  6. Прогресс -->
@@ -80,28 +85,39 @@
       <div class="card progress-card" id="progressCard" aria-labelledby="progTitle"></div>
     </section>
 
-    <!-- 7. Учителям -->
-    <section class="wrap section" aria-labelledby="raceHomeTitle">
-      <div class="teacher-card card">
-        <div class="teacher-art" id="raceHomeArt" aria-hidden="true"></div>
-        <div class="stack" style="gap:10px">
-          <p class="hero-kicker" style="margin:0" data-i18n="race_kicker">Командалык жарыш</p>
-          <h2 id="raceHomeTitle">Bilim Arena Race</h2>
-          <p class="muted" style="margin:0" data-i18n="race_intro"></p>
-          <div><a class="btn primary" href="./race.html" id="raceHomeBtn"></a></div>
+    <!-- 7. Войти на урок по коду -->
+    <section class="wrap section" aria-labelledby="joinTitle">
+      <div class="join-card">
+        <div class="join-text">
+          <h2 id="joinTitle" data-i18n="home_join_lesson">Сабакка кирүү</h2>
+          <p data-i18n="home_join_sub"></p>
         </div>
+        <form class="join-form" id="joinForm" action="./play.html">
+          <label class="sr-only" for="joinCode" data-i18n="home_join_code">Сабактын коду</label>
+          <input class="input join-input" id="joinCode" name="room" inputmode="numeric" autocomplete="off" maxlength="12" />
+          <button class="btn accent" type="submit" id="joinBtn"></button>
+        </form>
+        <a class="join-race" href="./race.html" id="raceHomeBtn"></a>
       </div>
     </section>
 
+    <!-- 8. Для учителей -->
     <section class="wrap section" aria-labelledby="teachTitle">
-      <div class="teacher-card card">
-        <div class="teacher-art" id="teacherArt" aria-hidden="true"></div>
-        <div class="stack" style="gap:10px">
+      <div class="teach-band">
+        <div class="teach-intro">
+          <p class="hero-kicker" data-i18n="home_for_teachers">Мугалим үчүн</p>
           <h2 id="teachTitle" data-i18n="home_teacher_title">Мугалимсизби?</h2>
-          <p class="muted" style="margin:0" data-i18n="home_teacher_text">Сабак үчүн оюндарды тандап, окуучулар менен ойно.</p>
-          <div><a class="btn primary" href="./teacher.html" id="teacherBtn"></a></div>
+          <p data-i18n="home_teacher_text">Сабак үчүн оюндарды тандап, окуучулар менен ойно.</p>
+          <div class="row"><a class="btn primary" href="./teacher.html" id="teacherBtn"></a><a class="btn" href="./board.html" id="boardBtn"></a></div>
         </div>
+        <ul class="teach-features" id="teachFeatures"></ul>
       </div>
+    </section>
+
+    <!-- 9. О платформе -->
+    <section class="wrap section about" aria-labelledby="aboutTitle">
+      <h2 id="aboutTitle" class="sr-only" data-i18n="home_about_title">Bilim Arena жөнүндө</h2>
+      <ul class="about-facts" id="aboutFacts"></ul>
     </section>
 
     <!-- 8. Подвал -->
@@ -122,6 +138,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./home.js?v=17"></script>
+  <script type="module" src="./home.js?v=18"></script>
 </body>
 </html>

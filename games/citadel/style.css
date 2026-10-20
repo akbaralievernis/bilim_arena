@@ -10,8 +10,8 @@
   --bg: #0b1020;
   --bg-gradient: linear-gradient(180deg, #070b16 0%, #0b1020 100%);
   --bg-soft: rgba(11, 16, 32, 0.7);
-  --primary: #E0162B;       /* общий красный акцент сайта; белый текст 4.9:1 */
-  --primary-hover: #BF0F21;
+  --primary: #D91E18;       /* общий красный акцент сайта; белый текст 4.9:1 */
+  --primary-hover: #B3170F;
   --accent-a: #ff2e63;
   --accent-b: #0099ff;
   --good: #10b981;
@@ -133,7 +133,7 @@ input:focus, select:focus { border-color: var(--primary); }
   cursor: pointer; transition: var(--transition);
   display: inline-flex; align-items: center; justify-content: center;
 }
-.btn.primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(224, 22, 43, 0.35); }
+.btn.primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(217, 30, 24, 0.35); }
 .btn.primary:hover { background: var(--primary-hover); transform: translateY(-3px); }
 .w-100 { width: 100%; }
 
@@ -187,7 +187,7 @@ input:focus, select:focus { border-color: var(--primary); }
   color: var(--text); font-weight: 700; font-size: 0.95rem; text-align: left;
   cursor: pointer; transition: var(--transition);
 }
-.ansBtn:hover { border-color: var(--primary); background: rgba(224, 22, 43, 0.1); }
+.ansBtn:hover { border-color: var(--primary); background: rgba(217, 30, 24, 0.1); }
 
 /* Board */
 .board {

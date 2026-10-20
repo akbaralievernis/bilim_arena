@@ -1,8 +1,9 @@
 /**
  * Bilim Arena — главная страница.
  *
- * Порядок: приветствие → поиск → «Оюнду танда» (категории) → популярные →
- * «Продолжить» → «Сенин прогрессиң» → блок для учителя → подвал.
+ * Порядок: первый экран (действие + поиск) → популярные игры и разделы →
+ * предметы → рекомендации (если есть данные) → «Продолжить» и прогресс →
+ * вход на урок по коду → для учителей → о платформе → подвал.
  * Всё, что показано о прогрессе, — реальные данные с этого устройства
  * (или из облака, если оно подключено).
  */
@@ -11,34 +12,31 @@ import { bootstrap, mountHeader, el, $ } from './core/ui.js';
 import { t, pick, getLang } from './core/i18n.js';
 import { icon } from './core/icons.js';
 import { cover, avatar } from './core/art.js';
-import { getProgress, history, migrateLegacy } from './core/progress.js';
+import { gameCover } from './core/covers.js';
+import { getProgress, history, migrateLegacy, journeys } from './core/progress.js';
 import { getProfile } from './core/profile.js';
-import { getTopic, getSubject, TOPICS } from './core/curriculum.js';
-import { gameCard, categoryCard, sortGames, metaLine } from './core/catalog.js';
+import { getTopic, getSubject, TOPICS, SUBJECTS } from './core/curriculum.js';
+import { subjectMark } from './core/subject-art.js';
+import { gameCard, sortGames, metaLine } from './core/catalog.js';
 import { GAMES, CATEGORIES, getGame, getCategory } from './data/games.js';
 
 function renderHero(profile) {
   $('#heroKicker').textContent = profile.name ? t('home_hello', { name: profile.name }) : t('home_hello_guest');
-  $('#heroGames').replaceChildren(icon('games', { size: 20 }), el('span', {}, t('home_see_games')));
-  $('#heroProgress').replaceChildren(icon('progress', { size: 20 }), el('span', {}, t('nav_progress')));
+  $('#heroGames').replaceChildren(icon('play', { size: 20 }), el('span', {}, t('home_start_btn')));
+  $('#heroSubjects').replaceChildren(icon('book', { size: 20 }), el('span', {}, t('nav_subjects')));
 
-  // Иллюстрация: обложки трёх разделов и фирменный түндүк за ними
-  $('#heroArt').replaceChildren(...CATEGORIES.slice(0, 3).map((c, i) =>
-    el('div', { class: `hero-tile hero-tile-${i + 1}` }, cover(icon(c.art.icon, { size: 48 }), c.art.tone))));
+  // Иллюстрация: «арена» из сцен трёх разных игр и фирменный түндүк за ними
+  const scenes = ['wordle', 'territory', 'flashcards'].map((id) => gameCover(id)).filter(Boolean);
+  $('#heroArt').replaceChildren(...scenes.map((svg, i) => el('div', { class: `hero-tile hero-tile-${i + 1}` }, svg)),
+    el('span', { class: 'hero-badge hero-badge-1' }, icon('check', { size: 18 }), t('hero_badge_ok')),
+    el('span', { class: 'hero-badge hero-badge-2' }, icon('star', { size: 18 }), '+10 XP'));
   $('#heroArt').closest('.hero-card').prepend(el('span', { class: 'mark-tunduk hero-tunduk', 'aria-hidden': 'true' }));
-
-  // Настоящие цифры платформы (считаются из данных сайта)
-  const subjects = new Set(TOPICS.map((x) => x.subject)).size;
-  $('#heroGames').closest('.hero-text').append(el('ul', { class: 'hero-facts', 'aria-label': t('home_facts') },
-    el('li', {}, el('b', {}, String(GAMES.length)), t('home_fact_games')),
-    el('li', {}, el('b', {}, String(subjects)), t('home_fact_subjects')),
-    el('li', {}, el('b', {}, '3'), t('home_fact_langs'))));
 }
 
 function renderSearch() {
   const input = $('#homeSearchInput');
   input.placeholder = t('cat_search_ph');
-  input.before(icon('search', { size: 22 }));
+  input.before(icon('search', { size: 20 }));
   $('#homeSearchBtn').replaceChildren(el('span', {}, t('search_btn')));
   // Пустой запрос — просто открыть каталог
   $('#homeSearch').addEventListener('submit', (e) => {
@@ -46,13 +44,50 @@ function renderSearch() {
   });
 }
 
+/** Разделы каталога — короткими ссылками над популярными играми */
 function renderCategories() {
-  $('#catGrid').replaceChildren(...CATEGORIES.map((c) => categoryCard(c, GAMES.filter((g) => g.category === c.id).length)));
+  const lang = getLang();
+  $('#catChips').setAttribute('aria-label', t('cat_sections'));
+  $('#catChips').replaceChildren(...CATEGORIES.map((c) => el('a', { class: 'cat-chip', href: `./games.html?category=${c.id}` },
+    icon(c.art.icon, { size: 18 }), el('span', {}, pick(c.title, lang)),
+    el('span', { class: 'cat-chip-n' }, String(GAMES.filter((g) => g.category === c.id).length)))));
 }
 
 function renderPopular(plays) {
   $('#popAll').replaceChildren(el('span', {}, t('home_see_all')), icon('chevron', { size: 16 }));
   $('#popularGrid').replaceChildren(...sortGames(GAMES, 'popular', plays).slice(0, 4).map((g) => gameCard(g)));
+}
+
+/** Предметы: знак, название, сколько тем в банке вопросов */
+function renderSubjects() {
+  const lang = getLang();
+  $('#subjAll').replaceChildren(el('span', {}, t('home_subj_all')), icon('chevron', { size: 16 }));
+  const withTopics = SUBJECTS.map((s) => ({ s, n: TOPICS.filter((x) => x.subject === s.id).length })).filter((x) => x.n);
+  $('#subjectGrid').replaceChildren(...withTopics.map(({ s, n }) => el('li', {},
+    el('a', { class: 'subject-tile', href: `./practice.html?subject=${s.id}` },
+      subjectMark(s.id, { size: 44 }),
+      el('span', { class: 'subject-name' }, pick(s.title, lang)),
+      el('span', { class: 'subject-n' }, t('home_subj_topics', { n }))))));
+}
+
+/** Рекомендации: темы, где пора на проверку или нужно повторить (из прогресса ученика) */
+async function renderRecommended() {
+  const lang = getLang();
+  const list = (await journeys(async () => []))
+    .filter((j) => getTopic(j.topic) && (j.status === 'ready' || j.status === 'learning'))
+    .slice(0, 3);
+  $('#recSection').classList.toggle('hidden', !list.length);
+  if (!list.length) return;
+  $('#recList').replaceChildren(...list.map((j) => {
+    const topic = getTopic(j.topic);
+    const ready = j.status === 'ready';
+    return el('li', {}, el('a', { class: `rec-item ${ready ? 'is-ready' : 'is-review'}`, href: `./practice.html?${new URLSearchParams({ subject: topic.subject, topic: topic.id })}` },
+      subjectMark(topic.subject, { size: 40 }),
+      el('span', { class: 'rec-main' },
+        el('b', {}, pick(topic.title, lang)),
+        el('span', { class: 'small muted' }, pick(getSubject(topic.subject)?.title, lang))),
+      el('span', { class: 'rec-why' }, icon(ready ? 'target' : 'refresh', { size: 16 }), t(ready ? 'home_rec_ready' : 'home_rec_review'))));
+  }));
 }
 
 // ─── «Продолжить» ─────────────────────────────────────────────────────────────
@@ -105,7 +140,7 @@ async function renderContinue(pr) {
 
   const g = last.game;
   const title = g ? pick(g.title, lang) : last.title;
-  const art = g ? cover(icon(g.art.icon, { size: 48 }), g.art.tone) : cover(icon(last.art[0], { size: 48 }), last.art[1]);
+  const art = g ? (gameCover(g.id) || cover(icon(g.art.icon, { size: 48 }), g.art.tone)) : cover(icon(last.art[0], { size: 48 }), last.art[1]);
   card.classList.remove('is-empty');
   card.replaceChildren(
     el('h2', { id: 'contTitle' }, t('home_continue_title')),
@@ -188,14 +223,34 @@ function renderProgress(profile, pr) {
   );
 }
 
-function renderRace() {
-  $('#raceHomeArt').replaceChildren(cover(icon('flag', { size: 48 }), 'violet'));
-  $('#raceHomeBtn').replaceChildren(icon('flag', { size: 18 }), el('span', {}, t('home_race_cta')));
+/** Вход на урок: код из 4 цифр от учителя (как в play.html) или гонка */
+function renderJoin() {
+  $('#joinCode').placeholder = t('home_join_code');
+  $('#joinBtn').replaceChildren(icon('join', { size: 18 }), el('span', {}, t('nav_join')));
+  $('#raceHomeBtn').replaceChildren(icon('flag', { size: 18 }), el('span', {}, t('home_race_cta')), icon('chevron', { size: 16 }));
+  $('#joinForm').addEventListener('submit', (e) => {
+    const code = $('#joinCode').value.trim();
+    if (!code) { e.preventDefault(); location.href = './play.html'; }
+  });
 }
 
 function renderTeacher() {
-  $('#teacherArt').replaceChildren(cover(icon('teacher', { size: 48 }), 'teal'));
   $('#teacherBtn').replaceChildren(icon('teacher', { size: 18 }), el('span', {}, t('home_teacher_cta')));
+  $('#boardBtn').replaceChildren(icon('board', { size: 18 }), el('span', {}, t('home_board_btn')));
+  const items = [['board', 'home_teacher_p1'], ['join', 'home_teacher_p2'], ['tasks', 'home_teacher_p3'], ['pen', 'home_teacher_p4']];
+  $('#teachFeatures').replaceChildren(...items.map(([ic, key]) => el('li', {}, el('span', { class: 'tf-icon' }, icon(ic, { size: 22 })), el('span', {}, t(key)))));
+}
+
+/** О платформе — только то, что правда: числа считаются из данных сайта */
+function renderAbout() {
+  const subjects = new Set(TOPICS.map((x) => x.subject)).size;
+  const facts = [
+    [String(GAMES.length), t('home_fact_games')],
+    [String(subjects), t('home_fact_subjects')],
+    ['3', t('home_fact_langs')],
+    [icon('offline', { size: 26 }), t('home_fact_offline')]
+  ];
+  $('#aboutFacts').replaceChildren(...facts.map(([big, text]) => el('li', {}, el('b', {}, big), el('span', {}, text))));
 }
 
 function renderFooter() {
@@ -216,11 +271,14 @@ function renderFooter() {
   renderSearch();
   renderCategories();
   renderPopular(plays);
+  renderSubjects();
   renderTasks(profile).catch((e) => console.warn('[tasks]', e));
+  renderRecommended().catch((e) => console.warn('[rec]', e));
   await renderContinue(pr);
   renderProgress(profile, pr);
-  renderRace();
+  renderJoin();
   renderTeacher();
+  renderAbout();
   renderFooter();
   document.querySelector('.two-col').setAttribute('aria-label', t('home_progress_title'));
 
@@ -229,6 +287,7 @@ function renderFooter() {
     const [p2, pr2] = await Promise.all([getProfile(), getProgress()]);
     await renderContinue(pr2);
     renderProgress(p2, pr2);
+    renderRecommended().catch(() => {});
   });
 
 })();

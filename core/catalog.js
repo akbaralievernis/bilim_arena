@@ -9,7 +9,8 @@ import { el } from './ui.js';
 import { t, pick, getLang } from './i18n.js';
 import { icon } from './icons.js';
 import { cover } from './art.js';
-import { CATEGORIES, DIFFICULTY, playersLabel, getCategory } from '../data/games.js';
+import { gameCover } from './covers.js';
+import { CATEGORIES, DIFFICULTY, TYPES, playersLabel, getCategory } from '../data/games.js';
 
 /** Игра идёт на доске с классом — ученик сам её не запустит */
 export const needsTeacher = (g) => g.devices.includes('board') && !g.devices.includes('computer');
@@ -51,7 +52,8 @@ export function metaLine(g) {
 
 /**
  * Карточка игры: обложка 16:9, категория, название (до 2 строк),
- * описание (до 3 строк), «сложность · игроки · время», кнопка «Ойноо».
+ * описание (до 3 строк), «сложность · игроки · время», «Ойноо →».
+ * Обложка — своя сцена игры (core/covers.js), рядом с разделом — механика игры.
  */
 export function gameCard(g, { headingLevel = 3 } = {}) {
   const lang = getLang();
@@ -60,14 +62,19 @@ export function gameCard(g, { headingLevel = 3 } = {}) {
   const H = `h${headingLevel}`;
   const teacher = needsTeacher(g);
 
+  const art = gameCover(g.id) || cover(icon(g.art.icon, { size: 48 }), g.art.tone);
+
   return el('a', { class: 'game-card card card-link', href: g.href, dataset: { game: g.id } },
-    el('div', { class: 'gc-art' }, cover(icon(g.art.icon, { size: 48 }), g.art.tone)),
+    // Фон рамки — цвет сцены: в широкой карточке сцена не обрезается, а «продолжается»
+    el('div', { class: 'gc-art', style: art.dataset.bg ? `background:${art.dataset.bg}` : null }, art),
     el('div', { class: 'gc-body' },
-      el('span', { class: 'gc-cat' }, pick(cat?.title, lang), teacher ? el('span', { class: 'gc-teacher' }, ` · ${t('with_teacher_short')}`) : null),
+      el('div', { class: 'gc-top' },
+        el('span', { class: 'gc-cat' }, pick(cat?.title, lang), teacher ? el('span', { class: 'gc-teacher' }, ` · ${t('with_teacher_short')}`) : null),
+        el('span', { class: 'gc-type' }, pick(TYPES[g.type], lang))),
       el(H, { class: 'gc-title' }, title),
       el('p', { class: 'gc-desc' }, pick(g.desc, lang)),
       metaLine(g),
-      el('span', { class: 'btn primary gc-play', 'aria-hidden': 'true' }, icon('play', { size: 16 }), t('play'))
+      el('span', { class: 'gc-play', 'aria-hidden': 'true' }, t('play'), icon('chevron', { size: 16 }))
     )
   );
 }

@@ -1,76 +1,127 @@
 /* Bilim Arena — главная страница, профиль и общие блоки страниц ученика */
 
-/* ─── 1. Приветствие ──────────────────────────────────────────────────────── */
-.hero { margin-top: 4px; }
+/* ─── 1. Первый экран ─────────────────────────────────────────────────────── */
+.hero { margin-top: 8px; }
 .hero-card {
   position: relative; overflow: hidden; isolation: isolate;
-  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 32px; align-items: center;
-  padding: clamp(24px, 4.5vw, 52px);
+  display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: 40px; align-items: center;
+  padding: clamp(24px, 4.5vw, 56px);
   border-radius: var(--radius-lg);
-  /* Тёплый свет из правого угла — как солнце над түндүком */
-  background:
-    radial-gradient(120% 90% at 100% 0%, rgba(224, 22, 43, 0.08) 0%, rgba(224, 22, 43, 0) 55%),
-    radial-gradient(80% 70% at 0% 100%, rgba(255, 181, 71, 0.10) 0%, rgba(255, 181, 71, 0) 60%),
-    var(--surface);
+  background: var(--surface);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow);
 }
-/* Большой түндүк за иллюстрацией: фирменный знак, очень медленно вращается */
+/* Жёлтая «солнечная» плоскость под иллюстрацией — фирменный акцент, без градиента */
+.hero-card::after {
+  content: ''; position: absolute; z-index: -2; right: -8%; top: -30%; width: 52%; aspect-ratio: 1;
+  border-radius: 50%; background: var(--reward-soft);
+}
+/* Большой түндүк за иллюстрацией: фирменный знак, неподвижный */
 .hero-tunduk {
-  position: absolute; z-index: -1; width: min(520px, 62vw); aspect-ratio: 1;
-  right: -110px; top: 50%; translate: 0 -50%;
-  color: var(--primary); opacity: 0.07;
+  position: absolute; z-index: -1; width: min(480px, 58vw); aspect-ratio: 1;
+  right: -90px; top: 50%; translate: 0 -50%;
+  color: var(--primary); opacity: 0.06;
 }
-@media (prefers-reduced-motion: no-preference) {
-  .hero-tunduk { animation: tunduk-spin 120s linear infinite; }
-}
-@keyframes tunduk-spin { to { rotate: 360deg; } }
-/* Настоящие цифры платформы, а не придуманная статистика */
-.hero-facts { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 0; padding: 0; list-style: none; }
-.hero-facts li { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.8); border: 1px solid var(--line); font-size: 0.875rem; font-weight: 600; color: var(--text-secondary); }
-.hero-facts b { color: var(--text); font-weight: 800; }
-.hero-kicker { margin: 0 0 8px; font-weight: 600; font-size: 0.9375rem; color: var(--primary-ink); }
-.hero h1 { font-size: clamp(1.75rem, 4.2vw, 2.75rem); line-height: 1.15; margin: 0 0 12px; max-width: 18ch; }
-.hero-sub { color: var(--text-secondary); font-size: clamp(1rem, 1.6vw, 1.125rem); max-width: 46ch; margin: 0 0 24px; }
+.hero-kicker { margin: 0 0 10px; font-weight: 700; font-size: var(--fs-sm); color: var(--primary-ink); letter-spacing: 0.01em; }
+.hero h1 { font-size: var(--fs-3xl); line-height: 1.12; margin: 0 0 14px; max-width: 16ch; letter-spacing: -0.025em; }
+.hero-sub { color: var(--text-secondary); font-size: var(--fs-lg); max-width: 44ch; margin: 0 0 26px; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .hero-actions .btn.big { font-size: 1rem; padding: 0.8em 1.4em; min-height: 52px; }
+/* Поиск — в первом экране, спокойный, под главными кнопками */
+.hero-search { display: flex; gap: 8px; margin-top: 22px; max-width: 520px; }
+.hero-search .icon { left: 16px; }
+.hero-search .input { padding-left: 46px; background: var(--bg); border-color: transparent; }
+.hero-search .input:focus { background: var(--surface); }
+.hero-search .btn { flex: none; }
 
-.hero-art { position: relative; height: 280px; }
-.hero-tile { position: absolute; width: 60%; aspect-ratio: 16 / 10; border-radius: 20px; overflow: hidden; box-shadow: var(--shadow-lg); border: 4px solid #fff; }
-.hero-tile-1 { left: 0; top: 8%; transform: rotate(-4deg); }
-.hero-tile-2 { right: 0; top: 0; transform: rotate(3deg); }
-.hero-tile-3 { left: 20%; bottom: 0; z-index: 2; }
+/* Иллюстрация: сцены трёх игр «на арене» и значки ответа */
+.hero-art { position: relative; height: 320px; }
+.hero-tile { position: absolute; width: 58%; aspect-ratio: 16 / 10; border-radius: 18px; overflow: hidden; box-shadow: var(--shadow-lg); border: 4px solid #fff; }
+.hero-tile .art-cover { display: block; width: 100%; height: 100%; }
+.hero-tile-1 { left: 0; top: 4%; transform: rotate(-5deg); }
+.hero-tile-2 { right: 0; top: 18%; transform: rotate(4deg); }
+.hero-tile-3 { left: 18%; bottom: 0; z-index: 2; }
+.hero-badge {
+  position: absolute; z-index: 3; display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: var(--radius-pill); font-weight: 800; font-size: var(--fs-sm); box-shadow: var(--shadow-lg);
+}
+.hero-badge-1 { right: 6%; bottom: 10%; background: var(--ok-ink); color: #fff; }
+.hero-badge-2 { left: 4%; top: 0; background: var(--brand-yellow); color: var(--ink); }
 @media (prefers-reduced-motion: no-preference) {
-  /* Появляются по очереди, потом едва заметно «плывут» — каждая в своём ритме */
-  .hero-tile { animation: tile-in 0.7s var(--ease) both, tile-float 7s ease-in-out 0.8s infinite; }
-  .hero-tile-2 { animation-delay: 0.1s, 1.4s; animation-duration: 0.7s, 8s; }
-  .hero-tile-3 { animation-delay: 0.2s, 2s; animation-duration: 0.7s, 6.5s; }
+  /* Один раз при загрузке: сцены «выкладываются» на арену, значки — следом */
+  .hero-tile { animation: tile-in 0.7s var(--ease) both; }
+  .hero-tile-2 { animation-delay: 0.08s; }
+  .hero-tile-3 { animation-delay: 0.16s; }
+  .hero-badge { animation: badge-pop 0.5s var(--ease) 0.5s both; }
+  .hero-badge-2 { animation-delay: 0.65s; }
 }
-@keyframes tile-in { from { opacity: 0; translate: 0 16px; } }
-@keyframes tile-float { 50% { translate: 0 -6px; } }
+@keyframes tile-in { from { opacity: 0; translate: 0 18px; } }
+@keyframes badge-pop { from { opacity: 0; transform: scale(0.6); } }
 
-@media (max-width: 860px) {
-  .hero-card { grid-template-columns: 1fr; gap: 0; }
-  .hero-art { display: none; }
+@media (max-width: 900px) {
+  .hero-card { grid-template-columns: 1fr; gap: 28px; }
+  .hero-art { height: 240px; max-width: 520px; width: 100%; justify-self: center; }
 }
-@media (max-width: 480px) {
+@media (max-width: 560px) {
+  .hero-art { height: 180px; }
+  .hero-badge { padding: 6px 10px; font-size: var(--fs-xs); }
   .hero-actions .btn { flex: 1 1 100%; }
+  .hero-search .btn { display: none; }
 }
 
-/* ─── 2. Поиск ────────────────────────────────────────────────────────────── */
-.home-search { margin-top: 20px; }
-.big-search { display: flex; gap: 10px; }
-.big-search .icon { left: 18px; }
-.big-search .input { min-height: 60px; padding-left: 52px; font-size: 1.0625rem; border-radius: 16px; box-shadow: var(--shadow-sm); }
-.big-search .btn { min-height: 60px; padding: 0 1.6em; border-radius: 16px; flex: none; }
-@media (max-width: 480px) {
-  .big-search .btn { display: none; }
+/* ─── 2. Популярные игры и разделы ────────────────────────────────────────── */
+.cat-chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 14px; margin: -2px -2px 0; scrollbar-width: none; }
+.cat-chips::-webkit-scrollbar { display: none; }
+.cat-chip {
+  flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px;
+  border-radius: var(--radius-pill); background: var(--surface); border: 1px solid var(--line);
+  color: var(--text); text-decoration: none; font-weight: 600; font-size: 0.9375rem;
+  transition: border-color var(--dur-fast), transform var(--dur) var(--ease);
 }
-
-/* ─── 4. Популярные: ровно одна строка из 4 карточек на компьютере ────────── */
+.cat-chip .icon { color: var(--primary); }
+.cat-chip-n { min-width: 24px; height: 22px; padding: 0 7px; border-radius: var(--radius-pill); background: var(--surface-2); color: var(--text-soft); font-size: var(--fs-xs); font-weight: 800; display: inline-grid; place-items: center; }
+@media (hover: hover) { .cat-chip:hover { border-color: var(--line-strong); transform: translateY(-1px); } }
 .popular-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 @media (max-width: 1100px) { .popular-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 599px) { .popular-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* ─── 3. Предметы: плотная сетка плиток-знаков ────────────────────────────── */
+.subject-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 1000px) { .subject-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .subject-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 380px) { .subject-grid { grid-template-columns: minmax(0, 1fr); } }
+.subject-tile {
+  display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 12px; align-items: center;
+  min-height: 72px; padding: 12px 14px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border);
+  color: inherit; text-decoration: none;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur-fast);
+}
+.subject-tile .subj-mark { grid-row: span 2; }
+.subject-name { font-weight: 700; line-height: 1.25; align-self: end; overflow-wrap: break-word; hyphens: auto; min-width: 0; }
+.subject-n { font-size: var(--fs-sm); color: var(--text-soft); align-self: start; }
+@media (hover: hover) {
+  .subject-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: var(--line-strong); }
+  .subject-tile:hover .subj-mark { transform: rotate(-6deg) scale(1.06); }
+}
+.subj-mark {
+  display: inline-grid; place-items: center; flex: none; width: var(--sm-size, 48px); height: var(--sm-size, 48px);
+  border-radius: 14px; background: var(--sm-bg); color: var(--sm-ink); transition: transform var(--dur) var(--ease);
+}
+.subj-glyph { font-weight: 800; font-size: calc(var(--sm-size, 48px) * 0.42); line-height: 1; letter-spacing: -0.02em; }
+
+/* ─── 4. Рекомендации ─────────────────────────────────────────────────────── */
+.rec-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+.rec-item {
+  display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: var(--radius);
+  background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--brand-yellow);
+  color: inherit; text-decoration: none; transition: box-shadow var(--dur) var(--ease);
+}
+.rec-item.is-review { border-left-color: var(--primary); }
+.rec-main { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.rec-main b { overflow-wrap: anywhere; }
+.rec-why { flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs); font-weight: 700; color: var(--text-soft); }
+.rec-item.is-ready .rec-why { color: var(--reward-ink); }
+.rec-item.is-review .rec-why { color: var(--primary-ink); }
+@media (hover: hover) { .rec-item:hover { box-shadow: var(--shadow-lg); } }
 
 /* ─── 5–6. Продолжить и прогресс ──────────────────────────────────────────── */
 .two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: stretch; }
@@ -83,8 +134,8 @@
   padding: 10px; margin: -10px; border-radius: 16px; transition: background 0.2s;
 }
 .continue-card .cont-game:hover { background: var(--surface-2); }
-.continue-card .cont-game:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
 .cont-art { width: 144px; flex: none; aspect-ratio: 16 / 10; border-radius: 14px; overflow: hidden; }
+.cont-art .art-cover { display: block; width: 100%; height: 100%; }
 .cont-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .cont-title { font-size: 1.125rem; line-height: 1.3; }
 .cont-body .gc-meta { margin-top: 2px; }
@@ -108,7 +159,63 @@
 .progress-card > .btn { align-self: flex-start; margin-top: auto; }
 .ic-primary { color: var(--primary); }
 
-/* ─── 7. Учителям ─────────────────────────────────────────────────────────── */
+/* ─── 7. Вход на урок: жёлтая полоса — самое заметное «действие класса» ──── */
+.join-card {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px 28px; align-items: center;
+  padding: clamp(20px, 3vw, 32px); border-radius: var(--radius-lg); background: var(--brand-yellow); color: var(--ink);
+}
+.join-text h2 { margin: 0 0 4px; }
+.join-text p { margin: 0; font-weight: 500; }
+.join-form { display: flex; gap: 10px; }
+.join-input { min-height: 56px; font-size: 1.25rem; font-weight: 800; letter-spacing: 0.18em; text-align: center; border-color: transparent; }
+.join-input::placeholder { letter-spacing: normal; font-weight: 600; font-size: 1rem; }
+.join-form .btn.accent { background: var(--ink); color: #fff; min-height: 56px; flex: none; }
+@media (hover: hover) { .join-form .btn.accent:not([disabled]):hover { background: #000; } }
+.join-race { grid-column: 1 / -1; justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--ink); font-weight: 700; text-decoration: none; border-bottom: 2px solid transparent; }
+.join-race:hover { border-bottom-color: currentColor; }
+.join-card :focus-visible { outline-color: var(--ink); box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.7); }
+@media (max-width: 760px) {
+  .join-card { grid-template-columns: 1fr; }
+  .join-form .btn span { display: none; }
+}
+
+/* ─── 8. Для учителей: тёмная полоса — другой ритм страницы ───────────────── */
+.teach-band {
+  position: relative; overflow: hidden; isolation: isolate;
+  display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 28px; align-items: center;
+  padding: clamp(24px, 4vw, 44px); border-radius: var(--radius-lg); background: var(--ink); color: #fff;
+}
+.teach-band::before {
+  content: ''; position: absolute; z-index: -1; right: -60px; bottom: -80px; width: 280px; aspect-ratio: 1; opacity: 0.08;
+  background: #fff; -webkit-mask: url('./assets/brand/tunduk.svg') center / contain no-repeat; mask: url('./assets/brand/tunduk.svg') center / contain no-repeat;
+}
+.teach-band .hero-kicker { color: var(--brand-yellow); }
+.teach-band h2 { margin: 0 0 8px; color: #fff; }
+.teach-band p { color: #D5D7DA; margin: 0 0 18px; }
+.teach-band .btn:not(.primary) { background: transparent; color: #fff; border-color: rgba(255, 255, 255, 0.35); box-shadow: none; }
+.teach-band .btn:not(.primary):hover { background: rgba(255, 255, 255, 0.08); border-color: #fff; }
+.teach-band :focus-visible { outline-color: var(--brand-yellow); }
+.teach-features { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.teach-features li { display: flex; gap: 12px; align-items: flex-start; padding: 16px; border-radius: var(--radius); background: rgba(255, 255, 255, 0.06); font-weight: 600; line-height: 1.4; }
+.tf-icon { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--brand-yellow); color: var(--ink); }
+@media (max-width: 860px) {
+  .teach-band { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) { .teach-features { grid-template-columns: 1fr; } }
+
+/* ─── 9. О платформе: только настоящие факты ──────────────────────────────── */
+.about-facts { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.about-facts li { display: grid; gap: 4px; padding: 22px 18px; }
+.about-facts li + li { border-left: 1px solid var(--line); }
+.about-facts b { font-size: var(--fs-2xl); line-height: 1; color: var(--primary); display: flex; align-items: center; min-height: 32px; }
+.about-facts span { color: var(--text-secondary); font-weight: 500; font-size: 0.9375rem; }
+@media (max-width: 760px) {
+  .about-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .about-facts li:nth-child(3) { border-left: 0; }
+  .about-facts li:nth-child(n + 3) { border-top: 1px solid var(--line); }
+}
+
+/* Карточки учителю на других страницах (race.html и т. п.) */
 .teacher-card { display: grid; grid-template-columns: 220px 1fr; gap: 28px; align-items: center; padding: clamp(18px, 3vw, 28px); }
 .teacher-art { border-radius: 16px; overflow: hidden; aspect-ratio: 16 / 10; }
 .teacher-card h2 { margin: 0; }
@@ -227,7 +334,7 @@
 .tm-ray:focus-visible path, .tm-ray:hover path { transform: scale(1.12); }
 .tm-ray:focus-visible path { stroke: var(--text); stroke-width: 3; }
 .tm-mastered path { fill: var(--primary); }
-.tm-ready path { fill: #F5A524; }
+.tm-ready path { fill: var(--brand-yellow); }
 .tm-learning path { fill: #F2A5AE; }
 .tm-insufficient path { fill: #CDD2DC; }
 .tm-new path { fill: #E4E7EC; }
@@ -243,13 +350,11 @@
 .tm-legend li { display: inline-flex; align-items: center; gap: 6px; }
 .tm-dot { width: 10px; height: 10px; border-radius: 3px; background: #E4E7EC; }
 .tm-dot.tm-mastered { background: var(--primary); }
-.tm-dot.tm-ready { background: #F5A524; }
+.tm-dot.tm-ready { background: var(--brand-yellow); }
 .tm-dot.tm-learning { background: #F2A5AE; }
 .tm-dot.tm-insufficient { background: #CDD2DC; }
 /* Лучи вырастают по очереди; освоенные мягко «светятся» */
 @media (prefers-reduced-motion: no-preference) {
   .tm-ray path { animation: ray-in 0.5s var(--ease) both; animation-delay: calc(var(--i, 0) * 35ms); }
-  .tm-mastered path { animation: ray-in 0.5s var(--ease) both, ray-glow 3.2s ease-in-out 1s infinite; animation-delay: calc(var(--i, 0) * 35ms), calc(var(--i, 0) * 120ms); }
 }
 @keyframes ray-in { from { transform: scale(0.4); opacity: 0; } }
-@keyframes ray-glow { 50% { opacity: 0.72; } }

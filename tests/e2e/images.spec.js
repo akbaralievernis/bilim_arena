@@ -9,7 +9,7 @@ test('a teacher adds a picture to a question; it shows in homework and in print'
   // «Фото с телефона»: большой снимок 2400×1800
   const ctx = await browser.newContext({ viewport: { width: 2400, height: 1800 } });
   const studio = await ctx.newPage();
-  await studio.setContent('<body style="margin:0;background:linear-gradient(135deg,#e0162b,#21b8a6)"><div style="font:bold 300px Arial;color:#fff;padding:200px">1/2 + 1/4</div></body>');
+  await studio.setContent('<body style="margin:0;background:linear-gradient(135deg,#D91E18,#21b8a6)"><div style="font:bold 300px Arial;color:#fff;padding:200px">1/2 + 1/4</div></body>');
   const photo = await studio.screenshot({ type: 'png' });
   await ctx.close();
   expect(photo.length).toBeGreaterThan(200_000);

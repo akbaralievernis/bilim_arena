@@ -93,18 +93,18 @@ export const sfx = {
 
 // ─── Шапка страницы ───────────────────────────────────────────────────────────
 
-/** Навигация ученика: четыре раздела и на компьютере, и на телефоне */
+/** Навигация ученика: пять разделов и на компьютере, и на телефоне; профиль — аватар справа */
 const STUDENT_NAV = [
   { href: 'index.html', key: 'nav_home', tab: 'tab_home', icon: 'home' },
   { href: 'games.html', key: 'nav_games', icon: 'games' },
+  { href: 'practice.html', key: 'nav_subjects', icon: 'book' },
   // Задания учителя — отдельный раздел: раньше они были спрятаны в профиле
   { href: 'tasks.html', key: 'nav_tasks', icon: 'tasks', badge: 'tasks' },
-  { href: 'progress.html', key: 'nav_progress', icon: 'progress' },
-  { href: 'profile.html', key: 'nav_profile', icon: 'profile' }
+  { href: 'progress.html', key: 'nav_progress', icon: 'progress' }
 ];
 /** Страницы, которые относятся к одному из разделов меню */
 const SECTION = {
-  'practice.html': 'games.html', 'speak.html': 'games.html',
+  'speak.html': 'games.html',
   'account.html': 'profile.html',
   'tests.html': 'questions.html', 'print.html': 'questions.html', 'scan.html': 'questions.html'
 };
@@ -170,7 +170,7 @@ export function mountHeader(target, { role = 'student', active = '' } = {}) {
 
   if (!teacher) {
     // Режим учителя — отдельной кнопкой, не среди разделов ученика
-    actions.append(el('a', { class: 'teacher-link', href: 'teacher.html', title: t('home_teacher_cta') }, icon('teacher', { size: 18 }), el('span', {}, t('nav_teacher'))));
+    actions.append(el('a', { class: 'teacher-link', href: 'teacher.html', title: t('home_teacher_cta') }, icon('teacher', { size: 18 }), el('span', {}, t('nav_for_teachers'))));
 
     // Профиль ученика: иллюстрация и имя (подгружаются из профиля)
     const link = el('a', {

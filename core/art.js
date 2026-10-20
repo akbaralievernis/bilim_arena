@@ -1,7 +1,7 @@
 /**
  * Bilim Arena — иллюстрации в одном стиле.
  *
- *  cover(iconName, tone) — обложка игры или категории: мягкий градиент,
+ *  cover(iconName, tone) — запасная обложка (если у игры нет своей сцены): плоский фон,
  *    крупная фигура-фон и иконка из core/icons.js
  *  avatar(variant)       — иллюстрация профиля (своя, плоский стиль,
  *    лёгкая анимация «дыхания» и моргания)
@@ -11,12 +11,12 @@
 
 /** [начало градиента, конец градиента, цвет иконки на белом круге] */
 export const TONES = {
-  violet: ['#E0162B', '#FF6B7A', '#B50E20'], // основной тон (красный акцент); имя оставлено ради сохранённых аватаров
-  teal: ['#21B8A6', '#5CD3C4', '#0E9A8A'],
-  amber: ['#FFB547', '#FFD08A', '#D98A10'],
-  ink: ['#202B46', '#4A5A82', '#202B46'],
-  rose: ['#F0607E', '#FF9AAE', '#E0456A'],
-  sky: ['#3B8CFF', '#7CB3FF', '#2F74E0']
+  violet: ['#D91E18', '#E8453C', '#A8160F'], // основной тон (красный бренда); имя оставлено ради сохранённых аватаров
+  teal: ['#1A7F72', '#3FA597', '#0B6B60'],
+  amber: ['#FFCE00', '#FFE066', '#7A5A00'],
+  ink: ['#282828', '#4A4A4A', '#282828'],
+  rose: ['#E8453C', '#F27A72', '#A8160F'],
+  sky: ['#3367D6', '#6D93E3', '#1F4FB0']
 };
 
 let uid = 0;
@@ -29,16 +29,11 @@ const svgFrom = (html) => {
 /** Обложка карточки: 16×10, иконка в круге, декоративные фигуры */
 export function cover(iconSvg, tone = 'violet') {
   const [a, b, ink] = TONES[tone] || TONES.violet;
-  const id = `g${++uid}`;
   const inner = iconSvg.innerHTML;
   return svgFrom(`
 <svg class="art-cover" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
-  <defs>
-    <linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/>
-    </linearGradient>
-  </defs>
-  <rect width="320" height="200" fill="url(#${id})"/>
+  <rect width="320" height="200" fill="${a}"/>
+  <path d="M0 200 L0 140 Q120 110 200 150 T320 130 V200z" fill="${b}" opacity=".55"/>
   <circle cx="268" cy="30" r="70" fill="#fff" opacity=".12"/>
   <circle cx="40" cy="188" r="56" fill="#fff" opacity=".10"/>
   <g transform="translate(206 150) scale(1.5)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".3">
@@ -74,7 +69,7 @@ export function avatar(value, { size = 96, animated = true } = {}) {
   <defs>
     <clipPath id="${id}"><circle cx="60" cy="60" r="58"/></clipPath>
   </defs>
-  <circle cx="60" cy="60" r="58" fill="#FDECEE"/>
+  <circle cx="60" cy="60" r="58" fill="#FDECEB"/>
   <g clip-path="url(#${id})">
     <circle cx="60" cy="60" r="44" fill="#fff" opacity=".7"/>
     <g class="av-body">
@@ -82,8 +77,8 @@ export function avatar(value, { size = 96, animated = true } = {}) {
       <path d="M48 88l12 12 12-12" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
       <rect x="52" y="70" width="16" height="16" rx="6" fill="#F4C09A"/>
       <circle cx="60" cy="52" r="22" fill="#FFD7B5"/>
-      <path d="M38 50c0-14 10-23 23-23 12 0 21 8 21 20-6-1-12-5-15-10-4 7-15 12-29 13z" fill="#202B46"/>
-      <g class="av-eyes" fill="#202B46">
+      <path d="M38 50c0-14 10-23 23-23 12 0 21 8 21 20-6-1-12-5-15-10-4 7-15 12-29 13z" fill="#282828"/>
+      <g class="av-eyes" fill="#282828">
         <circle cx="52" cy="55" r="2.6"/><circle cx="68" cy="55" r="2.6"/>
       </g>
       <path d="M54 63.5c3.5 3 8.5 3 12 0" fill="none" stroke="#C0706A" stroke-width="2.4" stroke-linecap="round"/>

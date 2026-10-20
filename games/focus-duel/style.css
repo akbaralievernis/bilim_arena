@@ -7,7 +7,7 @@
   --font: "Inter", system-ui, -apple-system, sans-serif;
   
   /* Modern Colors */
-  --primary: #E0162B; /* общий красный акцент сайта; белый текст 4.9:1 */
+  --primary: #D91E18; /* общий красный акцент сайта; белый текст 4.9:1 */
   --accent: #38e5ff;
   --accent2: #ff4fd8;
   --good: #10b981;
@@ -411,7 +411,7 @@ input:focus, select:focus { border-color: var(--accent); background: rgba(0, 0, 
 
 .btn:hover { transform: translateY(-2px); background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); }
 .btn.primary { background: var(--primary); color: white; border: none; }
-.btn.primary:hover { background: #BF0F21; box-shadow: 0 4px 15px rgba(224, 22, 43, 0.35); }
+.btn.primary:hover { background: #B3170F; box-shadow: 0 4px 15px rgba(217, 30, 24, 0.35); }
 .btn.danger { color: var(--bad); border-color: rgba(239, 68, 68, 0.3); }
 .btn.danger:hover { background: rgba(239, 68, 68, 0.1); border-color: var(--bad); }
 

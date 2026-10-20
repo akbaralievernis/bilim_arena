@@ -112,7 +112,10 @@ const activeFilterCount = () => Object.keys(state.filters).length;
 function renderResults() {
   const list = sortGames(filtered(), state.sort, state.plays);
   $('#resultCount').textContent = t('games_n', { n: list.length });
-  $('#gameGrid').replaceChildren(...list.map((g) => gameCard(g)));
+  const cards = list.map((g) => gameCard(g));
+  // Без поиска и фильтров первая (самая популярная) игра — крупной карточкой
+  if (cards.length > 3 && !state.q && !activeFilterCount() && state.sort === 'popular') cards[0].classList.add('featured');
+  $('#gameGrid').replaceChildren(...cards);
   $('#gameGrid').classList.toggle('hidden', !list.length);
   $('#emptyState').classList.toggle('hidden', list.length > 0);
 

@@ -7,8 +7,8 @@
   --font-mono: 'JetBrains Mono', 'Roboto Mono', monospace;
 
   /* Премиальная палитра (CyberTech) */
-  --primary: #E0162B;
-  --primary-glow: rgba(224, 22, 43, 0.45);
+  --primary: #D91E18;
+  --primary-glow: rgba(217, 30, 24, 0.45);
   --cyan: #00d4ff;
   --cyan-glow: rgba(0, 212, 255, 0.4);
   --magenta: #ff4df0;

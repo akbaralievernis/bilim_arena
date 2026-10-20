@@ -77,14 +77,14 @@
     box.style.cssText = 'position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(16,24,40,.55);font-family:Inter,system-ui,sans-serif';
     const btn = 'min-height:48px;padding:0 18px;border-radius:14px;font:700 15px/1 Inter,system-ui,sans-serif;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center';
     box.innerHTML =
-      '<div style="max-width:420px;width:100%;background:#fff;color:#202B46;border-radius:20px;padding:24px;box-shadow:0 12px 24px rgba(16,24,40,.18);text-align:center">' +
+      '<div style="max-width:420px;width:100%;background:#fff;color:#282828;border-radius:20px;padding:24px;box-shadow:0 12px 24px rgba(16,24,40,.18);text-align:center">' +
         '<div style="width:64px;height:64px;margin:0 auto 12px;border-radius:18px;display:grid;place-items:center;background:#FDECEC;color:#C62828">' + CAMERA_OFF + '</div>' +
         '<h2 id="ba-cam-title" style="margin:0 0 8px;font-size:20px;font-weight:800;line-height:1.3">' + title + '</h2>' +
         '<p style="margin:0 0 20px;color:#667085;font-size:15px;line-height:1.5">' + text + '</p>' +
         '<div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">' +
-          '<button type="button" data-act="retry" style="' + btn + ';border:0;background:#E0162B;color:#fff">' + T('Кайра аракет') + '</button>' +
-          (withoutCamera ? '<button type="button" data-act="without" style="' + btn + ';border:1px solid #E4E7EC;background:#fff;color:#202B46">' + T(withoutCamera.label) + '</button>' : '') +
-          '<a href="' + backHref() + '" style="' + btn + ';border:1px solid #E4E7EC;background:#fff;color:#202B46">' + T('Оюндар') + '</a>' +
+          '<button type="button" data-act="retry" style="' + btn + ';border:0;background:#D91E18;color:#fff">' + T('Кайра аракет') + '</button>' +
+          (withoutCamera ? '<button type="button" data-act="without" style="' + btn + ';border:1px solid #E4E7EC;background:#fff;color:#282828">' + T(withoutCamera.label) + '</button>' : '') +
+          '<a href="' + backHref() + '" style="' + btn + ';border:1px solid #E4E7EC;background:#fff;color:#282828">' + T('Оюндар') + '</a>' +
         '</div>' +
       '</div>';
     box.addEventListener('click', (e) => {
