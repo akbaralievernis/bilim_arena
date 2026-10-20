@@ -20,7 +20,8 @@
     busy: ['Камера бош эмес', 'Камераны башка программа (Zoom, Teams ж.б.) же башка өтмөк колдонуп жатат. Аны жаап, кайра аракет кылыңыз.'],
     insecure: ['Камера коопсуз байланышта гана иштейт', 'Сайтты https:// аркылуу ачыңыз.'],
     unsupported: ['Бул браузер камераны колдобойт', 'Chrome, Edge же Safari браузеринин жаңы версиясын колдонуңуз.'],
-    other: ['Камера иштеген жок', 'Баракты жаңыртып, кайра аракет кылыңыз.']
+    other: ['Камера иштеген жок', 'Баракты жаңыртып, кайра аракет кылыңыз.'],
+    nolib: ['Оюндун бөлүгү жүктөлгөн жок', 'Колду тааныган программа интернеттен жүктөлөт. Интернетти текшерип, «Кайра аракет» баскычын басыңыз. Мектептин тармагы бул сайтты жаап койгон болушу мүмкүн — мобилдик интернет менен аракет кылыңыз.']
   };
 
   function reasonOf(err) {
@@ -56,6 +57,10 @@
     'Chrome, Edge же Safari браузеринин жаңы версиясын колдонуңуз.': ['Используйте свежую версию Chrome, Edge или Safari.', 'Use a recent version of Chrome, Edge or Safari.'],
     'Камера иштеген жок': ['Камера не заработала', 'The camera did not start'],
     'Баракты жаңыртып, кайра аракет кылыңыз.': ['Обновите страницу и попробуйте ещё раз.', 'Reload the page and try again.'],
+    'Оюндун бөлүгү жүктөлгөн жок': ['Часть игры не загрузилась', 'Part of the game did not load'],
+    'Колду тааныган программа интернеттен жүктөлөт. Интернетти текшерип, «Кайра аракет» баскычын басыңыз. Мектептин тармагы бул сайтты жаап койгон болушу мүмкүн — мобилдик интернет менен аракет кылыңыз.':
+      ['Программа, которая узнаёт руку, загружается из интернета. Проверьте интернет и нажмите «Ещё раз». Возможно, школьная сеть закрывает этот сайт — попробуйте мобильный интернет.',
+       'The hand-tracking program loads from the internet. Check the connection and press “Try again”. The school network may block it — try mobile data.'],
     'Кайра аракет': ['Ещё раз', 'Try again'],
     'Оюндар': ['Игры', 'Games']
   });
@@ -96,9 +101,33 @@
     if (old) old.remove();
   }
 
+  // ─── Библиотеки с CDN (MediaPipe, three.js) ────────────────────────────────
+  // Скрипты страницы выполняются по порядку, поэтому здесь уже видно, что
+  // загрузилось. Если CDN недоступен (школьная сеть, нет интернета), игра раньше
+  // падала с «Hands is not defined» или вечно писала «жүктөлүүдө…».
+  const NEEDS = [
+    ['@mediapipe/hands', 'Hands'], ['@mediapipe/camera_utils', 'Camera'],
+    ['@mediapipe/drawing_utils', 'drawConnectors'], ['three.min.js', 'THREE']
+  ];
+  const missing = NEEDS.filter(([src, global]) => document.querySelector(`script[src*="${src}"]`) && !(global in window))
+    .map(([, global]) => global);
+
+  if (missing.length) {
+    console.warn('[camera] не загрузилось:', missing.join(', '));
+    // Безопасные заглушки: код игры не падает, а ученик видит понятное сообщение
+    if (!window.Hands) window.Hands = function Hands() { this.setOptions = () => {}; this.onResults = () => {}; this.send = () => Promise.resolve(); this.close = () => Promise.resolve(); };
+    if (!window.Camera) window.Camera = function Camera() { this.start = () => Promise.resolve(); this.stop = () => {}; };
+    if (!window.drawConnectors) { window.drawConnectors = () => {}; window.drawLandmarks = () => {}; }
+    if (!window.HAND_CONNECTIONS) window.HAND_CONNECTIONS = [];
+    const reload = () => location.reload();
+    const show = () => showError('nolib', reload);
+    if (document.body) show(); else document.addEventListener('DOMContentLoaded', show);
+  }
+
   async function start(camera, opts) {
     const o = opts || {};
     const retry = () => start(camera, o);
+    if (missing.length) return showError('nolib', () => location.reload(), o.withoutCamera);
 
     if (!window.isSecureContext) return showError('insecure', retry, o.withoutCamera);
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return showError('unsupported', retry, o.withoutCamera);
@@ -126,5 +155,5 @@
     }
   }
 
-  window.BACamera = { start, showError, hideError };
+  window.BACamera = { start, showError, hideError, ready: !missing.length, missing };
 })();
