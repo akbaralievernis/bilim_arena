@@ -19,8 +19,30 @@ import { allAssignments, allSubmissions } from './assignments.js';
 import { allQuestions } from './questions.js';
 import { mergeAssignments, mergeSubmissions } from './sync.js';
 
-// Точная версия: обновление библиотеки — осознанное решение, а не сюрприз на уроке
-const CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/+esm';
+// Точная версия: обновление библиотеки — осознанное решение, а не сюрприз на уроке.
+// Файл лежит на самом сайте (vendor/, npm @supabase/supabase-js@2.117.3, dist/umd): школьная сеть
+// может закрывать CDN, и тогда вход в аккаунт не работал. Грузится только при входе в облако.
+const LIB_SRC = new URL('../vendor/supabase-js-2.117.3.js', import.meta.url).href;
+const LIB_SRI = 'sha384-BWcjm9OdFth9TbhCxZPdm+gAOUMAzQy9nmTs12ioXdCcbVnJaPMn+fMUoQCLt60R';
+const LIB_TIMEOUT = 20000;
+
+/** Библиотека облака (window.supabase) — один раз, с проверкой SRI и ограничением по времени */
+function loadSupabase() {
+  if (window.supabase?.createClient) return Promise.resolve(window.supabase);
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    const fail = (msg) => { clearTimeout(timer); s.remove(); reject(new Error(msg)); };
+    const timer = setTimeout(() => fail('supabase-timeout'), LIB_TIMEOUT);
+    s.src = LIB_SRC;
+    s.integrity = LIB_SRI;
+    s.onload = () => {
+      clearTimeout(timer);
+      if (window.supabase?.createClient) resolve(window.supabase); else fail('supabase-load-failed');
+    };
+    s.onerror = () => fail('supabase-load-failed');
+    document.head.appendChild(s);
+  });
+}
 
 /** Какие личные данные синхронизируются у каждой роли */
 const PERSONAL = {
@@ -51,7 +73,7 @@ const status = { state: 'idle', error: null }; // idle | syncing | ok | error | 
 export function getClient() {
   if (!cloudConfigured()) return Promise.resolve(null);
   if (!clientPromise) {
-    clientPromise = import(CDN)
+    clientPromise = loadSupabase()
       .then(({ createClient }) => createClient(SUPABASE.url, SUPABASE.anonKey, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
       }))

@@ -8,14 +8,15 @@ const ROOT = join(dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)
 const sw = readFileSync(join(ROOT, 'sw.js'), 'utf8');
 const CORE = new Set([...sw.matchAll(/'\.\/([^']*)'/g)].map((m) => m[1]).filter(Boolean));
 
-/** Локальные ссылки файла: import, src, href, динамический import() */
+/** Локальные ссылки файла: import, src, href, динамический import(), а в CSS — @import и url() */
 function refs(file) {
   const text = readFileSync(join(ROOT, file), 'utf8');
   const out = new Set();
   const patterns = [
     /\bimport\s+(?:[^'"]*?\s+from\s+)?['"](\.{1,2}\/[^'"]+)['"]/g,
     /\bimport\(\s*['"](\.{1,2}\/[^'"]+)['"]\s*\)/g,
-    /\b(?:src|href)=["'](\.{0,2}\/?[^"':#?]+\.(?:js|css|html|webmanifest|svg|png))(?:\?[^"']*)?["']/g
+    /\b(?:src|href)=["'](\.{0,2}\/?[^"':#?]+\.(?:js|css|html|webmanifest|svg|png))(?:\?[^"']*)?["']/g,
+    /\burl\(\s*['"]?(\.{1,2}\/[^'")?#]+\.(?:css|woff2|svg|png|webp))(?:\?[^'")]*)?['"]?\s*\)/g
   ];
   for (const re of patterns) {
     for (const m of text.matchAll(re)) {
@@ -38,7 +39,7 @@ function reachable() {
     const f = queue.shift();
     if (seen.has(f) || !existsSync(join(ROOT, f))) continue;
     seen.add(f);
-    if (/\.(js|html)$/.test(f)) refs(f).forEach((r) => queue.push(r));
+    if (/\.(js|html|css)$/.test(f)) refs(f).forEach((r) => queue.push(r));
   }
   return [...seen];
 }
@@ -54,4 +55,12 @@ test('every file the pages need is in the offline cache', () => {
 test('the cache list has no files that do not exist', () => {
   const dead = [...CORE].filter((f) => !existsSync(join(ROOT, f)));
   assert.deepEqual(dead, []);
+});
+
+test('fonts come from the site itself, not from Google', () => {
+  // Школьные сети часто закрывают Google; без интернета чужой шрифт тоже не загрузится
+  const files = reachable().filter((f) => /\.(html|css|js)$/.test(f) && !f.startsWith('games/mafia/assets/'));
+  const external = files.filter((f) => /fonts\.(googleapis|gstatic)\.com/.test(readFileSync(join(ROOT, f), 'utf8')));
+  assert.deepEqual(external, []);
+  for (const f of ['inter-cyrillic-ext', 'inter-cyrillic', 'inter-latin']) assert.ok(CORE.has(`assets/fonts/${f}.woff2`), f);
 });
