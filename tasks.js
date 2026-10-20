@@ -14,7 +14,7 @@ import { BaseGame } from './core/engine.js';
 import { renderQuestion } from './core/quiz-ui.js';
 import { setPromptImage } from './core/images.js';
 import { getProfile } from './core/profile.js';
-import { getProgress, questionMemory } from './core/progress.js';
+import { getProgress, questionMemory, recordCheck } from './core/progress.js';
 import { seenIds } from './core/selection.js';
 import { resultView } from './core/results.js';
 import { studentAssignments, saveSubmission, submissionFor, attemptsLeft, STATUS, getRun, saveRun, clearRun } from './core/assignments.js';
@@ -303,6 +303,17 @@ async function showResults(game) {
     skillStats: a.questionIds?.some((id) => String(id).includes('::')) ? r.bySkillTopic : r.bySkill,
     mistakes: r.mistakes.map((m) => ({ questionId: m.questionId, skill: m.skill }))
   });
+  // Задание в режиме «Проверка» — это итоговая проверка и в прогрессе ученика
+  // (иначе у учителя тема «Изучено», а у ученика — «Готов к проверке»)
+  if (a.check) {
+    const byTopic = {};
+    Object.entries(r.bySkillTopic || {}).forEach(([key, v]) => {
+      const topic = key.split('::')[0] || a.topic;
+      const acc = byTopic[topic] || (byTopic[topic] = { correct: 0, total: 0 });
+      acc.correct += v.ok; acc.total += v.total;
+    });
+    for (const [topic, v] of Object.entries(byTopic)) await recordCheck({ topic, ...v });
+  }
   toast(t('hw_result_saved'), { icon: '✅' });
 }
 

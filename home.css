@@ -174,3 +174,10 @@
 .home-task-due.soon { color: var(--warn-ink); }
 .home-task-due.late { color: var(--bad-ink); }
 @media (max-width: 480px) { .home-task { flex-direction: column; align-items: flex-start; } .home-task-due { text-align: left; } }
+
+/* Прогресс: путь по теме */
+.jr-row { display: grid; gap: 6px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.jr-row:last-child { border-bottom: 0; }
+.jr-row b { overflow-wrap: anywhere; }
+.jr-figures { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.95rem; }
+.jr-row .btn { justify-self: start; }

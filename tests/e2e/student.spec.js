@@ -57,6 +57,11 @@ test('a check is continued after a reload: same questions, one attempt, all answ
   // Незаконченной попытки больше нет
   expect(await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('BA2_hw_runs') || '{}')).length)).toBe(0);
   expect(first).toBeTruthy();
+  // «Проверка» из домашнего задания — подтверждённый результат и в прогрессе ученика
+  await page.goto('/progress.html');
+  const row = page.locator('#journeyList .jr-row', { hasText: 'Дроби' });
+  await expect(row).toContainText('первая проверка');
+  await expect(row).toContainText('нужна ещё одна проверка');
   expect(errors).toEqual([]);
 });
 
