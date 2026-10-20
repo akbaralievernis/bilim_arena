@@ -962,4 +962,8 @@ export default {
   rv_marked_issue: "Отмечено: есть ошибка — вопрос не будет использоваться",
   rv_unmarked: "Отметка снята",
   rv_all_done: "В этой теме не осталось непроверенных вопросов.",
+  home_facts: "В Bilim Arena",
+  home_fact_games: "игр",
+  home_fact_subjects: "предметов",
+  home_fact_langs: "языка: кыргызский, русский, английский",
 };

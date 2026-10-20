@@ -339,8 +339,8 @@ button.chip:not([disabled]):hover { border-color: #CDD2E4; }
   .topbar .nav { margin-left: 8px; }
   .topbar .nav a { padding: 0.5em 0.7em; }
 }
-/* Пять разделов (и у учителя, и у ученика с «Заданиями») — значки без подписей до 1280 px */
-@media (min-width: 1024px) and (max-width: 1279px) {
+/* Пять разделов (и у учителя, и у ученика с «Заданиями») — значки без подписей до 1360 px */
+@media (min-width: 1024px) and (max-width: 1359px) {
   .topbar .nav .nav-label, .teacher-link span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .topbar .nav a { min-width: 44px; justify-content: center; }
   .teacher-link { width: 44px; padding: 0; justify-content: center; }
@@ -920,3 +920,97 @@ button.option:not([disabled]):hover { border-color: var(--primary); }
 .prompt-image-wrap { display: flex; justify-content: center; margin: 4px 0 12px; }
 .prompt-image { display: block; max-width: 100%; max-height: 38vh; border-radius: var(--radius-sm); border: 1px solid var(--line); background: #fff; object-fit: contain; }
 body.board-mode .prompt-image { max-height: 46vh; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Живой интерфейс: фирменные знаки, кнопки, появление при прокрутке.
+   Узнаваемость — кыргызские мотивы в современной подаче: түндүк (купол юрты,
+   как на флаге) и орнамент «кочкор мүйүз» (рога барана, как на шырдаке).
+   Всё движение отключается при prefers-reduced-motion и при печати.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Фирменные знаки: цвет задаётся фоном, форма — маской */
+.mark-tunduk, .mark-horn {
+  display: block; background: currentColor; pointer-events: none;
+  -webkit-mask: var(--mask) center / contain no-repeat; mask: var(--mask) center / contain no-repeat;
+}
+.mark-tunduk { --mask: url('../assets/brand/tunduk.svg'); }
+.mark-horn { --mask: url('../assets/brand/horn.svg'); }
+/* Лента орнамента: разделитель разделов и подвал */
+.horn-band {
+  height: 16px; color: var(--primary); opacity: 0.18;
+  background: currentColor;
+  -webkit-mask: url('../assets/brand/horn.svg') 0 50% / 42px 16px repeat-x; mask: url('../assets/brand/horn.svg') 0 50% / 42px 16px repeat-x;
+}
+/* Знак перед заголовком раздела */
+.section-title, .section-head h2 { display: flex; align-items: center; gap: 10px; }
+.section-title::before, .section-head h2::before {
+  content: ''; flex: none; width: 34px; height: 13px; background: var(--primary);
+  -webkit-mask: url('../assets/brand/horn.svg') center / contain no-repeat; mask: url('../assets/brand/horn.svg') center / contain no-repeat;
+}
+
+/* Кнопки: объём, мягкая тень цвета кнопки, отклик на наведение и нажатие */
+.btn { transition: transform 0.25s var(--ease), background 0.2s, box-shadow 0.25s var(--ease), border-color 0.2s, color 0.2s; }
+.btn.primary {
+  background: linear-gradient(180deg, #E61E33 0%, var(--primary) 55%, #CC1022 100%); /* каждая точка — контраст с белым ≥ 4.5 */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 1px 2px rgba(16, 24, 40, 0.1), 0 6px 16px -8px rgba(224, 22, 43, 0.65);
+}
+.btn.soft { box-shadow: inset 0 0 0 1px rgba(224, 22, 43, 0.08); }
+.btn:not(.primary):not(.soft):not(.ghost):not(.secondary):not(.success) { box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05); }
+@media (hover: hover) {
+  .btn:not([disabled]):hover { transform: translateY(-1px); }
+  .btn.primary:not([disabled]):hover {
+    background: linear-gradient(180deg, #E3192E 0%, #DD1428 55%, #C10E1F 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 2px 4px rgba(16, 24, 40, 0.1), 0 12px 24px -10px rgba(224, 22, 43, 0.7);
+  }
+  .btn:not(.primary):not(.ghost):not([disabled]):hover { border-color: #C9CFDB; box-shadow: 0 6px 14px -8px rgba(16, 24, 40, 0.25); }
+  .btn.ghost:not([disabled]):hover { background: var(--surface-2); }
+  /* Значок в кнопке «подаётся» вперёд */
+  .btn:not([disabled]):hover > .icon:first-child { transform: translateX(1px) scale(1.08); }
+}
+.btn > .icon { transition: transform 0.25s var(--ease); }
+.btn:not([disabled]):active { transform: translateY(0) scale(0.97); transition-duration: 0.08s; }
+
+/* Карточки игр и категорий: поднимаются, обложка «оживает» */
+.game-card, .cat-card { transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease), border-color 0.3s; }
+@media (hover: hover) {
+  .game-card:hover, .cat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: rgba(224, 22, 43, 0.22); }
+  .game-card:hover .gc-art .art-cover, .cat-card:hover .cat-art .art-cover { transform: scale(1.05); }
+}
+.art-cover .cover-icon { transform-box: fill-box; transform-origin: center; transition: transform 0.4s var(--ease); }
+@media (hover: hover) {
+  .game-card:hover .cover-icon, .cat-card:hover .cover-icon { transform: scale(1.12) rotate(-4deg); }
+}
+
+/* Шапка при прокрутке: тень и лёгкое стекло */
+.topbar { transition: box-shadow 0.3s var(--ease), background 0.3s, min-height 0.3s var(--ease); }
+.topbar.scrolled {
+  background: rgba(255, 255, 255, 0.86);
+  -webkit-backdrop-filter: saturate(160%) blur(12px); backdrop-filter: saturate(160%) blur(12px);
+  box-shadow: 0 8px 24px -16px rgba(16, 24, 40, 0.35);
+}
+/* Нижняя панель телефона: нажатие и активный пункт */
+.tabbar a { transition: color 0.2s, transform 0.2s var(--ease); }
+.tabbar a:active { transform: scale(0.94); }
+.tabbar a[aria-current='page'] .icon { animation: tab-pop 0.35s var(--ease); }
+@keyframes tab-pop { 0% { transform: scale(0.85); } 60% { transform: scale(1.08); } 100% { transform: none; } }
+
+/* Появление при прокрутке (классы ставит core/fx.js — без JS всё видно сразу) */
+.fx-wait { opacity: 0; transform: translateY(18px); }
+.fx-show { opacity: 1; transform: none; transition: opacity 0.6s var(--ease), transform 0.6s var(--ease); transition-delay: calc(var(--fx-i, 0) * 70ms); }
+/* Полосы прогресса заполняются, когда их видно */
+.fx-bar > i { transition: width 1s var(--ease) 0.15s; }
+
+/* Ответ: верно — мягкая «пульсация», неверно — короткое покачивание */
+.option.correct { animation: answer-ok 0.5s var(--ease); }
+.option.wrong { animation: answer-no 0.4s ease; }
+@keyframes answer-ok { 0% { transform: scale(1); } 40% { transform: scale(1.03); } 100% { transform: none; } }
+@keyframes answer-no { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-wait { opacity: 1; transform: none; }
+  .btn:hover, .game-card:hover, .cat-card:hover { transform: none !important; }
+}
+@media print {
+  .fx-wait { opacity: 1 !important; transform: none !important; }
+  .horn-band, .mark-tunduk { display: none !important; }
+}

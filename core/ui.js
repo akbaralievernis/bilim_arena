@@ -243,6 +243,8 @@ export async function bootstrap() {
   await initI18n();
   document.body.classList.remove('boot');
   registerOffline();
+  // Появление при прокрутке, шапка со «стеклом» — после первой отрисовки
+  import('./fx.js').then((m) => requestAnimationFrame(() => m.startFx())).catch(() => {});
   // Облако подгружается, только если настроено и на устройстве уже был вход:
   // ученикам без аккаунта библиотека облака (~100 КБ) не нужна — страница легче на 3G
   if (SUPABASE.url && SUPABASE.anonKey && cloudNeeded()) {

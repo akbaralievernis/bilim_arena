@@ -3,13 +3,32 @@
 /* ─── 1. Приветствие ──────────────────────────────────────────────────────── */
 .hero { margin-top: 4px; }
 .hero-card {
+  position: relative; overflow: hidden; isolation: isolate;
   display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 32px; align-items: center;
   padding: clamp(24px, 4.5vw, 52px);
-  border-radius: var(--radius);
-  background: var(--surface);
+  border-radius: var(--radius-lg);
+  /* Тёплый свет из правого угла — как солнце над түндүком */
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(224, 22, 43, 0.08) 0%, rgba(224, 22, 43, 0) 55%),
+    radial-gradient(80% 70% at 0% 100%, rgba(255, 181, 71, 0.10) 0%, rgba(255, 181, 71, 0) 60%),
+    var(--surface);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
 }
+/* Большой түндүк за иллюстрацией: фирменный знак, очень медленно вращается */
+.hero-tunduk {
+  position: absolute; z-index: -1; width: min(520px, 62vw); aspect-ratio: 1;
+  right: -110px; top: 50%; translate: 0 -50%;
+  color: var(--primary); opacity: 0.07;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-tunduk { animation: tunduk-spin 120s linear infinite; }
+}
+@keyframes tunduk-spin { to { rotate: 360deg; } }
+/* Настоящие цифры платформы, а не придуманная статистика */
+.hero-facts { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 0; padding: 0; list-style: none; }
+.hero-facts li { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.8); border: 1px solid var(--line); font-size: 0.875rem; font-weight: 600; color: var(--text-secondary); }
+.hero-facts b { color: var(--text); font-weight: 800; }
 .hero-kicker { margin: 0 0 8px; font-weight: 600; font-size: 0.9375rem; color: var(--primary-ink); }
 .hero h1 { font-size: clamp(1.75rem, 4.2vw, 2.75rem); line-height: 1.15; margin: 0 0 12px; max-width: 18ch; }
 .hero-sub { color: var(--text-secondary); font-size: clamp(1rem, 1.6vw, 1.125rem); max-width: 46ch; margin: 0 0 24px; }
@@ -22,11 +41,13 @@
 .hero-tile-2 { right: 0; top: 0; transform: rotate(3deg); }
 .hero-tile-3 { left: 20%; bottom: 0; z-index: 2; }
 @media (prefers-reduced-motion: no-preference) {
-  .hero-tile { animation: tile-in 0.6s var(--ease) both; }
-  .hero-tile-2 { animation-delay: 0.08s; }
-  .hero-tile-3 { animation-delay: 0.16s; }
+  /* Появляются по очереди, потом едва заметно «плывут» — каждая в своём ритме */
+  .hero-tile { animation: tile-in 0.7s var(--ease) both, tile-float 7s ease-in-out 0.8s infinite; }
+  .hero-tile-2 { animation-delay: 0.1s, 1.4s; animation-duration: 0.7s, 8s; }
+  .hero-tile-3 { animation-delay: 0.2s, 2s; animation-duration: 0.7s, 6.5s; }
 }
-@keyframes tile-in { from { opacity: 0; translate: 0 12px; } }
+@keyframes tile-in { from { opacity: 0; translate: 0 16px; } }
+@keyframes tile-float { 50% { translate: 0 -6px; } }
 
 @media (max-width: 860px) {
   .hero-card { grid-template-columns: 1fr; gap: 0; }
@@ -97,7 +118,13 @@
 }
 
 /* ─── 8. Подвал ───────────────────────────────────────────────────────────── */
-.footer { padding-top: 28px; padding-bottom: 8px; border-top: 1px solid var(--line); margin-top: 48px; display: flex; flex-direction: column; gap: 12px; }
+.footer { position: relative; padding-top: 32px; padding-bottom: 8px; margin-top: 56px; display: flex; flex-direction: column; gap: 12px; }
+/* Подвал открывается лентой орнамента «кочкор мүйүз» */
+.footer::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 0; height: 16px;
+  background: var(--primary); opacity: 0.22;
+  -webkit-mask: url('./assets/brand/horn.svg') 0 50% / 42px 16px repeat-x; mask: url('./assets/brand/horn.svg') 0 50% / 42px 16px repeat-x;
+}
 .footer-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; }
 .footer-brand { font-size: 1rem; }
 .footer-brand .logo { width: 28px; height: 28px; }

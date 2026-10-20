@@ -979,4 +979,8 @@ export default {
   rv_marked_issue: "Белгиленди: ката бар — суроо колдонулбайт",
   rv_unmarked: "Белги алынды",
   rv_all_done: "Бул темада текшерилбеген суроо калган жок.",
+  home_facts: "Билим Аренада",
+  home_fact_games: "оюн",
+  home_fact_subjects: "предмет",
+  home_fact_langs: "тил: кыргыз, орус, англис",
 };

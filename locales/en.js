@@ -962,4 +962,8 @@ export default {
   rv_marked_issue: "Marked: has a mistake — the question will not be used",
   rv_unmarked: "Mark removed",
   rv_all_done: "No unchecked questions left in this topic.",
+  home_facts: "In Bilim Arena",
+  home_fact_games: "games",
+  home_fact_subjects: "subjects",
+  home_fact_langs: "languages: Kyrgyz, Russian, English",
 };

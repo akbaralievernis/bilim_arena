@@ -41,12 +41,16 @@ export function cover(iconSvg, tone = 'violet') {
   <rect width="320" height="200" fill="url(#${id})"/>
   <circle cx="268" cy="30" r="70" fill="#fff" opacity=".12"/>
   <circle cx="40" cy="188" r="56" fill="#fff" opacity=".10"/>
-  <rect x="222" y="138" width="44" height="44" rx="12" fill="#fff" opacity=".14" transform="rotate(18 244 160)"/>
+  <g transform="translate(206 150) scale(1.5)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".3">
+    <path d="M32 21 V13"/><path d="M32 13 C32 6 26 3 21 4.5 C16.5 6 16 11.5 19.5 13 C22.5 14.3 25 12 24 9.5"/><path d="M32 13 C32 6 38 3 43 4.5 C47.5 6 48 11.5 44.5 13 C41.5 14.3 39 12 40 9.5"/>
+  </g>
   <circle cx="74" cy="44" r="6" fill="#fff" opacity=".35"/>
   <circle cx="252" cy="112" r="4" fill="#fff" opacity=".4"/>
-  <circle cx="160" cy="100" r="54" fill="#fff" opacity=".2"/>
-  <circle cx="160" cy="100" r="40" fill="#fff" opacity=".95"/>
-  <g transform="translate(136 76) scale(2)" fill="none" stroke="${ink}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${inner}</g>
+  <g class="cover-icon">
+    <circle cx="160" cy="100" r="54" fill="#fff" opacity=".2"/>
+    <circle cx="160" cy="100" r="40" fill="#fff" opacity=".95"/>
+    <g transform="translate(136 76) scale(2)" fill="none" stroke="${ink}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${inner}</g>
+  </g>
 </svg>`);
 }
 

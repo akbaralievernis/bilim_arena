@@ -13,7 +13,7 @@ import { icon } from './core/icons.js';
 import { cover, avatar } from './core/art.js';
 import { getProgress, history, migrateLegacy } from './core/progress.js';
 import { getProfile } from './core/profile.js';
-import { getTopic, getSubject } from './core/curriculum.js';
+import { getTopic, getSubject, TOPICS } from './core/curriculum.js';
 import { gameCard, categoryCard, sortGames, metaLine } from './core/catalog.js';
 import { GAMES, CATEGORIES, getGame, getCategory } from './data/games.js';
 
@@ -22,9 +22,17 @@ function renderHero(profile) {
   $('#heroGames').replaceChildren(icon('games', { size: 20 }), el('span', {}, t('home_see_games')));
   $('#heroProgress').replaceChildren(icon('progress', { size: 20 }), el('span', {}, t('nav_progress')));
 
-  // Иллюстрация: обложки трёх разделов, без постоянного движения
+  // Иллюстрация: обложки трёх разделов и фирменный түндүк за ними
   $('#heroArt').replaceChildren(...CATEGORIES.slice(0, 3).map((c, i) =>
     el('div', { class: `hero-tile hero-tile-${i + 1}` }, cover(icon(c.art.icon, { size: 48 }), c.art.tone))));
+  $('#heroArt').closest('.hero-card').prepend(el('span', { class: 'mark-tunduk hero-tunduk', 'aria-hidden': 'true' }));
+
+  // Настоящие цифры платформы (считаются из данных сайта)
+  const subjects = new Set(TOPICS.map((x) => x.subject)).size;
+  $('#heroGames').closest('.hero-text').append(el('ul', { class: 'hero-facts', 'aria-label': t('home_facts') },
+    el('li', {}, el('b', {}, String(GAMES.length)), t('home_fact_games')),
+    el('li', {}, el('b', {}, String(subjects)), t('home_fact_subjects')),
+    el('li', {}, el('b', {}, '3'), t('home_fact_langs'))));
 }
 
 function renderSearch() {
