@@ -263,6 +263,7 @@ export default {
   join_button: 'Войти',
   join_waiting: 'Ждём учителя...',
   join_connected: 'Вы подключились!',
+  join_renamed: 'В классе уже есть «{requested}» — на доске вы «{name}». Чтобы было понятнее, войдите заново с фамилией.',
   join_your_team: 'Ваша команда',
   join_look_at_board: 'Смотрите на доску',
   join_answer_sent: 'Ответ отправлен',

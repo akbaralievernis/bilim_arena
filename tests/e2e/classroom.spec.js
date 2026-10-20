@@ -121,3 +121,42 @@ test('code typed on a Cyrillic keyboard joins; the board warns while it is offli
 
   await first.close(); await second.close(); await boardCtx.close();
 });
+
+test('two phones with the same name get different names, so their answers do not merge', async ({ browser }) => {
+  const boardCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await boardCtx.addInitScript(() => localStorage.setItem('BA2_lang', '"ru"'));
+  const board = await boardCtx.newPage();
+  await board.goto('/board.html?subject=math&topic=math-5-numbers&signal=' + SIG);
+  await board.getByRole('button', { name: 'Начать урок' }).first().click();
+  const codeEl = board.locator('#roomCode');
+  await expect(codeEl).toHaveText(/^[A-Z0-9]{4}$/, { timeout: 30_000 });
+  const code = await codeEl.textContent();
+
+  const join = async (name) => {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 800 }, isMobile: true, hasTouch: true });
+    await ctx.addInitScript(() => localStorage.setItem('BA2_lang', '"ru"'));
+    const page = await ctx.newPage();
+    await page.goto(`/play.html?room=${code}&signal=${SIG}`);
+    await page.locator('#nameInput').fill(name);
+    await page.locator('#joinBtn').click();
+    await expect(page.locator('#gameScreen')).toBeVisible({ timeout: 40_000 });
+    return { ctx, page };
+  };
+  const a = await join('Айбек');
+  await expect(board.locator('#playerCount')).toHaveText('1', { timeout: 20_000 });
+  const b = await join('  айбек ');
+  await expect(board.locator('#playerCount')).toHaveText('2', { timeout: 20_000 });
+  await expect(a.page.locator('#playerName')).toHaveText('Айбек');
+  await expect(b.page.locator('#playerName')).toHaveText('айбек 2');
+  await expect(b.page.locator('#toasts')).toContainText('войдите заново с фамилией');
+  await expect(board.locator('body')).toContainText('айбек 2');
+
+  // Тот же телефон переподключился — имя прежнее, нового игрока нет
+  await b.page.reload();
+  // Код в ссылке и имя в профиле — телефон входит сам
+  await expect(b.page.locator('#gameScreen')).toBeVisible({ timeout: 40_000 });
+  await expect(b.page.locator('#playerName')).toHaveText('айбек 2', { timeout: 40_000 });
+  await expect(board.locator('#playerCount')).toHaveText('2');
+
+  await a.ctx.close(); await b.ctx.close(); await boardCtx.close();
+});

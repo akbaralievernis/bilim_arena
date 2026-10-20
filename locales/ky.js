@@ -273,6 +273,7 @@ export default {
   join_button: 'Кирүү',
   join_waiting: 'Мугалимди күтүңүз...',
   join_connected: 'Кошулдуңуз!',
+  join_renamed: 'Класста «{requested}» деген ат бар — тактада сиз «{name}». Түшүнүктүү болушу үчүн фамилияңыз менен кайра кириңиз.',
   join_your_team: 'Сиздин командаңыз',
   join_look_at_board: 'Доскага караңыз',
   join_answer_sent: 'Жооп жөнөтүлдү',

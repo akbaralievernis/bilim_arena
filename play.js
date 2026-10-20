@@ -229,6 +229,12 @@ async function connect(code, name) {
       secret: savedSecret,
       onMessage: (msg) => {
         if (msg.type === 'screen') render(msg.spec);
+        if (msg.type === 'name' && typeof msg.name === 'string') {
+          // Такое имя уже есть в классе — доска дала номер, чтобы ответы не смешались
+          conn.assignedName = msg.name.slice(0, 24);
+          $('#playerName').textContent = conn.assignedName;
+          toast(t('join_renamed', { name: conn.assignedName, requested: String(msg.requested || '').slice(0, 24) }), { icon: '👥', ms: 8000 });
+        }
         if (msg.type === 'sync-assignments') syncWithTeacher(msg);
         if (msg.type === 'result' && msg.topic && msg.skill) {
           // Доска сообщила результат ответа — сохраняем его в прогрессе ученика
@@ -252,7 +258,7 @@ async function connect(code, name) {
     await quickJoinProfile(name);
 
     $('#connDot').classList.remove('off');
-    $('#playerName').textContent = name;
+    $('#playerName').textContent = conn.assignedName || name;
     $('#joinScreen').classList.add('hidden');
     $('#gameScreen').classList.remove('hidden');
     render({ screen: 'wait' });

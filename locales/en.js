@@ -263,6 +263,7 @@ export default {
   join_button: 'Join',
   join_waiting: 'Waiting for the teacher...',
   join_connected: 'You are in!',
+  join_renamed: '“{requested}” is already in the class — on the board you are “{name}”. To make it clearer, rejoin with your surname.',
   join_your_team: 'Your team',
   join_look_at_board: 'Look at the board',
   join_answer_sent: 'Answer sent',
