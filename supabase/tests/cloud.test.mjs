@@ -37,6 +37,8 @@ globalThis.localStorage = new Proxy({}, {
   getOwnPropertyDescriptor(_, p) { return storages[current]._m.has(p) ? { enumerable: true, configurable: true, value: storages[current]._m.get(p) } : undefined; }
 });
 globalThis.window = new EventTarget();
+// Поддельный supabase-js на PGlite вместо vendor/supabase-js (его скрипт в браузере кладёт API в window.supabase)
+globalThis.window.supabase = await import('./mock-supabase.mjs');
 globalThis.document = { addEventListener() {}, visibilityState: 'visible' };
 globalThis.location = new URL('https://akbaralievernis.github.io/bilim_arena/account.html');
 
@@ -130,6 +132,22 @@ check('на новом устройстве есть результат учен
 let wrong = false;
 try { await T2.cloud.teacherSignIn({ email: 'aigul@school.kg', password: 'nope' }); } catch (e) { wrong = /Invalid login/.test(e.message); }
 check('неверный пароль отклонён', wrong);
+
+// ── 4б. Отметки «это разные вопросы» — на обоих устройствах, без потерь ─────────
+console.log('Отметки «разные вопросы»');
+T = await device('T1');
+await T.store.store.set('dup_reviewed', ['bank:a|mine:b']);
+await T.cloud.flush();
+const T2m = await device('T2');
+await T2m.store.store.set('dup_reviewed', [...(await T2m.store.store.get('dup_reviewed', [])), 'bank:c|mine:d']);
+await T2m.cloud.flush();
+await T2m.cloud.syncAll();
+T = await device('T1');
+await T.cloud.syncAll();
+const marks1 = await T.store.store.get('dup_reviewed', []);
+const marks2 = await (await device('T2')).store.store.get('dup_reviewed', []);
+check('отметка с первого устройства дошла до второго и наоборот',
+  ['bank:a|mine:b', 'bank:c|mine:d'].every((k) => marks1.includes(k) && marks2.includes(k)), JSON.stringify({ marks1, marks2 }));
 
 // ── 5. Удаление задания учителем доходит до ученика ───────────────────────────
 console.log('Удаление задания');

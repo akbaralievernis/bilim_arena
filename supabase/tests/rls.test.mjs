@@ -145,6 +145,10 @@ await expectDenied('чужой учитель не видит циклы', () =>
   db.query(`select * from user_data where key = 'cycles'`)));
 await expectDenied('ученик не видит циклы учителя', () => as('S1', true, () =>
   db.query(`select * from user_data where key = 'cycles'`)));
+await expectOk('учитель сохраняет отметки «разные вопросы»', () => as('T1', false, () =>
+  db.query(`insert into user_data (key, value, updated_ms) values ('dup_reviewed', '["a|b"]', 1)`)), () => true);
+await expectDenied('чужой учитель не видит отметки', () => as('T2', false, () =>
+  db.query(`select * from user_data where key = 'dup_reviewed'`)));
 
 console.log('Удаление');
 await expectOk('учитель удаляет ученика из класса', () => as('T1', false, () =>

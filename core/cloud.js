@@ -47,14 +47,14 @@ function loadSupabase() {
 /** Какие личные данные синхронизируются у каждой роли */
 const PERSONAL = {
   student: [KEYS.profile, KEYS.progress, KEYS.errors, KEYS.history],
-  teacher: [KEYS.profile, 'questions', KEYS.lessons, 'tests', 'cycles']
+  teacher: [KEYS.profile, 'questions', KEYS.lessons, 'tests', 'cycles', 'dup_reviewed']
 };
 /** Ключи, которые база может ещё не принимать (миграция не применена) — тогда они остаются на устройстве */
-const OPTIONAL_KEYS = ['tests', 'cycles'];
+const OPTIONAL_KEYS = ['tests', 'cycles', 'dup_reviewed'];
 let unsupported = new Set();
 /** Всё, что относится к пользователю на этом устройстве (очищается при смене аккаунта) */
 const LOCAL_USER_KEYS = [KEYS.profile, KEYS.progress, KEYS.errors, KEYS.history, 'questions', KEYS.lessons,
-  KEYS.assignments, 'submissions', KEYS.classes, 'tests', 'cycles'];
+  KEYS.assignments, 'submissions', KEYS.classes, 'tests', 'cycles', 'dup_reviewed'];
 
 const META = 'sync_meta';     // { key: время последнего изменения на устройстве }
 const OWNER = 'sync_owner';   // чьи данные сейчас на устройстве
@@ -272,6 +272,7 @@ export async function syncAll() {
   if (!user) return;
   if (syncing) return syncing;
   syncing = (async () => {
+    await metaWrites;
     setStatus('syncing');
     try {
       const changed = await syncPersonal();
@@ -334,7 +335,15 @@ async function syncPersonal() {
       // значит, всё, чего нет локально, здесь удалили: локальная версия побеждает целиком.
       // Иначе в облаке могли появиться записи с другого устройства — объединяем.
       const remoteSeenHere = r && lastSync >= r.updated_ms;
-      if (r && !remoteSeenHere && Array.isArray(local) && Array.isArray(r.value)) value = mergeLog(local, r.value);
+      if (r && !remoteSeenHere && Array.isArray(local) && Array.isArray(r.value)) {
+        value = mergeLog(local, r.value);
+        // Объединённое — и на это устройство: иначе записи с другого устройства сюда бы не пришли
+        // (в облаке та же метка времени, что здесь, и следующая синхронизация их не заберёт)
+        if (JSON.stringify(value) !== JSON.stringify(local)) {
+          await store.set(key, value, { silent: true });
+          changed.push(key);
+        }
+      }
       const ms = localMs || Date.now();
       meta[key] = ms;
       upserts.push({ key, value, updated_ms: ms });
@@ -461,6 +470,8 @@ async function pushSubmissions() {
 
 const pending = new Set();
 let timer = null;
+/** Записи времени изменения (sync_meta), которые ещё идут: отправка их дожидается, иначе прочитала бы старое */
+let metaWrites = Promise.resolve();
 
 /** Вызывается хранилищем при каждой локальной записи */
 async function onLocalWrite(key) {
@@ -470,12 +481,17 @@ async function onLocalWrite(key) {
     || (role === 'student' && key === 'submissions');
   if (!personal && !shared) return;
 
-  if (personal) {
-    const meta = await store.get(META, {});
-    meta[key] = Date.now();
-    await store.set(META, meta, { silent: true });
-  }
+  // В очередь — сразу, до первого await: flush() сразу после записи (вкладку закрывают) должен её увидеть
   pending.add(key);
+  if (personal) {
+    const at = Date.now();
+    metaWrites = metaWrites.then(async () => {
+      const meta = await store.get(META, {});
+      meta[key] = at;
+      await store.set(META, meta, { silent: true });
+    }).catch(() => {});
+    await metaWrites;
+  }
   clearTimeout(timer);
   timer = setTimeout(flush, 1500); // собираем несколько изменений в одну отправку
 }
@@ -484,6 +500,7 @@ async function onLocalWrite(key) {
 export async function flush() {
   clearTimeout(timer);
   if (!user || !pending.size) return;
+  await metaWrites;
   const keys = [...pending];
   pending.clear();
   try {
