@@ -5,6 +5,12 @@
  */
 import { defineConfig } from '@playwright/test';
 
+// Обычно — Chrome, установленный на компьютере. В облачной среде без него:
+// PW_CHROME_PATH=/путь/к/chromium npm run test:e2e
+const chrome = process.env.PW_CHROME_PATH
+  ? { launchOptions: { executablePath: process.env.PW_CHROME_PATH } }
+  : { channel: 'chrome' };
+
 export default defineConfig({
   testDir: 'tests/e2e',
   timeout: 90_000,
@@ -20,20 +26,20 @@ export default defineConfig({
   },
   projects: [
     // Страницы — с настоящей Content-Security-Policy
-    { name: 'pages', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic|a11y|a11y-games)\.spec\.js/, use: { channel: 'chrome' } },
+    { name: 'pages', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic|a11y|a11y-games)\.spec\.js/, use: { ...chrome } },
     // Урок и конструктор: телефоны говорят с локальным сервером знакомства,
     // которого нет в CSP сайта, поэтому CSP здесь отключена
-    { name: 'classroom', testMatch: /(classroom|import)\.spec\.js/, use: { channel: 'chrome', bypassCSP: true } },
+    { name: 'classroom', testMatch: /(classroom|import)\.spec\.js/, use: { ...chrome, bypassCSP: true } },
     // Офлайн: здесь service worker включён (в остальных проектах он выключен)
-    { name: 'offline', testMatch: /offline\.spec\.js/, use: { channel: 'chrome', serviceWorkers: 'allow' } },
+    { name: 'offline', testMatch: /offline\.spec\.js/, use: { ...chrome, serviceWorkers: 'allow' } },
     // Те же страницы в движках Safari и Firefox — по явному запросу:
     // npx playwright test --project=webkit --project=firefox
     { name: 'webkit', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic)\.spec\.js/, use: { browserName: 'webkit' } },
     { name: 'firefox', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic)\.spec\.js/, use: { browserName: 'firefox' } },
     // Скорость на слабом телефоне и 3G — только по явному запросу: npx playwright test --project=perf
-    { name: 'perf', testMatch: /perf\.spec\.js/, use: { channel: 'chrome' } },
+    { name: 'perf', testMatch: /perf\.spec\.js/, use: { ...chrome } },
     // Нагрузка — только по явному запросу: npx playwright test --project=load
-    { name: 'load', testMatch: /load\.spec\.js/, use: { channel: 'chrome', bypassCSP: true } }
+    { name: 'load', testMatch: /load\.spec\.js/, use: { ...chrome, bypassCSP: true } }
   ],
   webServer: [
     { command: 'node tests/e2e/serve.mjs . 8766', url: 'http://localhost:8766/index.html', reuseExistingServer: true, timeout: 30_000 },
