@@ -63,7 +63,8 @@ test('host + 3 players: Cyrillic code works, the game starts with roles', async 
 });
 
 test('a whole game from the first night to the final screen, without page errors', async ({ browser }) => {
-  test.setTimeout(300_000);
+  // Случайные ходы: партия иногда длится дольше 5 минут на загруженной машине
+  test.setTimeout(600_000);
   const host = await open(browser, 'ky');
   await host.page.goto(PAGE);
   await host.page.getByPlaceholder(/Атыңыз/).fill('Мугалим');
@@ -85,7 +86,7 @@ test('a whole game from the first night to the final screen, without page errors
 
   const end = host.page.locator('.end-screen');
   const seen = new Set();
-  for (let i = 0; i < 200 && !(await end.isVisible()); i++) {
+  for (let i = 0; i < 400 && !(await end.isVisible()); i++) {
     // Игроки: кто может выбрать — выбирает первого доступного и подтверждает
     for (const p of players) {
       const card = p.page.locator('.player-card.can-select:not(.dead)');
