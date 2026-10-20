@@ -21,7 +21,18 @@ const conn = { room: null, joining: false, spec: null, topic: null };
 
 // ─── Отрисовка экрана, присланного доской ─────────────────────────────────────
 
+/** Бланк обвинения тот же (подозреваемые, улики, сколько нужно) */
+const accuseSig = (spec) => JSON.stringify([spec.required, spec.suspects?.map((x) => x.id), spec.clues?.map((x) => x.id)]);
+
 function render(spec) {
+  // Доска рассылает обновление всем, когда кто-то отправил обвинение. Если бланк
+  // у этого ученика тот же и ещё не отправлен — не пересобираем: иначе сбросился бы
+  // уже сделанный выбор подозреваемого и улик.
+  if (spec?.screen === 'accuse' && !spec.sent && conn.accuseSig === accuseSig(spec) && $('#optionsBox').childElementCount) {
+    conn.spec = spec;
+    return;
+  }
+  conn.accuseSig = spec?.screen === 'accuse' && !spec.sent ? accuseSig(spec) : null;
   conn.spec = spec;
   const status = $('#statusBox');
   const options = $('#optionsBox');
