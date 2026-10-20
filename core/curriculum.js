@@ -10,6 +10,7 @@
 
 import { pick } from './i18n.js';
 import { engineQuestions as teacherQuestions, engineQuestionsByIds } from './questions.js';
+import { flaggedRefs } from './review.js';
 
 /** Предметы платформы. `bank` — есть ли уже банк вопросов. */
 export const SUBJECTS = [
@@ -313,8 +314,10 @@ export async function getQuestions({ topic, count = 10, skills, difficulty, type
     return [...fromBank, ...fromTeacher];
   }
 
-  // Вопросы предмета + вопросы, созданные учителем в конструкторе
-  const bank = await loadBank(topic);
+  // Вопросы предмета + вопросы, созданные учителем в конструкторе.
+  // Вопросы, где учитель отметил ошибку (core/review.js), не выдаются
+  const flagged = await flaggedRefs();
+  const bank = (await loadBank(topic)).filter((q) => !flagged.has(`${topic}::${q.id}`));
   const custom = includeCustom ? await teacherQuestions({ topic }) : [];
   const pool = filter ? [...bank, ...custom].filter(filter) : [...bank, ...custom];
 

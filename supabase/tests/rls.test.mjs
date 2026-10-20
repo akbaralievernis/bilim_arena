@@ -149,6 +149,10 @@ await expectOk('учитель сохраняет отметки «разные 
   db.query(`insert into user_data (key, value, updated_ms) values ('dup_reviewed', '["a|b"]', 1)`)), () => true);
 await expectDenied('чужой учитель не видит отметки', () => as('T2', false, () =>
   db.query(`select * from user_data where key = 'dup_reviewed'`)));
+await expectOk('учитель сохраняет проверку вопросов', () => as('T1', false, () =>
+  db.query(`insert into user_data (key, value, updated_ms) values ('qreview', '{"math::f01":{"s":"ok"}}', 1)`)), () => true);
+await expectDenied('чужой учитель не видит проверку вопросов', () => as('T2', false, () =>
+  db.query(`select * from user_data where key = 'qreview'`)));
 
 console.log('Удаление');
 await expectOk('учитель удаляет ученика из класса', () => as('T1', false, () =>

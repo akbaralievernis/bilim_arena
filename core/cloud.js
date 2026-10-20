@@ -47,14 +47,14 @@ function loadSupabase() {
 /** Какие личные данные синхронизируются у каждой роли */
 const PERSONAL = {
   student: [KEYS.profile, KEYS.progress, KEYS.errors, KEYS.history],
-  teacher: [KEYS.profile, 'questions', KEYS.lessons, 'tests', 'cycles', 'dup_reviewed']
+  teacher: [KEYS.profile, 'questions', KEYS.lessons, 'tests', 'cycles', 'dup_reviewed', 'qreview']
 };
 /** Ключи, которые база может ещё не принимать (миграция не применена) — тогда они остаются на устройстве */
-const OPTIONAL_KEYS = ['tests', 'cycles', 'dup_reviewed'];
+const OPTIONAL_KEYS = ['tests', 'cycles', 'dup_reviewed', 'qreview'];
 let unsupported = new Set();
 /** Всё, что относится к пользователю на этом устройстве (очищается при смене аккаунта) */
 const LOCAL_USER_KEYS = [KEYS.profile, KEYS.progress, KEYS.errors, KEYS.history, 'questions', KEYS.lessons,
-  KEYS.assignments, 'submissions', KEYS.classes, 'tests', 'cycles', 'dup_reviewed', 'class_practice'];
+  KEYS.assignments, 'submissions', KEYS.classes, 'tests', 'cycles', 'dup_reviewed', 'qreview', 'class_practice', 'hw_runs'];
 
 const META = 'sync_meta';     // { key: время последнего изменения на устройстве }
 const OWNER = 'sync_owner';   // чьи данные сейчас на устройстве

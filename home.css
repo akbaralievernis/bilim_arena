@@ -311,3 +311,12 @@
 .progress-card { background: linear-gradient(150deg, #FFFFFF 40%, #E9FAF7); }
 .section-head h2 { font-size: clamp(1.45rem, 3.2vw, 2rem); }
 .section-head h2::after { content: ''; display: block; width: 44px; height: 5px; margin-top: 8px; border-radius: 999px; background: var(--grad); }
+/* Проверка вопросов банка учителем (questions.html) */
+.rv-card { border-left: 4px solid var(--line); }
+.rv-card.rv-ok { border-left-color: var(--ok); }
+.rv-card.rv-issue { border-left-color: var(--bad); }
+.rv-options { margin: 0; padding-left: 1.6em; display: grid; gap: 2px; }
+.rv-options li { overflow-wrap: anywhere; }
+.rv-right { font-weight: 700; color: var(--ok-ink); }
+.rv-right::after { content: ' ✓'; }
+.rv-issue { color: var(--bad-ink); font-weight: 600; }

@@ -113,6 +113,7 @@
         <button class="btn ghost" id="readyBackBtn" type="button" data-i18n="qb_title">Менин суроолорум</button>
       </div>
       <p class="muted" data-i18n="ready_hint">Ар бир тема — даяр тест.</p>
+      <p class="card plain small" data-i18n="rv_ai_note">Даяр суроолор жасалма интеллекттин жардамы менен жазылган. Сабакта колдонуудан мурун текшериңиз: «Суроолорду текшерүү» баскычы.</p>
       <div class="card stack">
         <div class="form-grid">
           <label class="field">
@@ -126,6 +127,20 @@
         </div>
       </div>
       <div class="stack" id="readyList"></div>
+    </section>
+
+    <!-- Проверка вопросов банка учителем -->
+    <section class="stack hidden" id="reviewScreen">
+      <div class="row between">
+        <h1 id="reviewTitle" style="margin:0"></h1>
+        <button class="btn ghost" id="reviewBackBtn" type="button" data-i18n="rep_back">Артка</button>
+      </div>
+      <p class="muted" data-i18n="rv_hint">«Ката бар» деп белгиленген суроо бул түзмөктө сабакка, тестке жана тапшырмага кирбейт.</p>
+      <div class="row" style="gap:12px;align-items:center">
+        <span class="small" id="reviewCount" role="status"></span>
+        <label class="small"><input type="checkbox" id="reviewOnlyLeft" /> <span data-i18n="rv_only_left">Текшерилбегендер гана</span></label>
+      </div>
+      <div class="stack" id="reviewList"></div>
     </section>
 
     <!-- Вставка вопросов текстом -->
@@ -247,6 +262,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./questions.js?v=18"></script>
+  <script type="module" src="./questions.js?v=19"></script>
 </body>
 </html>
