@@ -181,3 +181,13 @@
 .jr-row b { overflow-wrap: anywhere; }
 .jr-figures { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.95rem; }
 .jr-row .btn { justify-self: start; }
+
+/* Проверка вопросов банка учителем (questions.html) */
+.rv-card { border-left: 4px solid var(--line); }
+.rv-card.rv-ok { border-left-color: var(--ok); }
+.rv-card.rv-issue { border-left-color: var(--bad); }
+.rv-options { margin: 0; padding-left: 1.6em; display: grid; gap: 2px; }
+.rv-options li { overflow-wrap: anywhere; }
+.rv-right { font-weight: 700; color: var(--ok-ink); }
+.rv-right::after { content: ' ✓'; }
+.rv-issue { color: var(--bad-ink); font-weight: 600; }

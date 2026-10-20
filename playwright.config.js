@@ -26,7 +26,7 @@ export default defineConfig({
   },
   projects: [
     // Страницы — с настоящей Content-Security-Policy
-    { name: 'pages', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic|cycles|games-standalone|student|a11y|a11y-games)\.spec\.js/, use: { ...chrome } },
+    { name: 'pages', testMatch: /(pages|learning|teacher-tests|omr|scan-page|excel|images|parent-report|multi-topic|cycles|games-standalone|student|review|a11y|a11y-games)\.spec\.js/, use: { ...chrome } },
     // Урок и конструктор: телефоны говорят с локальным сервером знакомства,
     // которого нет в CSP сайта, поэтому CSP здесь отключена
     { name: 'classroom', testMatch: /(classroom|import|mafia|games-board)\.spec\.js/, use: { ...chrome, bypassCSP: true } },

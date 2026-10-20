@@ -19,15 +19,16 @@ import {
 import { pairsToReview } from './core/duplicates.js';
 import { compressImage, setPromptImage, dataUrlBytes } from './core/images.js';
 import { store } from './core/store.js';
+import { allReviews, setReview, reviewCounts, answerText as bankAnswer } from './core/review.js';
 
 /** Пары, которые учитель отметил как «разные вопросы» */
 const DUP_REVIEWED = 'dup_reviewed';
 
 const state = { editing: null, selected: new Set(), list: [], draft: {}, parsed: [], imported: null };
-const screens = ['listScreen', 'formScreen', 'importScreen', 'readyScreen', 'dupScreen'];
+const screens = ['listScreen', 'formScreen', 'importScreen', 'readyScreen', 'dupScreen', 'reviewScreen'];
 const show = (id) => {
   screens.forEach((s) => $('#' + s).classList.toggle('hidden', s !== id));
-  const tab = id === 'readyScreen' ? 'tabReady' : id === 'dupScreen' ? 'tabDups' : 'tabMine';
+  const tab = id === 'readyScreen' || id === 'reviewScreen' ? 'tabReady' : id === 'dupScreen' ? 'tabDups' : 'tabMine';
   ['tabMine', 'tabReady', 'tabDups'].forEach((x) => {
     $('#' + x).classList.toggle('on', x === tab);
     $('#' + x).setAttribute('aria-selected', String(x === tab));
@@ -569,6 +570,7 @@ async function renderReady() {
   const grade = Number($('#readyGrade').value) || null;
   const topics = TOPICS.filter((x) => x.bank && (!subject || x.subject === subject) && (!grade || x.grade === grade));
   const own = await allQuestions();
+  const reviews = await allReviews();
   show('readyScreen');
   if (!topics.length) {
     $('#readyList').replaceChildren(el('div', { class: 'card center muted' }, t('ready_empty')));
@@ -592,17 +594,80 @@ async function renderReady() {
       el('b', {}, pick(topic.title, lang)),
       el('div', { class: 'ready-meta small muted' },
         el('span', {}, `${subj ? pick(subj.title, lang) : ''} · ${t('grade', { n: topic.grade })} · ${pick(topic.section, lang)}`),
-        el('span', {}, t('ready_count', { n: bank.length }) + (mine ? ` ${t('ready_mine', { n: mine })}` : ''))
+        el('span', {}, t('ready_count', { n: bank.length }) + (mine ? ` ${t('ready_mine', { n: mine })}` : '')),
+        (() => {
+          const c = reviewCounts(bank, reviews);
+          return el('span', { class: c.issue ? 'rv-issue' : '' }, t('rv_counts', { ok: c.ok, total: c.total }) + (c.issue ? ` · ${t('rv_issues', { n: c.issue })}` : ''));
+        })()
       ),
       preview,
       el('div', { class: 'row', style: 'gap:8px' },
         el('a', { class: 'btn primary', href: boardUrl(topic) }, icon('board', { size: 18 }), ' ', t('act_board')),
         el('a', { class: 'btn ghost', href: homeworkUrl(topic) }, t('act_homework')),
+        el('button', { class: 'btn ghost', type: 'button', onclick: () => openReview(topic.id) }, icon('check', { size: 18 }), ' ', t('rv_open')),
         toggle
       )
     );
   }));
   $('#readyList').replaceChildren(...cards);
+}
+
+// ─── Проверка вопросов банка ─────────────────────────────────────────────────
+
+let reviewTopic = null;
+
+async function openReview(topicId) {
+  reviewTopic = topicId;
+  $('#reviewTitle').textContent = pick(getTopic(topicId)?.title, getLang());
+  await renderReview();
+  show('reviewScreen');
+  $('#reviewTitle').focus?.();
+}
+
+async function renderReview() {
+  const lang = getLang();
+  const bank = await loadBank(reviewTopic);
+  const reviews = await allReviews();
+  const c = reviewCounts(bank, reviews);
+  $('#reviewCount').textContent = t('rv_counts', { ok: c.ok, total: c.total }) + (c.issue ? ` · ${t('rv_issues', { n: c.issue })}` : '');
+  const onlyLeft = $('#reviewOnlyLeft').checked;
+  const items = bank.map((q, i) => ({ q, i, r: reviews[`${q.topic}::${q.id}`] || null }))
+    .filter((x) => !onlyLeft || !x.r);
+  if (!items.length) {
+    $('#reviewList').replaceChildren(el('div', { class: 'card center muted' }, t('rv_all_done')));
+    return;
+  }
+  $('#reviewList').replaceChildren(...items.map(({ q, i, r }) => {
+    const note = el('textarea', { class: 'input', rows: '2', maxlength: '300', placeholder: t('rv_note_hint'), 'aria-label': t('rv_note') });
+    note.value = r?.note || '';
+    const mark = async (status) => {
+      if (status === 'issue' && !note.value.trim()) { note.focus(); toast(t('rv_note_needed'), { icon: '✏️' }); return; }
+      try { await setReview(q.topic, q.id, status, status === 'issue' ? note.value : ''); }
+      catch { toast(t('cy_err_storage'), { icon: '⚠️' }); return; }
+      toast(status === 'ok' ? t('rv_marked_ok') : status === 'issue' ? t('rv_marked_issue') : t('rv_unmarked'), { icon: status === 'issue' ? '⚠️' : '✅' });
+      renderReview();
+    };
+    const opts = q.type === 'choice' || q.type === 'multiple'
+      ? el('ol', { class: 'rv-options', type: 'A' }, ...(q.options || []).map((o, k) => {
+        const right = q.type === 'multiple' ? (q.correct || []).includes(k) : q.correct === k;
+        return el('li', { class: right ? 'rv-right' : '' }, pick(o, lang), right ? el('span', { class: 'sr-only' }, ` (${t('rv_correct')})`) : null);
+      }))
+      : null;
+    return el('div', { class: `card stack rv-card ${r?.s ? 'rv-' + r.s : ''}` },
+      el('div', { class: 'row between' },
+        el('b', {}, `${i + 1}. `, pick(q.prompt, lang)),
+        el('span', { class: 'small muted' }, `${skillTitle(q.topic, q.skill, lang)} · ${t('difficulty_' + (q.difficulty || 1))}`)),
+      opts,
+      el('div', {}, el('span', { class: 'label' }, t('rv_correct')), ' ', el('b', {}, bankAnswer(q, lang))),
+      q.explain ? el('p', { class: 'small muted', style: 'margin:0' }, pick(q.explain, lang)) : null,
+      r?.s === 'issue' ? el('p', { class: 'small rv-issue', style: 'margin:0' }, `${t('rv_issue_label')}: ${r.note}`) : null,
+      note,
+      el('div', { class: 'row', style: 'gap:8px' },
+        el('button', { class: `btn ${r?.s === 'ok' ? 'primary' : 'soft'}`, type: 'button', 'aria-pressed': String(r?.s === 'ok'), onclick: () => mark('ok') }, icon('check', { size: 18 }), ' ', t('rv_ok')),
+        el('button', { class: 'btn ghost', type: 'button', 'aria-pressed': String(r?.s === 'issue'), onclick: () => mark('issue') }, t('rv_issue')),
+        r ? el('button', { class: 'btn ghost', type: 'button', onclick: () => mark(null) }, t('rv_unmark')) : null)
+    );
+  }));
 }
 
 function renderReadyFilters() {
@@ -616,6 +681,8 @@ function renderReadyFilters() {
 // ─── Запуск ───────────────────────────────────────────────────────────────────
 
 (async function init() {
+  $('#reviewBackBtn')?.addEventListener('click', () => renderReady());
+  $('#reviewOnlyLeft')?.addEventListener('change', () => renderReview());
   await bootstrap();
   await setRole('teacher');
   mountHeader($('#header'), { role: 'teacher', active: 'questions.html' });

@@ -25,14 +25,14 @@ const CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/+esm';
 /** Какие личные данные синхронизируются у каждой роли */
 const PERSONAL = {
   student: [KEYS.profile, KEYS.progress, KEYS.errors, KEYS.history],
-  teacher: [KEYS.profile, 'questions', KEYS.lessons, 'tests', 'cycles']
+  teacher: [KEYS.profile, 'questions', KEYS.lessons, 'tests', 'cycles', 'qreview']
 };
 /** Ключи, которые база может ещё не принимать (миграция не применена) — тогда они остаются на устройстве */
-const OPTIONAL_KEYS = ['tests', 'cycles'];
+const OPTIONAL_KEYS = ['tests', 'cycles', 'qreview'];
 let unsupported = new Set();
 /** Всё, что относится к пользователю на этом устройстве (очищается при смене аккаунта) */
 const LOCAL_USER_KEYS = [KEYS.profile, KEYS.progress, KEYS.errors, KEYS.history, 'questions', KEYS.lessons,
-  KEYS.assignments, 'submissions', KEYS.classes, 'tests', 'cycles'];
+  KEYS.assignments, 'submissions', KEYS.classes, 'tests', 'cycles', 'qreview', 'hw_runs'];
 
 const META = 'sync_meta';     // { key: время последнего изменения на устройстве }
 const OWNER = 'sync_owner';   // чьи данные сейчас на устройстве

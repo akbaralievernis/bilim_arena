@@ -62,7 +62,7 @@ create table if not exists public.submissions (
 
 create table if not exists public.user_data (
   user_id     uuid not null default auth.uid() references auth.users(id) on delete cascade,
-  key         text not null check (key in ('profile', 'progress', 'errors', 'history', 'questions', 'lessons', 'tests', 'cycles')),
+  key         text not null check (key in ('profile', 'progress', 'errors', 'history', 'questions', 'lessons', 'tests', 'cycles', 'qreview')),
   value       jsonb not null,
   updated_ms  bigint not null,   -- время изменения на устройстве (для «последняя запись побеждает»)
   primary key (user_id, key)
@@ -238,4 +238,4 @@ create trigger client_errors_guard before insert on public.client_errors
 -- ─── 2026-10: тесты учителя ('tests') и учебные циклы ('cycles') — для уже созданной базы ─
 alter table public.user_data drop constraint if exists user_data_key_check;
 alter table public.user_data add constraint user_data_key_check
-  check (key in ('profile', 'progress', 'errors', 'history', 'questions', 'lessons', 'tests', 'cycles'));
+  check (key in ('profile', 'progress', 'errors', 'history', 'questions', 'lessons', 'tests', 'cycles', 'qreview'));
