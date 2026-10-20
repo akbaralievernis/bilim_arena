@@ -14,11 +14,27 @@
 import { iceServers } from './turn.js';
 import { SIGNAL } from './config.js';
 
-const PEER_CDN = 'https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js';
-// SRI: браузер выполнит файл с CDN, только если он байт в байт совпадает с проверенным
+// Библиотеки лежат на самом сайте (vendor/): школьная сеть может резать или
+// тормозить CDN, а сайт уже открылся — значит, и они загрузятся (и есть в офлайн-кэше).
+// Файлы байт в байт совпадают с npm-пакетами peerjs@1.5.5 и qrcode-generator@1.4.4 (SRI).
+const PEER_SRC = new URL('../vendor/peerjs-1.5.5.min.js', import.meta.url).href;
 const PEER_SRI = 'sha384-x0YgkOr/3UOZP2CRDxGW9e0Q+2Qjyr3uJrm4xU32Y7ZCNAo7Cc7bjhrZMi/dwczu';
-const QR_CDN = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js';
+const QR_SRC = new URL('../vendor/qrcode-generator-1.4.4.js', import.meta.url).href;
 const QR_SRI = 'sha384-8FWZA6BGMXhsfO+BLtrJK0We6gg5o1JyO8xQm6peWDEUs17ACA5ziE/NIAkl9z2k';
+
+/** Сроки ожидания, мс (в тестах уменьшаются) */
+export const TIMING = {
+  ownOpen: 8000,      // свой сервер знакомства отвечает быстро
+  publicOpen: 15000,  // общий PeerJS бывает медленным
+  phoneQuick: 8000,   // телефон: есть запасной сервер — долго не ждём
+  phoneOpen: 20000,   // телефон: последний шанс или повторная попытка
+  connect: 25000,     // канал доска ↔ телефон (через TURN дольше)
+  retry: 4000,        // телефон: повтор, пока доска не найдена
+  rejoin: 3000,       // доска: переподключение к серверу знакомства
+  heal: 20000,        // доска: повторная регистрация на сервере, который не ответил
+  stale: 16000,       // доска: свой сервер отвечает на пинг каждые 5 с; молчит дольше — связь мертва
+  script: 20000       // загрузка библиотеки
+};
 const ROOM_PREFIX = 'bilimarena-room-';
 const CODE_CHARS = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'; // без похожих 0/O, 1/I
 
@@ -52,21 +68,34 @@ export function signalServers(search = window.location.search, config = SIGNAL) 
   return own ? [own, PUBLIC_SIGNAL] : [PUBLIC_SIGNAL];
 }
 
+// Похожие кириллические буквы → латиница: ученик набирает код на русской или
+// кыргызской раскладке («К7МА»), а коды комнат — латинские
+const LOOKALIKE = { А: 'A', В: 'B', Е: 'E', К: 'K', М: 'M', Н: 'H', О: 'O', Р: 'P', С: 'C', Т: 'T', У: 'Y', Ү: 'Y', Х: 'X', З: '3' };
+
+/** Код комнаты из того, что ввёл ученик: верхний регистр, латиница, только буквы и цифры */
+export function normalizeRoomCode(value) {
+  return [...String(value ?? '').toUpperCase()].map((ch) => LOOKALIKE[ch] || ch).join('').replace(/[^A-Z0-9]/g, '');
+}
+
+/** Скрипт с проверкой SRI и ограничением по времени (иначе «Загрузка…» могла висеть вечно) */
+function loadScript(src, integrity) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    const timer = setTimeout(() => { s.remove(); reject(new Error('script-timeout')); }, TIMING.script);
+    s.src = src;
+    s.integrity = integrity;
+    s.onload = () => { clearTimeout(timer); resolve(); };
+    s.onerror = () => { clearTimeout(timer); s.remove(); reject(new Error('peer-load-failed')); };
+    document.head.appendChild(s);
+  });
+}
+
 let peerLib = null;
 
 /** Подгружает PeerJS один раз по требованию */
 async function loadPeer() {
   if (peerLib) return peerLib;
-  if (window.Peer) { peerLib = window.Peer; return peerLib; }
-  await new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = PEER_CDN;
-    s.integrity = PEER_SRI;
-    s.crossOrigin = 'anonymous';
-    s.onload = resolve;
-    s.onerror = () => reject(new Error('peer-load-failed'));
-    document.head.appendChild(s);
-  });
+  if (!window.Peer) await loadScript(PEER_SRC, PEER_SRI);
   peerLib = window.Peer;
   if (!peerLib) throw new Error('peer-load-failed');
   return peerLib;
@@ -139,6 +168,18 @@ export function joinUrl(code, server = null) {
 
 // ─── Доска (хост) ─────────────────────────────────────────────────────────────
 
+/** Первая открывшаяся регистрация или null, если не открылась ни одна */
+function firstOpen(regs) {
+  return new Promise((resolve) => {
+    let left = regs.length;
+    if (!left) resolve(null);
+    regs.forEach((r) => r.ready.then((ok) => {
+      if (ok) resolve(r);
+      else if (--left === 0) resolve(null);
+    }));
+  });
+}
+
 /**
  * Создаёт комнату. Возвращает объект с кодом и методами отправки.
  * @param {object} handlers
@@ -152,69 +193,157 @@ export async function createRoom({ onJoin, onLeave, onMessage } = {}) {
   const players = new Map(); // playerId -> { id, name }
   const secrets = new Map(); // playerId -> секрет телефона, занявшего это место
 
-  let code = null;
-  let peer = null;
-  let server = null;
-  let lastError = null;
-
-  // Свой сервер знакомства не отвечает — комната создаётся на общем
-  for (const candidate of signalServers()) {
-    const options = { ...baseOptions, ...candidate.options };
-    // Код может быть занят другим классом — пробуем несколько раз
-    for (let attempt = 0; attempt < 5 && !peer; attempt++) {
-      code = roomCode();
-      let p = null;
-      try {
-        peer = await new Promise((resolve, reject) => {
-          p = new Peer(peerIdFor(code), options);
-          const timer = setTimeout(() => reject(new Error('timeout')), candidate.name === 'public' ? 15000 : 8000);
-          p.on('open', () => { clearTimeout(timer); resolve(p); });
-          p.on('error', (err) => {
-            clearTimeout(timer);
-            reject(new Error(err?.type === 'unavailable-id' ? 'code-taken' : (err?.type || 'peer-error')));
-          });
-        });
-        server = candidate.name;
-      } catch (err) {
-        try { p?.destroy(); } catch { /* уже закрыт */ }
-        peer = null;
-        lastError = err;
-        if (err.message !== 'code-taken') break; // сервер недоступен — следующий
-      }
-    }
-    if (peer) break;
-    console.warn('[room] сервер знакомства не ответил:', candidate.name, lastError?.message);
-  }
-  if (!peer) throw lastError || new Error('room-create-failed');
-
-  // Сервер знакомства (PeerJS) нужен только НОВЫМ телефонам: по нему они находят
-  // доску. Если доска потеряла с ним связь (вкладка ушла в фон, моргнул Wi-Fi),
-  // уже подключённые играют дальше, а новые получают «комната не найдена».
-  // Поэтому доска сама переподключается — с тем же кодом комнаты.
   let closed = false;
-  let rejoin = null;
-  const reconnect = () => {
-    if (closed || peer.destroyed || !peer.disconnected) return;
-    try { peer.reconnect(); } catch (e) { console.warn('[room reconnect]', e); }
-  };
-  const keepRegistered = () => {
-    if (rejoin || closed) return;
-    reconnect();
-    rejoin = setInterval(() => {
-      if (closed || !peer.disconnected) { clearInterval(rejoin); rejoin = null; return; }
-      reconnect();
-    }, 3000);
-  };
-  peer.on('disconnected', keepRegistered);
-  peer.on('error', (err) => {
-    console.warn('[room]', err?.type || err);
-    if (['network', 'server-error', 'socket-error', 'socket-closed'].includes(err?.type)) keepRegistered();
-  });
-  const onVisible = () => { if (document.visibilityState === 'visible') keepRegistered(); };
-  document.addEventListener('visibilitychange', onVisible);
-  window.addEventListener('online', keepRegistered);
+  let regs = [];
 
-  peer.on('connection', (conn) => {
+  // Комната регистрируется сразу на всех серверах знакомства (свой + общий).
+  // Телефон найдёт доску на любом из них: если один сервер моргнул или телефон
+  // до него не достучался, есть второй. Комнате хватает одного сервера.
+  let code = null;
+  let lastError = null;
+  for (let attempt = 0; attempt < 5 && !closed; attempt++) {
+    code = roomCode();
+    const tries = signalServers().map((candidate) => register(candidate, code));
+    const first = await firstOpen(tries);
+    if (first) { regs = tries; break; }
+    tries.forEach((r) => r.stop());
+    lastError = tries.find((r) => r.error)?.error || null;
+    // Код занят другим классом — пробуем другой; иначе ни один сервер не ответил
+    if (!tries.some((r) => r.taken)) break;
+  }
+  if (!regs.length) throw lastError || new Error('room-create-failed');
+  const server = regs.find((r) => r.reachable())?.name || null;
+
+  /**
+   * Регистрация кода на одном сервере. Сервер знакомства нужен только НОВЫМ
+   * телефонам: по нему они находят доску. Если доска потеряла с ним связь
+   * (вкладка ушла в фон, моргнул Wi-Fi), уже подключённые играют дальше, а
+   * доска сама переподключается с тем же кодом. Сервер, не ответивший при
+   * создании комнаты, пробуется снова каждые TIMING.heal.
+   */
+  function register(candidate, roomId) {
+    const reg = { name: candidate.name, peer: null, ever: false, taken: false, error: null, settled: false, stopped: false };
+    let settle = () => {};
+    reg.ready = new Promise((resolve) => { settle = (ok) => { if (!reg.settled) { reg.settled = true; resolve(ok); } }; });
+    // Свой токен на всё время урока: сервер узнаёт доску и пускает её обратно
+    // на тот же код (иначе после обрыва код мог считаться «занятым»)
+    const token = randomSecret();
+    const limit = candidate.name === 'public' ? TIMING.publicOpen : TIMING.ownOpen;
+    let watch = null;
+    let heal = null;
+    let since = 0;
+
+    // Свой сервер отвечает на каждый пинг PeerJS (signal/: HEARTBEAT → PONG), поэтому
+    // молчание означает «зависшее» соединение: после обрыва Wi-Fi сокет часто
+    // не закрывается сам, и доска иначе долго считала бы себя доступной.
+    const pongs = candidate.name !== 'public';
+    const alive = (p) => !pongs || !p._baSeen || Date.now() - p._baSeen < TIMING.stale;
+    const online = () => globalThis.navigator?.onLine !== false;
+    const reachable = () => !!reg.peer && reg.peer.open && !reg.peer.disconnected && !reg.peer.destroyed && alive(reg.peer) && online();
+    const watchSocket = (p) => {
+      const ws = p.socket?._socket;
+      if (!pongs || typeof ws?.addEventListener !== 'function') return; // другая версия PeerJS — без проверки
+      p._baSeen = Date.now();
+      ws.addEventListener('message', () => { p._baSeen = Date.now(); });
+    };
+    const stopWatch = () => { if (watch) clearInterval(watch); watch = null; };
+    const drop = (p) => {
+      if (reg.peer === p) reg.peer = null; // до destroy: его событие «disconnected» уже не наше
+      try { p.destroy(); } catch { /* закрыт */ }
+    };
+
+    const start = () => {
+      if (closed || reg.stopped) return;
+      since = Date.now();
+      const p = new Peer(peerIdFor(roomId), { ...baseOptions, ...candidate.options, token });
+      reg.peer = p;
+      let opened = false;
+      const timer = setTimeout(() => { if (!opened && reg.peer === p) lost(p, new Error('timeout')); }, limit);
+      p.on('open', () => {
+        clearTimeout(timer);
+        if (reg.peer !== p) return;
+        opened = true;
+        watchSocket(p);
+        reg.ever = true;
+        reg.error = null;
+        settle(true);
+      });
+      p.on('connection', onConnection);
+      p.on('disconnected', () => { if (reg.peer === p && opened) guard(); });
+      p.on('error', (err) => {
+        if (reg.peer !== p) return;
+        if (!opened) {
+          clearTimeout(timer);
+          // Код занят другим классом (до первой регистрации) — на этом сервере комнаты не будет
+          if (!reg.ever && err?.type === 'unavailable-id') reg.taken = true;
+          lost(p, new Error(err?.type === 'unavailable-id' ? 'code-taken' : (err?.type || 'peer-error')));
+          return;
+        }
+        console.warn('[room]', candidate.name, err?.type || err);
+        guard();
+      });
+    };
+
+    /** Регистрация не открылась */
+    function lost(p, err) {
+      reg.error = err;
+      drop(p);
+      settle(false);
+      if (reg.taken || closed || reg.stopped) return;
+      if (reg.ever) guard();                       // была — восстанавливаем
+      else { clearTimeout(heal); heal = setTimeout(start, TIMING.heal); } // не было — пробуем изредка
+    }
+
+    /** Доска была на сервере и потеряла его: переподключение, а если «зависло» — новая регистрация */
+    // Только disconnect/reconnect: destroy() разорвал бы связь с уже подключёнными телефонами
+    function check() {
+      if (closed || reg.stopped || reachable()) { stopWatch(); return; }
+      if (!online()) return; // ждём сеть
+      const p = reg.peer;
+      if (!p || p.destroyed) { start(); return; }
+      const hung = !p.disconnected && (p.open ? !alive(p) : Date.now() - since > limit);
+      if (!p.disconnected && !hung) return; // ещё подключаемся
+      since = Date.now();
+      try {
+        if (!p.disconnected) p.disconnect();
+        p.reconnect();
+      } catch { drop(p); start(); }
+    }
+    function guard() {
+      if (watch || closed || reg.stopped) return;
+      check();
+      if (!reachable()) watch = setInterval(check, TIMING.rejoin);
+    }
+
+    reg.keep = () => { if (reg.ever) guard(); };
+    /** Сеть вернулась: сокет мог «зависнуть» — регистрируемся заново (те же код и токен) */
+    reg.refresh = () => {
+      const p = reg.peer;
+      if (!reg.ever || closed || reg.stopped || !p || p.destroyed) return;
+      since = Date.now();
+      try { if (!p.disconnected) p.disconnect(); p.reconnect(); } catch { /* сторож повторит */ }
+      guard();
+    };
+    reg.stop = () => {
+      reg.stopped = true;
+      clearTimeout(heal);
+      stopWatch();
+      if (reg.peer) drop(reg.peer);
+    };
+    reg.reachable = reachable;
+    start();
+    return reg;
+  }
+
+  const keepAll = () => regs.forEach((r) => r.keep?.());
+  const refreshAll = () => regs.forEach((r) => r.refresh?.());
+  const onVisible = () => { if (document.visibilityState === 'visible') keepAll(); };
+  document.addEventListener('visibilitychange', onVisible);
+  window.addEventListener('online', refreshAll);
+  // Сторож комнаты: тихо «умершая» регистрация (без события disconnected) тоже восстанавливается
+  const patrol = setInterval(keepAll, TIMING.rejoin);
+
+  function onConnection(conn) {
     const limit = rateLimiter();
     conn.on('data', (raw) => {
       const verdict = limit();
@@ -254,7 +383,7 @@ export async function createRoom({ onJoin, onLeave, onMessage } = {}) {
       }
     });
     conn.on('error', (e) => console.warn('[room conn]', e?.type || e));
-  });
+  }
 
   return {
     code,
@@ -283,18 +412,20 @@ export async function createRoom({ onJoin, onLeave, onMessage } = {}) {
       });
     },
 
-    /** true, пока новые телефоны могут найти доску */
-    get reachable() { return !peer.disconnected && !peer.destroyed; },
+    /** true, пока новые телефоны могут найти доску (хотя бы на одном сервере) */
+    get reachable() { return regs.some((r) => r.reachable()); },
+    /** На каких серверах знакомства доску сейчас можно найти */
+    get servers() { return regs.filter((r) => r.reachable()).map((r) => r.name); },
 
     close() {
       closed = true;
-      if (rejoin) clearInterval(rejoin);
+      clearInterval(patrol);
+      regs.forEach((r) => r.stop());
       document.removeEventListener('visibilitychange', onVisible);
-      window.removeEventListener('online', keepRegistered);
+      window.removeEventListener('online', refreshAll);
       conns.forEach((c) => { try { c.close(); } catch { /* закрыт */ } });
       conns.clear();
       players.clear();
-      try { peer.destroy(); } catch { /* закрыт */ }
     }
   };
 }
@@ -310,20 +441,42 @@ export async function joinRoom({ code, name, playerId, secret, onMessage, onStat
   let servers = signalServers();
   // Подсказка из QR: комната на общем сервере — начинаем с него
   if (server) servers = [...servers.filter((s) => s.name === server), ...servers.filter((s) => s.name !== server)];
+  const room = normalizeRoomCode(code);
+  const opts = { code: room, name, playerId, secret, onMessage, onStatus };
 
-  let lastError = null;
-  for (const candidate of servers) {
+  // Первый проход — быстрый: есть запасной сервер, долго не ждём.
+  // Второй — терпеливый, только к серверам, до которых телефон не достучался:
+  // медленный интернет не должен превращаться в «комната не найдена».
+  const misses = new Map(); // сервер → причина
+  const attempt = async (candidate, patient) => {
     try {
-      const quickMiss = candidate !== servers[servers.length - 1];
-      return await joinVia(Peer, { ...baseOptions, ...candidate.options }, { code, name, playerId, secret, onMessage, onStatus, quickMiss });
+      const last = patient || candidate === servers[servers.length - 1];
+      return await joinVia(Peer, { ...baseOptions, ...candidate.options }, {
+        ...opts, quickMiss: !last, openTimeout: last ? TIMING.phoneOpen : TIMING.phoneQuick
+      });
     } catch (err) {
-      lastError = err;
       // Доска нашлась, но канал не открылся — другой сервер не поможет
       if (err.message === 'connect-timeout') throw err;
-      console.warn('[join] нет комнаты на сервере', candidate.name, err.message);
+      misses.set(candidate.name, err.message);
+      console.warn('[join] не получилось через', candidate.name, err.message);
+      return null;
     }
+  };
+
+  for (const candidate of servers) {
+    onStatus?.('searching');
+    const joined = await attempt(candidate, false);
+    if (joined) return joined;
   }
-  throw lastError || new Error('room-not-found');
+  for (const candidate of servers.filter((c) => misses.get(c.name) !== 'room-not-found')) {
+    onStatus?.('retrying');
+    const joined = await attempt(candidate, true);
+    if (joined) return joined;
+  }
+  // «Комнаты нет» — только если каждый сервер ответил, что её нет
+  if ([...misses.values()].every((m) => m === 'room-not-found')) throw new Error('room-not-found');
+  if ([...misses.values()].some((m) => m === 'room-not-found')) throw new Error('room-not-found-or-network');
+  throw new Error('no-connection');
 }
 
 /**
@@ -331,7 +484,7 @@ export async function joinRoom({ code, name, playerId, secret, onMessage, onStat
  * quickMiss — есть запасной сервер: если комнаты здесь нет (два ответа
  * «адресата нет» подряд), сразу сдаёмся, чтобы проверить следующий.
  */
-async function joinVia(Peer, options, { code, name, playerId, secret, onMessage, onStatus, quickMiss = false }) {
+async function joinVia(Peer, options, { code, name, playerId, secret, onMessage, onStatus, quickMiss = false, openTimeout = TIMING.phoneOpen }) {
   const id = playerId || `s_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
   // Секрет телефона: только он может вернуться на это место после обрыва
   const key = typeof secret === 'string' && secret ? secret : randomSecret();
@@ -346,7 +499,7 @@ async function joinVia(Peer, options, { code, name, playerId, secret, onMessage,
   const peer = await new Promise((resolve, reject) => {
     const p = new Peer(undefined, options);
     // Свой сервер отвечает быстро; если молчит — не держим ученика, есть запасной
-    const timer = setTimeout(() => { try { p.destroy(); } catch { /* закрыт */ } reject(new Error('timeout')); }, quickMiss ? 8000 : 20000);
+    const timer = setTimeout(() => { try { p.destroy(); } catch { /* закрыт */ } reject(new Error('timeout')); }, openTimeout);
     p.on('open', () => { clearTimeout(timer); resolve(p); });
     p.on('error', (err) => {
       clearTimeout(timer);
@@ -396,7 +549,7 @@ async function joinVia(Peer, options, { code, name, playerId, secret, onMessage,
     retry = setInterval(() => {
       if (destroyed || live()) { if (live()) { clearInterval(retry); retry = null; onStatus?.('online'); } return; }
       try { bind(peer.connect(target, { reliable: true })); } catch (e) { console.warn('[join retry]', e); }
-    }, 4000);
+    }, TIMING.retry);
   }
 
   try {
@@ -404,7 +557,7 @@ async function joinVia(Peer, options, { code, name, playerId, secret, onMessage,
       // 25 с: через TURN в строгой сети соединение открывается дольше
       const timer = setTimeout(
         () => reject(new Error(boardFound || unavailable === 0 ? 'connect-timeout' : 'room-not-found')),
-        25000
+        TIMING.connect
       );
       missNow = () => { clearTimeout(timer); reject(new Error('room-not-found')); };
       bind(peer.connect(target, { reliable: true }), () => { clearTimeout(timer); resolve(); });
@@ -440,22 +593,12 @@ function safeSend(conn, msg) {
 // ─── QR-код (без внешних сервисов, работает офлайн) ───────────────────────────
 
 /**
- * Рисует QR-код ссылки. Использует библиотеку qrcode-generator с CDN,
+ * Рисует QR-код ссылки. Использует библиотеку qrcode-generator (vendor/),
  * а если её нет — показывает крупный код комнаты, чтобы урок не сорвался.
  */
 export async function renderQR(el, text, size = 260) {
   try {
-    if (!window.qrcode) {
-      await new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = QR_CDN;
-        s.integrity = QR_SRI;
-        s.crossOrigin = 'anonymous';
-        s.onload = resolve;
-        s.onerror = reject;
-        document.head.appendChild(s);
-      });
-    }
+    if (!window.qrcode) await loadScript(QR_SRC, QR_SRI);
     const qr = window.qrcode(0, 'M');
     qr.addData(text);
     qr.make();

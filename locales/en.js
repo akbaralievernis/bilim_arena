@@ -268,7 +268,7 @@ export default {
   join_answer_sent: 'Answer sent',
   join_lost: 'Connection lost — reconnecting...',
   err_connect_slow: 'The board was found, but the connection does not open. Try again; if it fails, switch to mobile data.',
-  err_room_not_found: 'Room not found. Check the code.',
+  err_room_not_found: "Room {code} was not found. Check the code on the board.",
   err_no_connection: 'No connection. Check your internet.',
   err_enter_name: 'Enter your name',
   err_enter_code: 'Enter the code',
@@ -914,4 +914,8 @@ export default {
   cy_gaps: "Needs review",
   cy_no_students: "No answers on this topic in this period yet.",
   cy_method: "How it is counted: a check is homework in “Check” mode or a paper check of at least {min} questions. First is the earliest check in the period, latest is the most recent. Fewer than {skill} answers on a skill means “not enough data”. Practice (answers / attempts) does not change the status.",
+  err_room_unsure: "Room {code} was not found, but the main server did not answer — the internet may be slow. Check the code and try again.",
+  join_searching: "Looking for the board…",
+  join_retrying: "Slow internet — trying again…",
+  board_unreachable: "Lost the connection to the server: new students cannot join right now. Those already in keep playing. Reconnecting…",
 };

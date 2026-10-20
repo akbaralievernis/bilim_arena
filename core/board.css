@@ -305,3 +305,6 @@ body.controller {
 .big-icon .icon { width: 44px; height: 44px; }
 .big-icon.ok { background: color-mix(in srgb, var(--ok) 14%, #fff); color: var(--ok); }
 .big-icon.bad { background: color-mix(in srgb, var(--bad) 12%, #fff); color: var(--bad); }
+
+/* Сервер знакомства недоступен — новые ученики не войдут */
+.room-warn { margin: 0 0 12px; padding: 10px 14px; border: 1px solid var(--warn); border-left-width: 4px; border-radius: 12px; background: var(--surface); color: var(--text); font-weight: 600; }

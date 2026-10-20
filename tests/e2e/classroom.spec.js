@@ -80,3 +80,44 @@ test('a wrong room code is reported quickly as "room not found"', async ({ page 
   await expect(page.locator('#joinError')).toContainText(/не найдена|найдена/i, { timeout: 40_000 });
   expect(Date.now() - started).toBeLessThan(40_000);
 });
+
+test('code typed on a Cyrillic keyboard joins; the board warns while it is offline and recovers', async ({ browser }) => {
+  test.setTimeout(150_000);
+  const boardCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await boardCtx.addInitScript(() => localStorage.setItem('BA2_lang', '"ru"'));
+  const board = await boardCtx.newPage();
+  await board.goto('/board.html?subject=math&topic=math-5-numbers&signal=' + SIG);
+  await board.getByRole('button', { name: 'Начать урок' }).first().click();
+  const codeEl = board.locator('#roomCode');
+  await expect(codeEl).toHaveText(/^[A-Z0-9]{4}$/, { timeout: 30_000 });
+  const code = await codeEl.textContent();
+  const LAT = { A: 'А', B: 'В', E: 'Е', K: 'К', M: 'М', H: 'Н', P: 'Р', C: 'С', T: 'Т', Y: 'У', X: 'Х' };
+  const cyrillic = [...code].map((c) => LAT[c] || c).join('').toLowerCase();
+
+  const join = async (name, typed) => {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 800 }, isMobile: true, hasTouch: true });
+    await ctx.addInitScript(() => localStorage.setItem('BA2_lang', '"ru"'));
+    const page = await ctx.newPage();
+    await page.goto('/play.html?signal=' + SIG);
+    await page.locator('#codeInput').pressSequentially(typed);
+    await expect(page.locator('#codeInput')).toHaveValue(code); // кириллица превратилась в латиницу
+    await page.locator('#nameInput').fill(name);
+    await page.locator('#joinBtn').click();
+    await expect(page.locator('#gameScreen')).toBeVisible({ timeout: 40_000 });
+    return ctx;
+  };
+  const first = await join('Айбек', cyrillic);
+  await expect(board.locator('#playerCount')).toHaveText('1', { timeout: 20_000 });
+
+  // У доски пропал интернет: учитель видит, что новые ученики сейчас не войдут
+  await boardCtx.setOffline(true);
+  await expect(board.locator('#roomWarn')).toBeVisible({ timeout: 30_000 });
+  await expect(board.locator('#roomWarn')).toContainText('новые ученики пока не смогут войти');
+  // Интернет вернулся: предупреждение пропадает, новый ученик входит с тем же кодом
+  await boardCtx.setOffline(false);
+  await expect(board.locator('#roomWarn')).toBeHidden({ timeout: 40_000 });
+  const second = await join('Нурай', code);
+  await expect(board.locator('#playerCount')).toHaveText('2', { timeout: 20_000 });
+
+  await first.close(); await second.close(); await boardCtx.close();
+});

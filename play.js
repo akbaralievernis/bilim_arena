@@ -9,7 +9,7 @@
 import { bootstrap, el, $, toast, sfx } from './core/ui.js';
 import { icon } from './core/icons.js';
 import { t } from './core/i18n.js';
-import { joinRoom } from './core/realtime.js';
+import { joinRoom, normalizeRoomCode } from './core/realtime.js';
 import { RACE_CODE_LENGTH, isRaceCode, raceUrl } from './core/race.js';
 import { getProfile, quickJoinProfile } from './core/profile.js';
 import { store } from './core/store.js';
@@ -228,6 +228,8 @@ async function connect(code, name) {
         }
       },
       onStatus: (s) => {
+        // Пока ищем доску — кнопка говорит, что происходит, а не просто «Загрузка…»
+        if (s === 'searching' || s === 'retrying') { btn.textContent = t(s === 'retrying' ? 'join_retrying' : 'join_searching'); return; }
         $('#connDot').classList.toggle('off', s !== 'online');
         if (s === 'offline') toast(t('join_lost'), { icon: '🔌' });
       }
@@ -245,9 +247,13 @@ async function connect(code, name) {
     render({ screen: 'wait' });
     toast(t('join_connected'), { icon: '✅' });
   } catch (e) {
-    const key = e?.message === 'room-not-found' ? 'err_room_not_found'
-      : e?.message === 'connect-timeout' ? 'err_connect_slow' : 'err_no_connection';
-    $('#joinError').textContent = t(key);
+    const key = {
+      'room-not-found': 'err_room_not_found',
+      'room-not-found-or-network': 'err_room_unsure',
+      'connect-timeout': 'err_connect_slow'
+    }[e?.message] || 'err_no_connection';
+    console.warn('[join]', e?.message || e);
+    $('#joinError').textContent = t(key, { code });
   } finally {
     conn.joining = false;
     btn.disabled = false;
@@ -262,7 +268,7 @@ async function connect(code, name) {
   $('#joinIcon')?.replaceChildren(icon('join', { size: 44 }));
 
   const params = new URLSearchParams(location.search);
-  const codeFromUrl = (params.get('room') || '').toUpperCase();
+  const codeFromUrl = normalizeRoomCode(params.get('room'));
   const profile = await getProfile();
 
   if (codeFromUrl) $('#codeInput').value = codeFromUrl;
@@ -270,7 +276,7 @@ async function connect(code, name) {
   $('#playerName').textContent = profile.name || '—';
 
   const tryJoin = () => {
-    const code = $('#codeInput').value.trim().toUpperCase();
+    const code = normalizeRoomCode($('#codeInput').value);
     const name = $('#nameInput').value.trim();
     if (!code) return ($('#joinError').textContent = t('err_enter_code'));
     // 6 символов — это не урок на доске, а Bilim Arena Race: ведём туда, имя спросит гонка
@@ -289,7 +295,8 @@ async function connect(code, name) {
   $('#joinBtn').disabled = false;
   $('#nameInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') tryJoin(); });
   $('#codeInput').addEventListener('input', (e) => {
-    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    // Кириллица «К7МА» → латиница «K7MA»: раньше такие буквы молча удалялись
+    e.target.value = normalizeRoomCode(e.target.value);
   });
 
   $('#sendAnswerBtn').addEventListener('click', () => {

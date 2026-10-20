@@ -310,11 +310,26 @@ async function openRoom() {
     return;
   }
 
+  watchRoom();
   const url = joinUrl(state.room.code, state.room.server);
   $('#roomCode').textContent = state.room.code;
   $('#joinUrlText').textContent = url.replace(/^https?:\/\//, '');
   const ok = await renderQR($('#qrBox'), url, 260);
   if (!ok) $('#joinHint').textContent = t('board_or_enter');
+}
+
+/** Учитель видит, когда новые ученики не могут войти (сервер знакомства недоступен) */
+function watchRoom() {
+  clearInterval(state.roomWatch);
+  let misses = 0;
+  state.roomWatch = setInterval(() => {
+    const warn = $('#roomWarn');
+    if (!state.room) { warn.classList.add('hidden'); clearInterval(state.roomWatch); return; }
+    misses = state.room.reachable ? 0 : misses + 1;
+    // Две проверки подряд (~4 с): короткое переподключение не мигает предупреждением
+    warn.textContent = t('board_unreachable');
+    warn.classList.toggle('hidden', misses < 2);
+  }, 2000);
 }
 
 function renderPlayers() {
