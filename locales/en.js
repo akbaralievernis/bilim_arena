@@ -918,4 +918,10 @@ export default {
   join_searching: "Looking for the board…",
   join_retrying: "Slow internet — trying again…",
   board_unreachable: "Lost the connection to the server: new students cannot join right now. Those already in keep playing. Reconnecting…",
+  hw_restart: "Start over",
+  hw_restart_confirm: "Your answers will be deleted and the task will start over. Continue?",
+  hw_resumed: "Continuing where you stopped: question {n} of {total}",
+  hw_save_failed: "The answer was not saved on this device: storage may be full.",
+  hw_review_not_counted: "This is mistake practice — it does not go to the teacher’s report.",
+  hw_continue_at: "Continue (question {n} of {total})",
 };

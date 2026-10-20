@@ -176,6 +176,33 @@ export async function studentAssignments({ studentId, classId, grade }) {
     .sort((x, y) => x.assignment.dueAt - y.assignment.dueAt);
 }
 
+// ─── Незаконченная попытка (продолжить после перезагрузки) ────────────────────
+// После каждого ответа на устройстве сохраняется: какие вопросы, в каком порядке
+// и что уже отвечено. Перезагрузка, разряженный телефон или пропавшая сеть не
+// теряют работу, а в режиме «Проверка» не дают начать неудачную попытку заново.
+
+const RUNS = 'hw_runs';
+const runKey = (assignmentId, studentId) => `${studentId || 'me'}:${assignmentId}`;
+
+export async function getRun(assignmentId, studentId) {
+  const all = await store.get(RUNS, {});
+  const run = all && typeof all === 'object' ? all[runKey(assignmentId, studentId)] : null;
+  // Повреждённая запись не ломает страницу — её просто нет
+  return run && Array.isArray(run.refs) && Array.isArray(run.log) && run.refs.length ? run : null;
+}
+
+export async function saveRun(run) {
+  const all = (await store.get(RUNS, {})) || {};
+  all[runKey(run.assignmentId, run.studentId)] = run;
+  return store.set(RUNS, all);
+}
+
+export async function clearRun(assignmentId, studentId) {
+  const all = (await store.get(RUNS, {})) || {};
+  delete all[runKey(assignmentId, studentId)];
+  await store.set(RUNS, all);
+}
+
 // ─── Аналитика для учителя ────────────────────────────────────────────────────
 
 /**
