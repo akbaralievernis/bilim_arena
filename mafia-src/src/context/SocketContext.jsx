@@ -304,7 +304,8 @@ export const SocketProvider = ({ children }) => {
       console.warn('[mafia] create', err?.message || err);
       transport.destroy();
       setConnection('offline');
-      callback?.({ success: false, error: err?.message === 'timeout' || err?.message === 'peer-load-failed' ? 'no_connection' : 'create_failed' });
+      // Занятый код транспорт меняет сам; любая ошибка здесь — нет связи с сервером знакомства
+      callback?.({ success: false, error: navigator.onLine === false || /timeout|network|socket|server|peer-load|script/.test(err?.message || '') ? 'no_connection' : 'create_failed' });
     }
   }, [handleClientMsg]);
 
