@@ -223,3 +223,36 @@ export async function studentReport(key) {
 
   return { ...summary, weak: weakFrom(summary.bySkill, 6), lessonRows: lessons, homeworkRows: homework, topicRows, settings };
 }
+
+/**
+ * Тренировки ученика из его аккаунта (core/cloud.js → 'class_practice'), по темам.
+ * Только для учеников, вошедших в класс по коду; сопоставление — по имени, как и во всём отчёте.
+ * @returns {{ at: number, rows: Array<{ topic, answered, pct, lastAt, checkPct, checkAt }> } | null}
+ */
+export async function studentPractice(key) {
+  const all = await store.get('class_practice', {});
+  const mine = Object.values(all && typeof all === 'object' ? all : {}).filter((p) => studentKey(p?.name) === key);
+  if (!mine.length) return null;
+  const byTopic = new Map();
+  for (const p of mine) {
+    Object.entries(p.topics || {}).forEach(([topic, v]) => {
+      const row = byTopic.get(topic) || { topic, answered: 0, correct: 0, lastAt: 0, checkPct: null, checkAt: 0 };
+      row.answered += Number(v?.answered) || 0;
+      row.correct += Number(v?.correct) || 0;
+      row.lastAt = Math.max(row.lastAt, Number(v?.lastAt) || 0);
+      byTopic.set(topic, row);
+    });
+    Object.entries(p.checks || {}).forEach(([topic, list]) => {
+      const row = byTopic.get(topic) || { topic, answered: 0, correct: 0, lastAt: 0, checkPct: null, checkAt: 0 };
+      (Array.isArray(list) ? list : []).forEach((c) => {
+        if (c && Number(c.at) > row.checkAt && Number(c.total) > 0) { row.checkAt = Number(c.at); row.checkPct = pct(Number(c.correct) || 0, Number(c.total)); }
+      });
+      byTopic.set(topic, row);
+    });
+  }
+  const rows = [...byTopic.values()]
+    .filter((r) => r.answered > 0 || r.checkPct !== null)
+    .map((r) => ({ ...r, pct: pct(r.correct, r.answered) }))
+    .sort((a, b) => Math.max(b.lastAt, b.checkAt) - Math.max(a.lastAt, a.checkAt));
+  return rows.length ? { at: Math.max(...mine.map((p) => Number(p.at) || 0)), rows } : null;
+}

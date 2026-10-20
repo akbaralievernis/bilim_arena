@@ -8,7 +8,7 @@ import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
 import { getTopic, getSubject, skillTitle, SUBJECTS, TOPICS, findQuestion } from './core/curriculum.js';
 import { setRole, getProfile } from './core/profile.js';
-import { lessonHistory, getLesson, deleteLesson, studentSummaries, studentReport, weakFrom } from './core/lessons.js';
+import { lessonHistory, getLesson, deleteLesson, studentSummaries, studentReport, studentPractice, weakFrom } from './core/lessons.js';
 import { masterySettings, saveMasterySettings } from './core/mastery.js';
 import { fromTeacher, reportLink } from './core/parent-report.js';
 import { allCycles, getCycle, saveCycle, deleteCycle, cycleReport } from './core/cycles.js';
@@ -233,6 +233,7 @@ async function openStudent(name) {
   const key = String(name).replace(/\s+/g, ' ').trim().toLowerCase();
   const current = nextView();
   const r = await studentReport(key);
+  const practice = await studentPractice(key);
   if (!current()) return;
   if (!r) return renderStudents();
   const weakTopic = r.weak.find((w) => getTopic(w.topic))?.topic;
@@ -261,6 +262,22 @@ async function openStudent(name) {
           el('td', { class: 'num' }, pctBadge(row.pct)),
           el('td', { class: 'num' }, row.checkPct == null ? '—' : pctBadge(row.checkPct)),
           el('td', {}, statusBadge(row.status), row.status === 'insufficient' ? el('div', { class: 'small muted' }, t('rep_need_more', { n: row.need })) : null)
+        )))
+      ))
+    ] : []),
+    ...(practice ? [
+      el('h3', {}, t('rep_practice')),
+      el('p', { class: 'small muted' }, t('rep_practice_hint', { date: fmtDate(practice.at) })),
+      el('div', { class: 'rep-table-wrap' }, el('table', { class: 'rep-table' },
+        el('thead', {}, el('tr', {},
+          el('th', {}, t('rep_topic')), el('th', { class: 'num' }, t('rep_answers_col')), el('th', { class: 'num' }, '%'),
+          el('th', { class: 'num' }, t('rep_last_check')), el('th', {}, t('rep_date')))),
+        el('tbody', {}, ...practice.rows.map((row) => el('tr', {},
+          el('td', {}, pick(getTopic(row.topic)?.title, getLang()) || row.topic),
+          el('td', { class: 'num' }, String(row.answered)),
+          el('td', { class: 'num' }, row.pct == null ? '—' : pctBadge(row.pct)),
+          el('td', { class: 'num' }, row.checkPct == null ? '—' : pctBadge(row.checkPct)),
+          el('td', {}, fmtDate(Math.max(row.lastAt, row.checkAt)))
         )))
       ))
     ] : []),

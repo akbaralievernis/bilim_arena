@@ -665,6 +665,8 @@ export default {
   rep_topics_status: 'Progress by topic',
   rep_mastery_rule: '"Mastered" means a check at {th}% or higher. Fewer than {n} answers means "not enough data".',
   rep_last_check: 'Check',
+  rep_practice: 'Practice on the phone (student account)',
+  rep_practice_hint: 'Practice and final checks of a student who joined the class with a code. Updated: {date}. They do not change the topic status above.',
   rep_status: 'Status',
   rep_need_more: '{n} more answers needed',
   rep_mastery_title: 'When a topic counts as mastered',

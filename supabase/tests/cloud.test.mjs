@@ -118,6 +118,13 @@ T = await device('T1');
 await T.cloud.syncAll();
 classes = await T.store.store.get('classes', []);
 check('в классе учителя появился ученик', classes.find((c) => c.id === cls.id)?.students?.includes('Айбек'), JSON.stringify(classes));
+const practice = Object.values(await T.store.store.get('class_practice', {}));
+check('учитель получил тренировки ученика из его аккаунта (только темы и проверки)',
+  practice.length === 1 && practice[0].name === 'Айбек' && practice[0].topics?.['math-6-fractions']?.answered >= 1 && !('qs' in practice[0]),
+  JSON.stringify(practice).slice(0, 300));
+const lessonsMod = await import(ROOT + 'core/lessons.js?device=T1');
+const pr = await lessonsMod.studentPractice('айбек');
+check('в отчёте по ученику — строка «Практики» по теме', pr?.rows?.[0]?.topic === 'math-6-fractions' && pr.rows[0].pct === 100, JSON.stringify(pr));
 const stats = await T.hw.assignmentStats(a1.id, 1);
 check('аналитика задания видит выполнение', stats.completed === 1 && stats.average === 100, JSON.stringify(stats).slice(0, 200));
 
@@ -139,6 +146,8 @@ T = await device('T1');
 await T.store.store.set('dup_reviewed', ['bank:a|mine:b']);
 await T.cloud.flush();
 const T2m = await device('T2');
+// Часы второго устройства спешат на час (обычное дело на школьных телефонах)
+await T2m.store.store.set('sync_last', Date.now() + 3600000, { silent: true });
 await T2m.store.store.set('dup_reviewed', [...(await T2m.store.store.get('dup_reviewed', [])), 'bank:c|mine:d']);
 await T2m.cloud.flush();
 await T2m.cloud.syncAll();
@@ -148,6 +157,17 @@ const marks1 = await T.store.store.get('dup_reviewed', []);
 const marks2 = await (await device('T2')).store.store.get('dup_reviewed', []);
 check('отметка с первого устройства дошла до второго и наоборот',
   ['bank:a|mine:b', 'bank:c|mine:d'].every((k) => marks1.includes(k) && marks2.includes(k)), JSON.stringify({ marks1, marks2 }));
+// Удаление отметки на одном устройстве доходит до другого (не воскресает при объединении)
+T = await device('T1');
+await T.store.store.set('dup_reviewed', marks1.filter((k) => k !== 'bank:a|mine:b'));
+await T.cloud.flush();
+const T2d = await device('T2');
+await T2d.cloud.syncAll();
+const marks2d = await T2d.store.store.get('dup_reviewed', []);
+T = await device('T1');
+await T.cloud.syncAll();
+check('удалённая отметка исчезла и на втором устройстве', !marks2d.includes('bank:a|mine:b') && marks2d.includes('bank:c|mine:d')
+  && !(await T.store.store.get('dup_reviewed', [])).includes('bank:a|mine:b'), JSON.stringify(marks2d));
 
 // ── 5. Удаление задания учителем доходит до ученика ───────────────────────────
 console.log('Удаление задания');
@@ -166,6 +186,9 @@ S = await device('S1');
 await S.cloud.signOut();
 check('после выхода на устройстве нет прогресса ученика', (await S.store.store.get('progress', null)) === null);
 check('после выхода нет сессии', (await S.cloud.currentUser()) === null);
+T = await device('T1');
+await T.cloud.signOut();
+check('после выхода учителя тренировки учеников стёрты с устройства', (await T.store.store.get('class_practice', null)) === null);
 check('прогресс остался в облаке', (await db.query(`select * from user_data where key = 'progress'`)).rows.length === 1);
 
 console.log(`\nИтог: ${pass} ok, ${fail} ошибок`);
