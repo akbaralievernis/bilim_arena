@@ -9,8 +9,8 @@
 
 import { store, KEYS } from './store.js';
 import { getTopic, skillTitle } from './curriculum.js';
-import { schedule, memKey, shownRecord } from './selection.js';
-import { masteryStatus, masterySettings } from './mastery.js';
+import { schedule, memKey, shownRecord, CHECK_MIN } from './selection.js';
+import { masteryStatus, masterySettings, MASTERY_DEFAULTS } from './mastery.js';
 
 const XP_PER_LEVEL_BASE = 100;
 const XP_GROWTH = 1.25;
@@ -216,6 +216,54 @@ export async function topicStatus(topicId, settings = null) {
   const d = await read();
   const t = d.topics[topicId] || {};
   return masteryStatus({ answered: t.answered || 0, correct: t.correct || 0, checks: d.checks[topicId] || [] }, settings || await masterySettings());
+}
+
+/**
+ * Путь ученика по теме: с чего начал и где сейчас — только по подтверждённым
+ * проверкам. Начало — диагностика (если была), иначе первая итоговая проверка;
+ * сейчас — последняя итоговая проверка. Изменение — только если это разные
+ * проверки; тренировки и игры не превращаются в «результат».
+ * @param {object} d   — данные прогресса
+ * @param {string} topic
+ * @param {string[]} bankIds — id вопросов темы (сколько ещё не встречалось)
+ */
+export function topicJourney(d, topic, bankIds = [], settings = MASTERY_DEFAULTS) {
+  const pct = (ok, total) => (total ? Math.round((ok / total) * 100) : null);
+  const checks = (d.checks?.[topic] || []).filter((c) => c.total >= CHECK_MIN).sort((a, b) => a.at - b.at);
+  const path = d.path?.[topic] || {};
+  const diagTotals = Object.values(path.diag || {}).reduce((acc, s) => ({ ok: acc.ok + (Number(s.ok) || 0), total: acc.total + (Number(s.total) || 0) }), { ok: 0, total: 0 });
+  const baseline = diagTotals.total
+    ? { pct: pct(diagTotals.ok, diagTotals.total), at: path.diagAt || null, source: 'diag', total: diagTotals.total }
+    : checks[0] ? { pct: pct(checks[0].correct, checks[0].total), at: checks[0].at, source: 'check', total: checks[0].total } : null;
+  const lastCheck = checks.length ? checks[checks.length - 1] : null;
+  const latest = lastCheck && !(baseline?.source === 'check' && checks.length === 1)
+    ? { pct: pct(lastCheck.correct, lastCheck.total), at: lastCheck.at, total: lastCheck.total }
+    : null;
+  const rec = d.topics?.[topic] || {};
+  const seen = new Set(Object.keys(d.qs || {}).filter((k) => k.startsWith(`${topic}::`)).map((k) => k.slice(topic.length + 2)));
+  return {
+    topic,
+    baseline,
+    latest,
+    delta: baseline && latest ? latest.pct - baseline.pct : null,
+    checks: checks.length,
+    answered: rec.answered || 0,
+    lastAt: Math.max(rec.lastAt || 0, lastCheck?.at || 0, path.diagAt || 0),
+    lastCheckAt: lastCheck?.at || null,
+    unseen: bankIds.filter((id) => !seen.has(id)).length,
+    bank: bankIds.length,
+    ...masteryStatus({ answered: rec.answered || 0, correct: rec.correct || 0, checks: d.checks?.[topic] || [] }, settings)
+  };
+}
+
+/** Все темы, где ученик уже что-то делал — для страницы «Прогресс» */
+export async function journeys(loadBankIds) {
+  const d = await read();
+  const settings = await masterySettings();
+  const topics = new Set([...Object.keys(d.topics || {}), ...Object.keys(d.checks || {}), ...Object.keys(d.path || {})]);
+  const out = [];
+  for (const topic of topics) out.push(topicJourney(d, topic, await loadBankIds(topic), settings));
+  return out.sort((a, b) => b.lastAt - a.lastAt);
 }
 
 /** Итоговая проверка по теме — хранится отдельно от тренировок */

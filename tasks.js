@@ -9,15 +9,15 @@
 import { bootstrap, mountHeader, el, $, toast, sfx, confetti } from './core/ui.js';
 import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
-import { getTopic, getSubject, getQuestions, getQuestionsByRefs, skillTitle } from './core/curriculum.js';
+import { getTopic, getSubject, getQuestions, getQuestionsByRefs, skillTitle, questionRef } from './core/curriculum.js';
 import { BaseGame } from './core/engine.js';
 import { renderQuestion } from './core/quiz-ui.js';
 import { setPromptImage } from './core/images.js';
 import { getProfile } from './core/profile.js';
-import { getProgress, questionMemory } from './core/progress.js';
+import { getProgress, questionMemory, recordCheck } from './core/progress.js';
 import { seenIds } from './core/selection.js';
 import { resultView } from './core/results.js';
-import { studentAssignments, saveSubmission, submissionFor, attemptsLeft, STATUS } from './core/assignments.js';
+import { studentAssignments, saveSubmission, submissionFor, attemptsLeft, STATUS, getRun, saveRun, clearRun } from './core/assignments.js';
 
 /** Домашнее задание — одиночная игра, прогресс пишется в профиль ученика */
 class HomeworkGame extends BaseGame {
@@ -37,7 +37,8 @@ class HomeworkGame extends BaseGame {
   };
 }
 
-const state = { list: [], current: null, game: null, me: 'me', profile: null };
+const state = { list: [], current: null, game: null, me: 'me', profile: null, run: null, review: false, runs: new Map() };
+const studentId = () => state.profile?.id || 'me';
 const screens = ['listScreen', 'introScreen', 'playScreen', 'resultScreen'];
 const show = (id) => screens.forEach((s) => $('#' + s).classList.toggle('hidden', s !== id));
 
@@ -54,6 +55,11 @@ async function renderList() {
     grade: state.profile.grade
   });
 
+  state.runs = new Map();
+  for (const x of state.list) {
+    const run = await getRun(x.assignment.id, studentId());
+    if (run) state.runs.set(x.assignment.id, run);
+  }
   const active = state.list.filter((x) => x.status !== STATUS.DONE).length;
   $('#countChip').textContent = `${active} / ${state.list.length}`;
 
@@ -61,7 +67,8 @@ async function renderList() {
     const topic = getTopic(a.topic);
     const subject = getSubject(a.subject);
     const done = status === STATUS.DONE;
-    const canStart = attemptsLeft > 0;
+    const run = state.runs.get(a.id);
+    const canStart = attemptsLeft > 0 || !!run;
 
     return el('div', { class: 'card hw-card' },
       el('div', { class: 'row between' },
@@ -87,7 +94,8 @@ async function renderList() {
         class: `btn ${done ? '' : 'primary'} block`, type: 'button',
         disabled: !canStart,
         onclick: () => openIntro(a.id)
-      }, done ? `${t('retry')}` : `▶️ ${t('hw_start')}`)
+      }, run ? t('hw_continue_at', { n: run.log.length + 1, total: run.refs.length })
+        : done ? `${t('retry')}` : t('hw_start'))
     );
   });
 
@@ -123,17 +131,27 @@ function openIntro(assignmentId) {
   ].filter(Boolean));
 
   $('#introIcon').replaceChildren(icon('tasks', { size: 36 }));
+  // Незаконченная попытка: продолжить. Начать заново — только в тренировке
+  // (в «Проверке» перезагрузка не должна давать второй шанс)
+  const run = state.runs.get(a.id);
+  $('#startBtn').textContent = run ? t('hw_continue_at', { n: run.log.length + 1, total: run.refs.length }) : t('hw_start');
+  $('#restartBtn').classList.toggle('hidden', !run || !!a.check || entry.attemptsLeft <= 0);
   show('introScreen');
 }
 
 // ─── Выполнение ───────────────────────────────────────────────────────────────
 
-async function startAssignment(onlyWrong = false) {
+async function startAssignment(onlyWrong = false, { fresh = false } = {}) {
   const a = state.current.assignment;
   const lang = getLang();
+  const saved = !onlyWrong && !fresh ? state.runs.get(a.id) || await getRun(a.id, studentId()) : null;
 
   let questions;
-  if (onlyWrong && state.game) {
+  if (saved) {
+    questions = await getQuestionsByRefs(saved.refs, a.topic);
+    // Вопрос удалили из банка — продолжить нельзя, начинаем заново честно
+    if (questions.length !== saved.refs.length) { await clearRun(a.id, studentId()); return startAssignment(false, { fresh: true }); }
+  } else if (onlyWrong && state.game) {
     // Ошибочные вопросы — из того же набора (он мог быть из нескольких тем)
     const ids = state.game.wrongQuestionIds();
     questions = state.game.ctx.questions.filter((q) => ids.includes(q.id));
@@ -155,7 +173,9 @@ async function startAssignment(onlyWrong = false) {
 
   if (!questions.length) return toast(t('empty_none'), { icon: '⚠️' });
 
-  state.xpBefore = (await getProgress()).xp;
+  // «Повторить ошибки» — тренировка: в отчёт учителю не идёт и попытку не тратит
+  state.review = onlyWrong;
+  state.xpBefore = saved?.xpBefore ?? (await getProgress()).xp;
   state.game?.destroy();
   state.game = new HomeworkGame({
     questions, topic: a.topic, lang, perQuestionSec: 45, solo: true,
@@ -163,11 +183,41 @@ async function startAssignment(onlyWrong = false) {
   });
   state.game.addPlayer({ id: state.me, name: state.profile.name || 'me' });
 
+  state.run = onlyWrong ? null : saved || {
+    assignmentId: a.id, studentId: studentId(), refs: questions.map((q) => questionRef({ ...q, topic: q.topic || a.topic })),
+    log: [], startedAt: Date.now(), xpBefore: state.xpBefore
+  };
+  if (state.run && !saved) await saveRun(state.run);
+
   show('playScreen');
-  await state.game.start();
+  if (saved) await resumeGame(state.game, saved);
+  else await state.game.start();
+}
+
+/** Продолжить с того вопроса, на котором остановились: прошлые ответы — в журнале */
+async function resumeGame(game, run) {
+  const me = game.players.get(state.me);
+  game.log = run.log.map((e) => ({ ...e, playerId: state.me }));
+  me.total = game.log.length;
+  me.correct = game.log.filter((e) => e.correct).length;
+  game.startedAt = run.startedAt || Date.now();
+  game.state = 'running';
+  game.index = game.log.length - 1;
+  if (game.log.length >= game.questionCount) return game.finish('completed');
+  toast(t('hw_resumed', { n: game.log.length + 1, total: game.questionCount }), { icon: '↩️' });
+  await game.nextQuestion();
+}
+
+/** После каждого ответа — сохранить попытку на устройстве */
+function persistRun(game) {
+  const run = state.run;
+  if (!run || game.log.length === run.log.length) return;
+  run.log = game.log.map(({ questionId, topic, skill, correct, ms, value, skipped }) => ({ questionId, topic, skill, correct, ms, value, skipped }));
+  saveRun(run).then((ok) => { if (ok === false) toast(t('hw_save_failed'), { icon: '⚠️' }); });
 }
 
 function renderGame(game, kind) {
+  if (kind !== 'tick') persistRun(game);
   $('#timer').textContent = String(Math.max(0, game.timeLeft));
   $('#timer').classList.toggle('low', game.timeLeft <= 5 && game.state === 'running');
   if (kind === 'tick') return;
@@ -223,8 +273,8 @@ async function showResults(game) {
   const xp = Math.max(0, (await getProgress()).xp - (state.xpBefore ?? 0));
   // Эта попытка засчитывается ниже; «Кайра ойноо» — только если попытки ещё остаются.
   // Считаем по актуальной записи: список мог загрузиться до прошлых попыток
-  const before = await submissionFor(a.id, state.profile.id || 'me');
-  const left = attemptsLeft(a, before) - 1;
+  const before = await submissionFor(a.id, studentId());
+  const left = attemptsLeft(a, before) - (state.review ? 0 : 1);
 
   $('#resultScreen').replaceChildren(resultView({
     accuracy: r.accuracy, xp, correct: r.correctAnswers, total: r.totalAnswers, timeSec: r.durationSec,
@@ -238,10 +288,14 @@ async function showResults(game) {
   $('#resultScreen h1').focus();
   if (r.accuracy >= 70) { sfx.win(); confetti(); }
 
+  // «Повторить ошибки» — только тренировка: учитель видит настоящую попытку, а не 100% по трём вопросам
+  if (state.review) { toast(t('hw_review_not_counted'), { icon: 'ℹ️' }); return; }
+  if (state.run) { await clearRun(a.id, studentId()); state.run = null; }
+
   // Сохраняем попытку для учителя (ошибки по навыкам уже в аналитике)
   await saveSubmission({
     assignmentId: a.id,
-    studentId: state.profile.id || 'me',
+    studentId: studentId(),
     studentName: state.profile.name || '—',
     correct: r.correctAnswers,
     total: r.totalAnswers,
@@ -249,6 +303,17 @@ async function showResults(game) {
     skillStats: a.questionIds?.some((id) => String(id).includes('::')) ? r.bySkillTopic : r.bySkill,
     mistakes: r.mistakes.map((m) => ({ questionId: m.questionId, skill: m.skill }))
   });
+  // Задание в режиме «Проверка» — это итоговая проверка и в прогрессе ученика
+  // (иначе у учителя тема «Изучено», а у ученика — «Готов к проверке»)
+  if (a.check) {
+    const byTopic = {};
+    Object.entries(r.bySkillTopic || {}).forEach(([key, v]) => {
+      const topic = key.split('::')[0] || a.topic;
+      const acc = byTopic[topic] || (byTopic[topic] = { correct: 0, total: 0 });
+      acc.correct += v.ok; acc.total += v.total;
+    });
+    for (const [topic, v] of Object.entries(byTopic)) await recordCheck({ topic, ...v });
+  }
   toast(t('hw_result_saved'), { icon: '✅' });
 }
 
@@ -266,6 +331,12 @@ async function showResults(game) {
   if (params.get('id')) openIntro(params.get('id'));
 
   $('#startBtn').addEventListener('click', () => startAssignment(false));
+  $('#restartBtn').addEventListener('click', async () => {
+    if (!confirm(t('hw_restart_confirm'))) return;
+    await clearRun(state.current.assignment.id, studentId());
+    state.runs.delete(state.current.assignment.id);
+    startAssignment(false, { fresh: true });
+  });
   $('#backBtn').addEventListener('click', renderList);
 
   document.addEventListener('keydown', (e) => {

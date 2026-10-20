@@ -93,6 +93,8 @@ class GameState {
     const isGameEnded = this.phase === 'end';
     const myRole = this.roles[playerId];
     const isMafiaTeam = myRole === 'mafia' || myRole === 'don';
+    // Ведущий не играет и ведёт ночь — он видит все роли (его состояние не уходит в сеть)
+    const isHostViewer = !!this.players.find((p) => p.id === playerId)?.isHost;
 
     return {
       id: this.id,
@@ -100,14 +102,15 @@ class GameState {
       subPhase: this.subPhase,
       round: this.round,
       alivePlayers: this.alivePlayers,
-      roles: isGameEnded ? this.roles : this._getVisibleRoles(isMafiaTeam, playerId),
+      roles: isGameEnded || isHostViewer ? this.roles : this._getVisibleRoles(isMafiaTeam, playerId),
       votes: this.phase === 'vote' ? this.votes : {},
       players: this.players.map(p => ({
         id: p.id,
         name: p.name,
         avatar: p.avatar,
         isAlive: this.alivePlayers.includes(p.id),
-        isHost: p.isHost
+        isHost: p.isHost,
+        isBot: !!p.isBot
       }))
     };
   }

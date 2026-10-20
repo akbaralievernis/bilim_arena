@@ -139,6 +139,12 @@ await expectDenied('чужой учитель не видит тесты', () =>
   db.query(`select * from user_data where key = 'tests'`)));
 await expectDenied('ученик не видит тесты учителя', () => as('S1', true, () =>
   db.query(`select * from user_data where key = 'tests'`)));
+await expectOk('учитель сохраняет учебные циклы', () => as('T1', false, () =>
+  db.query(`insert into user_data (key, value, updated_ms) values ('cycles', '[{"id":"c1"}]', 1)`)), () => true);
+await expectDenied('чужой учитель не видит циклы', () => as('T2', false, () =>
+  db.query(`select * from user_data where key = 'cycles'`)));
+await expectDenied('ученик не видит циклы учителя', () => as('S1', true, () =>
+  db.query(`select * from user_data where key = 'cycles'`)));
 
 console.log('Удаление');
 await expectOk('учитель удаляет ученика из класса', () => as('T1', false, () =>

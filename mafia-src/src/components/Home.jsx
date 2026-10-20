@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
+import { normalizeRoomCode } from '../net/Transport';
 import { Camera, ArrowLeft } from 'lucide-react';
 import { useTranslation, LANGS } from '../utils/i18n';
 
@@ -13,12 +14,12 @@ export default function Home() {
     const fromSearch = new URLSearchParams(window.location.search).get('room');
     const hash = window.location.hash;
     const fromHash = hash.includes('?') ? new URLSearchParams(hash.slice(hash.indexOf('?'))).get('room') : null;
-    if (fromSearch || fromHash) return (fromSearch || fromHash).toUpperCase();
+    if (fromSearch || fromHash) return normalizeRoomCode(fromSearch || fromHash);
     // После перезагрузки страницы код прошлой комнаты подставляется сам,
     // чтобы игрок вернулся в игру одним нажатием (ведущий его узнает по id).
     try {
       const saved = JSON.parse(sessionStorage.getItem('mafia_session') || 'null');
-      if (saved && !saved.isHost) return String(saved.code).toUpperCase();
+      if (saved && !saved.isHost) return normalizeRoomCode(saved.code);
     } catch { /* приватный режим */ }
     return '';
   });
@@ -76,12 +77,12 @@ export default function Home() {
         navigate(`/room/${result.room.id}`);
       } else {
         const key = 'err_' + (result?.error || 'no_connection');
-        setMsg(t(key) !== key ? t(key) : result?.error);
+        setMsg(t(key) !== key ? t(key, { code: result?.code || '' }) : result?.error);
       }
     };
 
     if (code.trim()) {
-      socket.emit('join_room', { roomCode: code.trim().toUpperCase(), playerName, avatar }, done);
+      socket.emit('join_room', { roomCode: normalizeRoomCode(code), playerName, avatar }, done);
     } else {
       socket.emit('create_room', { playerName, avatar }, done);
     }
@@ -89,6 +90,9 @@ export default function Home() {
 
   return (
     <div className="container-center">
+      <a className="brand" href="../../index.html" style={{ marginBottom: '1rem' }}>
+        <img src="../../assets/logo.svg" alt="" width="28" height="28" /> Билим Арена
+      </a>
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -96,7 +100,7 @@ export default function Home() {
         className="glass-panel"
         style={{ width: '100%', maxWidth: '420px', position: 'relative' }}
       >
-        <div role="group" aria-label={t('language')} style={{ position: 'absolute', top: 15, right: 15, display: 'flex', gap: '4px' }}>
+        <div role="group" aria-label={t('language')} style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
           {LANGS.map((code) => (
             <button
               key={code}
@@ -104,9 +108,9 @@ export default function Home() {
               onClick={() => setLanguage(code)}
               aria-pressed={lang === code}
               style={{
-                opacity: lang === code ? 1 : 0.55, border: '1px solid var(--glass-border)', borderRadius: '8px',
-                background: lang === code ? 'rgba(255,255,255,0.12)' : 'none', color: 'inherit',
-                font: '700 0.75rem/1 inherit', letterSpacing: '0.04em', padding: '0.4rem 0.5rem', cursor: 'pointer'
+                border: `1px solid ${lang === code ? 'var(--text)' : 'var(--line)'}`, borderRadius: '8px',
+                background: lang === code ? 'var(--surface-2)' : 'var(--surface)', color: lang === code ? 'var(--text)' : 'var(--text-soft)',
+                font: '700 0.75rem/1 inherit', letterSpacing: '0.04em', padding: '0.5rem 0.6rem', minWidth: 36, minHeight: 32, cursor: 'pointer'
               }}
             >
               {code.toUpperCase()}
@@ -125,7 +129,7 @@ export default function Home() {
             onClick={() => fileInputRef.current?.click()}
             style={{
               width: '80px', height: '80px', borderRadius: '50%', cursor: 'pointer', padding: 0,
-              background: avatar ? `url(${avatar}) center/cover` : 'rgba(255,255,255,0.1)',
+              background: avatar ? `url(${avatar}) center/cover` : 'var(--surface-2)',
               border: '2px dashed var(--glass-border)', display: 'flex', justifyContent: 'center', alignItems: 'center',
               overflow: 'hidden', color: 'inherit'
             }}
@@ -137,7 +141,7 @@ export default function Home() {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            style={{ fontSize: '0.8rem', color: 'var(--accent-purple)', marginTop: '0.5rem', background: 'none', border: 0, cursor: 'pointer' }}
+            style={{ fontSize: '0.8rem', color: 'var(--primary-ink)', fontWeight: 600, marginTop: '0.5rem', background: 'none', border: 0, cursor: 'pointer' }}
           >
             {t('avatar_upload')}
           </button>
@@ -147,6 +151,7 @@ export default function Home() {
           <input
             className="input-glass"
             placeholder={t('enter_name')}
+            aria-label={t('enter_name')}
             value={name}
             maxLength={16}
             onChange={(e) => setName(e.target.value)}
@@ -155,8 +160,9 @@ export default function Home() {
           <input
             className="input-glass"
             placeholder={t('enter_code')}
+            aria-label={t('room_code_label')}
             value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+            onChange={(e) => setCode(normalizeRoomCode(e.target.value))}
             onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
             maxLength={6}
             inputMode="latin"

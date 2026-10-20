@@ -163,3 +163,21 @@
 @media (max-width: 860px) {
   .race-art { display: none; }
 }
+
+/* Задания учителя на главной */
+.home-tasks { margin-top: var(--gap); }
+.home-task { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; color: inherit; text-decoration: none; background: var(--surface); }
+.home-task:hover { border-color: #CDD2E4; }
+.home-task-main { display: grid; gap: 2px; min-width: 0; }
+.home-task-main b { overflow-wrap: anywhere; }
+.home-task-due { flex: none; font-weight: 700; font-size: 0.875rem; color: var(--text-soft); text-align: right; }
+.home-task-due.soon { color: var(--warn-ink); }
+.home-task-due.late { color: var(--bad-ink); }
+@media (max-width: 480px) { .home-task { flex-direction: column; align-items: flex-start; } .home-task-due { text-align: left; } }
+
+/* Прогресс: путь по теме */
+.jr-row { display: grid; gap: 6px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.jr-row:last-child { border-bottom: 0; }
+.jr-row b { overflow-wrap: anywhere; }
+.jr-figures { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.95rem; }
+.jr-row .btn { justify-self: start; }

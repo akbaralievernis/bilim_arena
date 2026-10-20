@@ -1,7 +1,9 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { SkipForward, Mic, Eye, Users, Shield, Heart, Zap, Crosshair, Sparkles, Bell, Moon, Sun, Scale } from 'lucide-react';
 import PlayerCard from './PlayerCard';
-import { useTranslation, roleName as tRole, getLanguage } from '../utils/i18n';
+import { useTranslation, roleName as tRole } from '../utils/i18n';
+import { PHRASES } from '../voice/phrases';
+import { announce, announceNow, stopVoice, voiceEnabled, setVoiceEnabled } from '../voice/announcer';
 
 /** Текст, который ведущий читает вслух. Ключи берутся из фазы игры. */
 const SCRIPTS = {
@@ -49,42 +51,52 @@ const SCRIPTS = {
 const HostDashboard = ({ gameState, socket }) => {
   const { t, lang } = useTranslation();
   const { phase, subPhase, players, alivePlayers, roles, round } = gameState;
-  const [isVoiceEnabled, setIsVoiceEnabled] = useState(() => localStorage.getItem('mafia_host_voice') !== 'off');
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(voiceEnabled);
 
   const scripts = SCRIPTS[lang] || SCRIPTS.ky;
 
-  const currentData = useMemo(() => {
-    if (phase === 'night') return scripts[subPhase] || scripts.night_start;
-    if (phase === 'day') return scripts.day_discussion;
-    if (phase === 'vote') return scripts.voting;
-    if (phase === 'end') return scripts.end;
-    return { narrative: '...', instruction: '' };
-  }, [phase, subPhase, scripts]);
+  // Ключ фразы ведущего для текущей фазы (текст — из voice/phrases.js, его же озвучивает ElevenLabs)
+  const phraseKey = phase === 'night' ? (scripts[subPhase] ? subPhase : 'night_start')
+    : phase === 'day' ? 'day_discussion' : phase === 'vote' ? 'voting' : phase === 'end' ? 'end' : null;
 
-  /** Озвучка текста ведущего. Кыргызского голоса в браузерах почти нет —
-   *  тогда берём русский, он читает кириллицу достаточно понятно. */
-  const speak = useCallback((text) => {
-    if (!isVoiceEnabled || !window.speechSynthesis || !text) return;
-    window.speechSynthesis.cancel();
+  const currentData = useMemo(() => ({
+    narrative: (PHRASES[lang] || PHRASES.ky)[phraseKey] || scripts[phraseKey]?.narrative || '...',
+    instruction: scripts[phraseKey]?.instruction || ''
+  }), [phraseKey, scripts, lang]);
 
-    const voices = window.speechSynthesis.getVoices();
-    const wanted = getLanguage();
-    const byLang = (code) => voices.find((v) => v.lang?.toLowerCase().startsWith(code));
-    // Кыргызского голоса обычно нет: русский голос читает кириллицу понятнее всего
-    const pick = byLang(wanted) || (wanted === 'en' ? null : byLang('ru') || byLang('tr'));
-
-    const u = new SpeechSynthesisUtterance(text);
-    if (pick) { u.voice = pick; u.lang = pick.lang; }
-    u.rate = 0.9;
-    u.pitch = 0.85;
-    window.speechSynthesis.speak(u);
-  }, [isVoiceEnabled]);
+  // Ночь и голосование: новая фаза — новая фраза. День озвучивается по событию
+  // day_started: сначала «Таң атты…», потом итог ночи — одной очередью.
+  const prevPhase = useRef(null);
+  useEffect(() => {
+    const nightBegins = phase === 'night' && prevPhase.current !== 'night';
+    prevPhase.current = phase;
+    if (nightBegins) {
+      // Сначала «Түн кирди…», затем — кто просыпается
+      announceNow('night_start', lang);
+      if (phraseKey !== 'night_start') announce(phraseKey, lang);
+    } else if (phase === 'night' || phase === 'vote') announceNow(phraseKey, lang);
+  }, [phase, phraseKey, lang]);
 
   useEffect(() => {
-    if (currentData?.narrative && currentData.narrative !== '...') speak(currentData.narrative);
-  }, [currentData, speak]);
+    if (!socket) return;
+    const onDay = (data) => {
+      const killed = data?.multipleKills?.length || (data?.killedPlayerId ? 1 : 0);
+      announceNow('day_discussion', lang);
+      announce(killed ? 'night_victims' : 'night_nobody', lang);
+    };
+    const onRevote = () => announceNow('revote', lang);
+    const onResult = (data) => announce(data?.exiledPlayerId ? 'exiled' : 'nobody_exiled', lang);
+    socket.on('day_started', onDay);
+    socket.on('revote_started', onRevote);
+    socket.on('voting_result', onResult);
+    return () => {
+      socket.off('day_started', onDay);
+      socket.off('revote_started', onRevote);
+      socket.off('voting_result', onResult);
+    };
+  }, [socket, lang]);
 
-  useEffect(() => () => window.speechSynthesis?.cancel(), []);
+  useEffect(() => () => stopVoice(), []);
 
   const handleAdvance = () => {
     if (phase === 'night') socket.emit('host_advance_night');
@@ -110,28 +122,27 @@ const HostDashboard = ({ gameState, socket }) => {
     <div className="host-dashboard">
       <div className="glass-panel host-panel">
         <div style={{ textAlign: 'center' }}>
-          <h2 style={{ fontSize: '1.5rem', color: 'var(--accent-purple)' }}>{t('host_panel')}</h2>
+          <h2 style={{ fontSize: '1.5rem' }}>{t('host_panel')}</h2>
           <p className="text-secondary">{t('round')} {round}</p>
         </div>
 
         <div className="script-box">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <Mic size={18} color="var(--accent-purple)" />
+            <Mic size={18} color="currentColor" aria-hidden="true" />
             <label style={{ fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
               <input
                 type="checkbox"
                 checked={isVoiceEnabled}
                 onChange={(e) => {
                   setIsVoiceEnabled(e.target.checked);
-                  localStorage.setItem('mafia_host_voice', e.target.checked ? 'on' : 'off');
-                  if (!e.target.checked) window.speechSynthesis?.cancel();
+                  setVoiceEnabled(e.target.checked);
                 }}
               />
               {t('host_autovoice')}
             </label>
           </div>
           <p style={{ fontStyle: 'italic', fontSize: '1.05rem', lineHeight: 1.4, marginBottom: '8px' }}>{currentData.narrative}</p>
-          <p style={{ fontSize: '0.8rem', color: 'var(--accent-purple)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Bell size={14} aria-hidden="true" /> {currentData.instruction}</p>
+          <p className="script-box__hint" style={{ fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Bell size={14} aria-hidden="true" /> {currentData.instruction}</p>
         </div>
 
         <button className="btn-primary host-advance" onClick={handleAdvance}>
@@ -148,7 +159,7 @@ const HostDashboard = ({ gameState, socket }) => {
               return (
                 <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', opacity: isAlive ? 1 : 0.5 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>{p.name} {getRoleIcon(roles[p.id])}</span>
-                  <span style={{ color: isAlive ? 'var(--accent-blue)' : 'var(--accent-red)' }}>
+                  <span className={isAlive ? 'status-alive' : 'status-dead'}>
                     {isAlive ? t('host_alive') : t('host_dead')}
                   </span>
                 </div>

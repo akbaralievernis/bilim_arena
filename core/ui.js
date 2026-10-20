@@ -97,13 +97,15 @@ export const sfx = {
 const STUDENT_NAV = [
   { href: 'index.html', key: 'nav_home', tab: 'tab_home', icon: 'home' },
   { href: 'games.html', key: 'nav_games', icon: 'games' },
+  // Задания учителя — отдельный раздел: раньше они были спрятаны в профиле
+  { href: 'tasks.html', key: 'nav_tasks', icon: 'tasks', badge: 'tasks' },
   { href: 'progress.html', key: 'nav_progress', icon: 'progress' },
   { href: 'profile.html', key: 'nav_profile', icon: 'profile' }
 ];
 /** Страницы, которые относятся к одному из разделов меню */
 const SECTION = {
   'practice.html': 'games.html', 'speak.html': 'games.html',
-  'tasks.html': 'profile.html', 'account.html': 'profile.html',
+  'account.html': 'profile.html',
   'tests.html': 'questions.html', 'print.html': 'questions.html', 'scan.html': 'questions.html'
 };
 
@@ -122,7 +124,22 @@ const navLink = (it, active, { tab = false } = {}) => el('a', {
   ...(tab ? {} : { title: t(it.key) }),
   ...(active === it.href ? { 'aria-current': 'page' } : {}),
   ...(SECTION[active] === it.href ? { class: 'active' } : {})
-}, icon(it.icon, { size: tab ? 24 : 20 }), el('span', { class: 'nav-label' }, t(tab ? it.tab || it.key : it.key)));
+}, icon(it.icon, { size: tab ? 24 : 20 }), el('span', { class: 'nav-label' }, t(tab ? it.tab || it.key : it.key)),
+  it.badge ? el('span', { class: 'nav-badge hidden', 'data-badge': it.badge }) : null);
+
+/** Сколько заданий ученику ещё нужно сделать — число на пункте «Задания» */
+async function updateTaskBadge(profile) {
+  try {
+    const { studentAssignments, STATUS } = await import('./assignments.js');
+    const list = await studentAssignments({ studentId: profile.id || 'me', classId: profile.classId, grade: profile.grade });
+    const n = list.filter((x) => x.status !== STATUS.DONE && x.attemptsLeft > 0).length;
+    document.querySelectorAll('[data-badge="tasks"]').forEach((b) => {
+      b.textContent = n > 9 ? '9+' : String(n);
+      b.classList.toggle('hidden', !n);
+      b.setAttribute('aria-label', t('nav_tasks_pending', { n }));
+    });
+  } catch { /* без числа — не страшно */ }
+}
 
 /**
  * Рисует шапку с навигацией, выбором языка и профилем.
@@ -162,6 +179,7 @@ export function mountHeader(target, { role = 'student', active = '' } = {}) {
     }, avatar(null, { size: 34, animated: false }), el('span', { class: 'profile-name' }, t('nav_profile')));
     actions.append(link);
     getProfile().then((p) => {
+      updateTaskBadge(p);
       link.replaceChildren(avatar(p.avatar, { size: 34, animated: false }), el('span', { class: 'profile-name' }, p.name || t('nav_profile')));
       link.setAttribute('aria-label', `${t('nav_profile')}: ${p.name || t('role_student')}`);
     }).catch(() => {});
@@ -178,7 +196,7 @@ export function mountHeader(target, { role = 'student', active = '' } = {}) {
   target.replaceWith(header);
 
   // Нижняя панель для телефона
-  const tabbar = el('nav', { class: `tabbar ${teacher ? 'tabbar-5' : ''}`, 'aria-label': t('nav_main') },
+  const tabbar = el('nav', { class: `tabbar ${items.filter((it) => !it.noTab).length >= 5 ? 'tabbar-5' : ''}`, 'aria-label': t('nav_main') },
     items.filter((it) => !it.noTab).map((it) => navLink(it, active, { tab: true })));
   document.body.append(tabbar);
   document.body.classList.add('has-tabbar');

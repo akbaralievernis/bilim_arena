@@ -12,13 +12,13 @@ import { bootstrap, mountHeader, el, $ } from './core/ui.js';
 import { t, pick, getLang } from './core/i18n.js';
 import { icon } from './core/icons.js';
 import { avatar, cover } from './core/art.js';
-import { SUBJECTS, TOPICS, getTopic, skillTitle, findQuestion } from './core/curriculum.js';
+import { SUBJECTS, TOPICS, getTopic, getSubject, skillTitle, findQuestion, loadBank } from './core/curriculum.js';
 import { store, KEYS } from './core/store.js';
 import { loadCase, CASES } from './data/investigations/index.js';
 import { findSpeakItem } from './data/speaking/index.js';
 import { findLabStep } from './data/labs/index.js';
 import { getGame } from './data/games.js';
-import { getProgress, knowledgeMap, weakSkills, reviewSuggestions, history, BADGES, migrateLegacy } from './core/progress.js';
+import { getProgress, knowledgeMap, weakSkills, reviewSuggestions, history, BADGES, migrateLegacy, journeys } from './core/progress.js';
 import { getProfile } from './core/profile.js';
 import { fromStudent, reportLink } from './core/parent-report.js';
 import { masterySettings } from './core/mastery.js';
@@ -94,6 +94,48 @@ async function renderKnowledgeMap() {
   $('#mapSection').classList.toggle('hidden', !rows.length);
   $('#knowledgeMap').replaceChildren(...rows);
   return rows.length;
+}
+
+// ─── Мои темы: с чего начал и где сейчас ──────────────────────────────────────
+
+const JR_STATUS = {
+  mastered: ['learned', 'mastery_learned'], ready: ['ready', 'mastery_ready'], learning: ['review', 'mastery_review'],
+  insufficient: ['insufficient', 'mastery_insufficient'], new: ['new', 'mastery_new']
+};
+const two = (n) => String(n).padStart(2, '0');
+const fmtDay = (ms) => { const d = new Date(ms); return `${two(d.getDate())}.${two(d.getMonth() + 1)}.${d.getFullYear()}`; };
+
+async function renderJourneys() {
+  const lang = getLang();
+  const list = (await journeys(async (topic) => (getTopic(topic) ? (await loadBank(topic)).map((q) => q.id) : [])))
+    .filter((j) => getTopic(j.topic));
+  $('#journeySection').classList.toggle('hidden', !list.length);
+  $('#journeyList').replaceChildren(...list.map((j) => {
+    const topic = getTopic(j.topic);
+    const [cls, key] = JR_STATUS[j.status] || JR_STATUS.new;
+    const delta = j.delta === null ? null : `${j.delta > 0 ? '+' : j.delta < 0 ? '−' : '±'}${Math.abs(j.delta)} ${t('cy_pp')}`;
+    // Что делать дальше — один понятный шаг
+    const next = j.status === 'mastered' ? null
+      : j.status === 'ready' ? ['jr_next_check', 'check'] : !j.baseline ? ['jr_next_diag', 'diag'] : ['jr_next_practice', 'practice'];
+    return el('div', { class: 'jr-row' },
+      el('div', { class: 'row between' },
+        el('b', {}, pick(topic.title, lang)),
+        el('span', { class: `state ${cls}` }, t(key))),
+      el('div', { class: 'small muted' }, `${pick(getSubject(topic.subject)?.title, lang)} · ${t('grade', { n: topic.grade })}`),
+      el('div', { class: 'jr-figures' },
+        el('span', {}, t('jr_start'), ' ', el('b', {}, j.baseline ? `${j.baseline.pct}%` : '—'),
+          j.baseline ? el('span', { class: 'muted' }, ` (${t(j.baseline.source === 'diag' ? 'jr_src_diag' : 'jr_src_check')})`) : null),
+        el('span', {}, t('jr_now'), ' ', el('b', {}, j.latest ? `${j.latest.pct}%` : '—')),
+        el('span', {}, t('jr_change'), ' ', el('b', {}, delta || '—'))),
+      el('div', { class: 'small muted' }, [
+        !j.latest ? t(j.baseline ? 'jr_need_second' : 'jr_need_first') : null,
+        j.lastCheckAt ? t('jr_last_check', { d: fmtDay(j.lastCheckAt) }) : null,
+        j.bank ? t('jr_unseen', { n: j.unseen, total: j.bank }) : null,
+        j.status === 'insufficient' ? t('rep_need_more', { n: j.need }) : null
+      ].filter(Boolean).join(' · ')),
+      next ? el('a', { class: 'btn soft', href: `./practice.html?${new URLSearchParams({ subject: topic.subject, topic: topic.id })}` }, t(next[0])) : null
+    );
+  }));
 }
 
 // ─── Что повторить ────────────────────────────────────────────────────────────
@@ -222,6 +264,7 @@ async function renderHistory() {
     renderStats(pr);
     renderBadges(pr);
     await renderHistory();
+    await renderJourneys();
     await renderKnowledgeMap();
     await renderReview();
   };

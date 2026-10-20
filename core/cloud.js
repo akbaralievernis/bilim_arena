@@ -25,14 +25,14 @@ const CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/+esm';
 /** Какие личные данные синхронизируются у каждой роли */
 const PERSONAL = {
   student: [KEYS.profile, KEYS.progress, KEYS.errors, KEYS.history],
-  teacher: [KEYS.profile, 'questions', KEYS.lessons, 'tests']
+  teacher: [KEYS.profile, 'questions', KEYS.lessons, 'tests', 'cycles']
 };
 /** Ключи, которые база может ещё не принимать (миграция не применена) — тогда они остаются на устройстве */
-const OPTIONAL_KEYS = ['tests'];
+const OPTIONAL_KEYS = ['tests', 'cycles'];
 let unsupported = new Set();
 /** Всё, что относится к пользователю на этом устройстве (очищается при смене аккаунта) */
 const LOCAL_USER_KEYS = [KEYS.profile, KEYS.progress, KEYS.errors, KEYS.history, 'questions', KEYS.lessons,
-  KEYS.assignments, 'submissions', KEYS.classes];
+  KEYS.assignments, 'submissions', KEYS.classes, 'tests', 'cycles'];
 
 const META = 'sync_meta';     // { key: время последнего изменения на устройстве }
 const OWNER = 'sync_owner';   // чьи данные сейчас на устройстве
@@ -323,11 +323,15 @@ async function syncPersonal() {
     const send = (rows) => c.from('user_data').upsert(rows.map((u) => ({ ...u, user_id: user.id })));
     let { error: e2 } = await send(upserts);
     // 23514 — нарушение check: база ещё не знает новый ключ. Остальное синхронизируем как обычно
+    // Каждый новый ключ пробуем отдельно: миграции могли применить не все
     if (e2?.code === '23514' && upserts.some((u) => OPTIONAL_KEYS.includes(u.key))) {
-      OPTIONAL_KEYS.forEach((k) => unsupported.add(k));
       const rest = upserts.filter((u) => !OPTIONAL_KEYS.includes(u.key));
-      OPTIONAL_KEYS.forEach((k) => delete meta[k]);
       ({ error: e2 } = rest.length ? await send(rest) : { error: null });
+      for (const u of upserts.filter((x) => OPTIONAL_KEYS.includes(x.key))) {
+        if (e2) break;
+        const { error } = await send([u]);
+        if (error?.code === '23514') { unsupported.add(u.key); delete meta[u.key]; } else e2 = error;
+      }
     }
     if (e2) throw e2;
   }

@@ -17,8 +17,8 @@
   <meta property="og:description" content="Мектеп окуучулары үчүн билим берүүчү оюн платформасы" />
   <meta property="og:image" content="./assets/suilom.webp" />
 
-  <link rel="stylesheet" href="./core/ui.css?v=17" />
-  <link rel="stylesheet" href="./home.css?v=15" />
+  <link rel="stylesheet" href="./core/ui.css?v=18" />
+  <link rel="stylesheet" href="./home.css?v=17" />
 </head>
 
 <body>
@@ -40,6 +40,11 @@
         </div>
         <div class="hero-art" id="heroArt" aria-hidden="true"></div>
       </div>
+    </section>
+
+    <!-- Задания учителя: ближайшие сроки (блок есть, только если задания есть) -->
+    <section class="wrap home-tasks hidden" id="tasksSection" aria-labelledby="tasksHomeTitle">
+      <div class="card stack" id="tasksHome"></div>
     </section>
 
     <!-- 2. Поиск игры -->
@@ -117,6 +122,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./home.js?v=15"></script>
+  <script type="module" src="./home.js?v=16"></script>
 </body>
 </html>

@@ -5,7 +5,7 @@ import React, {
 import GameEngine from '../engine/GameEngine';
 import TransportIO from '../engine/TransportIO';
 import AIBot from '../engine/AIBot.js';
-import { HostTransport, GuestTransport } from '../net/Transport';
+import { HostTransport, GuestTransport, normalizeRoomCode } from '../net/Transport';
 
 const SocketContext = createContext(null);
 // eslint-disable-next-line react-refresh/only-export-components
@@ -15,11 +15,6 @@ const MIN_PLAYERS = 4;
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 const generateId = () => `p_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
-const generateRoomCode = () => {
-  // Буквы, которые трудно перепутать (без O/0, I/1)
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  return Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-};
 
 const store = {
   get(key, def = null) {
@@ -97,8 +92,12 @@ export const SocketProvider = ({ children }) => {
   const handleClientMsg = useCallback((payload) => {
     if (!isHost.current || !hostRoomRef.current) return;
     const { event, data = {}, replyId } = payload;
-    const senderId = payload.playerId || data.senderId;
+    // Транспорт подставляет id по соединению игрока — подделать отправителя нельзя
+    const senderId = payload.playerId;
+    if (typeof event !== 'string' || !senderId) return;
     const room = hostRoomRef.current;
+    // От имени бота может действовать только движок ведущего
+    if (room.players.some((p) => p.id === senderId && p.isBot)) return;
     const transport = transportRef.current;
 
     const respond = (resp) => {
@@ -113,7 +112,7 @@ export const SocketProvider = ({ children }) => {
 
     // ── Вход в комнату (и возвращение после обрыва связи) ─────────────────────
     if (event === 'join_room') {
-      const existing = room.players.find((p) => p.id === data.playerId);
+      const existing = room.players.find((p) => p.id === senderId);
 
       // Игрок вернулся после обрыва связи — отдаём ему текущее состояние
       if (existing) {
@@ -131,21 +130,31 @@ export const SocketProvider = ({ children }) => {
 
       if (room.status !== 'lobby') return respond({ success: false, error: 'game_started' });
       if (room.players.length >= room.maxPlayers) return respond({ success: false, error: 'room_full' });
-      if (room.players.find((p) => p.name.toLowerCase() === String(data.playerName).toLowerCase())) {
+      const playerName = String(data.playerName ?? '').replace(/\s+/g, ' ').trim().slice(0, 20);
+      if (!playerName) return respond({ success: false, error: 'enter_name' });
+      if (room.players.find((p) => p.name.toLowerCase() === playerName.toLowerCase())) {
         return respond({ success: false, error: 'name_taken' });
       }
+      // Аватарка — только маленькая картинка data:image (не ссылка на чужой сайт)
+      const avatar = typeof data.avatar === 'string' && /^data:image\/(jpeg|png|webp);base64,/.test(data.avatar) && data.avatar.length < 20000
+        ? data.avatar : null;
 
       room.players.push({
-        id: data.playerId,
-        socketId: data.playerId,
-        name: data.playerName,
-        avatar: data.avatar || null,
+        id: senderId,
+        socketId: senderId,
+        name: playerName,
+        avatar,
         isHost: false
       });
       respond({ success: true, room });
       pushRoomUpdate();
       return;
     }
+
+    // Управлять игрой может только ведущий (его сообщения не идут по сети)
+    const fromHost = senderId === myId.current;
+    const HOST_ONLY = ['kick_player', 'start_game', 'host_advance_night', 'host_start_voting', 'host_end_day', 'reset_game'];
+    if (HOST_ONLY.includes(event) && !fromHost) return;
 
     // ── Ведущий удаляет игрока из лобби ───────────────────────────────────────
     if (event === 'kick_player') {
@@ -263,59 +272,54 @@ export const SocketProvider = ({ children }) => {
   // ── Создание комнаты (ведущий) ───────────────────────────────────────────────
   const createRoom = useCallback(async (data, callback) => {
     setConnection('connecting');
-    let lastErr = null;
+    // Свободный код выбирает транспорт; комната регистрируется на обоих серверах знакомства
+    const transport = new HostTransport({
+      hostId: myId.current,
+      onMessage: (payload) => handleClientMsg(payload),
+      onGuestLeft: () => { /* в лобби игрок остаётся: он может вернуться */ }
+    });
 
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const code = generateRoomCode();
-      const transport = new HostTransport({
-        code,
-        onMessage: (payload) => handleClientMsg(payload),
-        onGuestLeft: () => { /* в лобби игрок остаётся: он может вернуться */ }
-      });
+    try {
+      const code = await transport.start();
+      transportRef.current = transport;
+      isHost.current = true;
+      setIsHostPlayer(true);
+      setConnection('online');
 
-      try {
-        await transport.start();
-        transportRef.current = transport;
-        isHost.current = true;
-        setIsHostPlayer(true);
-        setConnection('online');
-
-        const room = {
-          id: code,
-          players: [{
-            id: myId.current, socketId: myId.current,
-            name: data.playerName, avatar: data.avatar || null, isHost: true
-          }],
-          status: 'lobby',
-          phase: 'lobby',
-          maxPlayers: data.maxPlayers || 16
-        };
-        hostRoomRef.current = room;
-        setRoomData({ ...room });
-        store.set('mafia_session', { code, isHost: true, name: data.playerName });
-        callback?.({ success: true, room });
-        return;
-      } catch (err) {
-        lastErr = err;
-        transport.destroy();
-        if (err?.message !== 'code-taken') break; // другая ошибка — не перебираем коды
-      }
+      const room = {
+        id: code,
+        players: [{
+          id: myId.current, socketId: myId.current,
+          name: data.playerName, avatar: data.avatar || null, isHost: true
+        }],
+        status: 'lobby',
+        phase: 'lobby',
+        maxPlayers: data.maxPlayers || 16
+      };
+      hostRoomRef.current = room;
+      setRoomData({ ...room });
+      store.set('mafia_session', { code, isHost: true, name: data.playerName });
+      callback?.({ success: true, room });
+    } catch (err) {
+      console.warn('[mafia] create', err?.message || err);
+      transport.destroy();
+      setConnection('offline');
+      callback?.({ success: false, error: err?.message === 'timeout' || err?.message === 'peer-load-failed' ? 'no_connection' : 'create_failed' });
     }
-
-    setConnection('offline');
-    callback?.({ success: false, error: lastErr?.message === 'timeout' ? 'no_connection' : 'create_failed' });
   }, [handleClientMsg]);
 
   // ── Вход в комнату (игрок) ───────────────────────────────────────────────────
   const joinRoom = useCallback(async (data, callback) => {
-    const code = String(data.roomCode || '').toUpperCase().trim();
+    const code = normalizeRoomCode(data.roomCode);
     setConnection('connecting');
 
     const transport = new GuestTransport({
       code,
       playerId: myId.current,
+      name: data.playerName,
+      secret: store.get('mafia_player_secret'),
       onMessage: handleHostMsg,
-      onStatus: (s) => setConnection(s),
+      onStatus: (s) => setConnection(s === 'searching' || s === 'retrying' ? 'connecting' : s),
       onReconnect: () => ({
         event: 'join_room',
         data: { playerName: data.playerName, avatar: data.avatar, playerId: myId.current },
@@ -325,10 +329,17 @@ export const SocketProvider = ({ children }) => {
 
     try {
       await transport.connect();
+      store.set('mafia_player_secret', transport.secret);
     } catch (err) {
+      console.warn('[mafia] join', err?.message || err);
       transport.destroy();
       setConnection('offline');
-      callback?.({ success: false, error: err?.message === 'room-not-found' ? 'room_not_found' : 'no_connection' });
+      const error = {
+        'room-not-found': 'room_not_found',
+        'room-not-found-or-network': 'room_unsure',
+        'connect-timeout': 'connect_slow'
+      }[err?.message] || 'no_connection';
+      callback?.({ success: false, error, code });
       return;
     }
 

@@ -15,7 +15,11 @@ export default function Lobby({ roomData, onStart, isHost, socket }) {
   // Ссылка работает и на GitHub Pages в подпапке, и локально
   const joinUrl = useMemo(() => {
     const base = window.location.origin + window.location.pathname;
-    return `${base}?room=${roomData?.id}`;
+    const params = new URLSearchParams({ room: roomData?.id || '' });
+    // Режимы проверки связи (?signal=…, ?relay=1) переходят на телефоны вместе со ссылкой
+    const here = new URLSearchParams(window.location.search);
+    for (const k of ['signal', 'relay']) if (here.get(k)) params.set(k, here.get(k));
+    return `${base}?${params}`;
   }, [roomData?.id]);
 
   if (!roomData) return null;
@@ -35,7 +39,7 @@ export default function Lobby({ roomData, onStart, isHost, socket }) {
 
   const row = {
     padding: '0.8rem 1rem',
-    background: 'rgba(255, 255, 255, 0.03)',
+    background: 'var(--surface)',
     border: '1px solid var(--glass-border)',
     borderRadius: 'var(--radius-sm)',
     display: 'flex',
@@ -45,7 +49,7 @@ export default function Lobby({ roomData, onStart, isHost, socket }) {
   };
 
   const avatarBox = {
-    width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)',
+    width: '40px', height: '40px', borderRadius: '50%', background: 'var(--surface-2)',
     overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 'none'
   };
 
@@ -77,7 +81,7 @@ export default function Lobby({ roomData, onStart, isHost, socket }) {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1.5rem' }}>
           {hostPlayer && (
-            <div style={{ ...row, border: '1px solid var(--accent-purple)', marginBottom: '0.6rem' }}>
+            <div style={{ ...row, border: '1px solid var(--line)', borderLeft: '4px solid var(--primary)', marginBottom: '0.6rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
                 <div style={avatarBox}>
                   {hostPlayer.avatar
@@ -86,7 +90,7 @@ export default function Lobby({ roomData, onStart, isHost, socket }) {
                 </div>
                 <span style={{ fontWeight: 600 }}>{hostPlayer.name}</span>
               </div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--accent-purple)', fontWeight: 'bold' }}>{t('host_badge')}</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--primary-ink)', fontWeight: 'bold' }}>{t('host_badge')}</span>
             </div>
           )}
 

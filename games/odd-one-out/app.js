@@ -282,6 +282,13 @@
     return Math.min(n, items.length);
   }
 
+  /** Отложенный шаг игры: не сработает, если игру уже покинули или начали заново */
+  function later(fn, ms) {
+    const session = State.session;
+    setTimeout(() => { if (State.session === session) fn(); }, ms);
+  }
+  const nextRound = () => { State.roundNow++; startRound(); };
+
   function startRound() {
     if (State.roundNow > State.roundsMax || !State.deck[State.roundNow - 1]) {
       endGame();
@@ -353,7 +360,7 @@
     } else {
       Sound.error();
       btn.classList.add("bad");
-      setTimeout(() => { State.roundNow++; startRound(); }, 1200);
+      later(nextRound, 1200);
     }
   }
 
@@ -362,7 +369,7 @@
     [...$(team === 'a' ? "gridA" : "gridB").children].forEach(c => { c.style.pointerEvents = "none"; });
     if (State.teamStatus.a && State.teamStatus.b) {
       stopTimer();
-      setTimeout(() => { State.roundNow++; startRound(); }, 1500);
+      later(nextRound, 1500);
     }
   }
 
@@ -392,10 +399,9 @@
     const plaque = $("logicPlaque");
     $("logicText").textContent = text || T("Туура жооп!");
     plaque.classList.add("show");
-    setTimeout(() => {
+    later(() => {
       plaque.classList.remove("show");
-      State.roundNow++;
-      startRound();
+      nextRound();
     }, text ? 2400 : 1200);
   }
 
@@ -419,10 +425,10 @@
         if (State.mode === "single") {
           toast(T("Убакыт бүттү!"));
           [...$("gridSingle").children].forEach(c => { c.style.pointerEvents = "none"; });
-          setTimeout(() => { State.roundNow++; startRound(); }, 1000);
+          later(nextRound, 1000);
         } else {
           State.teamStatus = { a: true, b: true };
-          setTimeout(() => { State.roundNow++; startRound(); }, 1500);
+          later(nextRound, 1500);
         }
       }
     }, 1000);
@@ -454,6 +460,7 @@
     if (testId !== BUILTIN && !customRounds(testId).length) { toast(T("Бул тестте раунд жок")); return; }
     State.mode = mode;
     State.roundNow = 1;
+    State.session = (State.session || 0) + 1;
     if (mode === "single") {
       State.score = 0;
       State.difficulty = $("selDifficulty").value;
@@ -464,6 +471,9 @@
       State.roundsMax = Math.min(60, Math.max(5, parseInt($("inpRoundsTeams").value, 10) || 12));
     }
     State.deck = buildDeck(mode, testId);
+    // Раундов в тесте меньше, чем выбрано: честно говорим, что они повторятся
+    const unique = new Set(State.deck.map((r) => JSON.stringify(r.items))).size;
+    if (mode === "teams" && unique < State.deck.length) toast(T("Тестте {n} гана раунд бар — кээ бирлери кайталанат.", { n: unique }));
     if (mode === "single") State.roundsMax = Math.min(State.roundsMax, State.deck.length);
     showScreen("game");
     startRound();
@@ -483,6 +493,8 @@
 
     $("btnBackToMenu").onclick = $("btnToStart").onclick = () => {
       stopTimer();
+      State.session = (State.session || 0) + 1; // отложенные шаги прошлой игры больше не сработают
+      $("logicPlaque").classList.remove("show");
       showScreen("start");
     };
 

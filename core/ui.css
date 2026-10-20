@@ -328,6 +328,10 @@ button.chip:not([disabled]):hover { border-color: #CDD2E4; }
 .tabbar a[aria-current='page'], .tabbar a.active { color: var(--primary-ink); }
 .tabbar a[aria-current='page'] .icon, .tabbar a.active .icon { color: var(--primary); background: var(--primary-soft); }
 .tabbar-5 a .icon { padding: 2px 8px; }
+/* Число невыполненных заданий на пункте меню */
+.nav a, .tabbar a { position: relative; }
+.nav-badge { position: absolute; top: 2px; right: 2px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--primary); color: #fff; font-size: 0.6875rem; font-weight: 800; line-height: 18px; text-align: center; }
+.tabbar .nav-badge { top: 4px; right: calc(50% - 24px); }
 .tabbar-5 a { font-size: 0.8125rem; letter-spacing: -0.01em; }
 
 /* Планшет: пункты меню — только иконки, чтобы всё поместилось */
@@ -335,10 +339,11 @@ button.chip:not([disabled]):hover { border-color: #CDD2E4; }
   .topbar .nav { margin-left: 8px; }
   .topbar .nav a { padding: 0.5em 0.7em; }
 }
-/* У учителя разделов больше — значки без подписей уже до 1280 px */
+/* Пять разделов (и у учителя, и у ученика с «Заданиями») — значки без подписей до 1280 px */
 @media (min-width: 1024px) and (max-width: 1279px) {
-  body.teacher-mode .topbar .nav .nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  body.teacher-mode .topbar .nav a { min-width: 44px; justify-content: center; }
+  .topbar .nav .nav-label, .teacher-link span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .topbar .nav a { min-width: 44px; justify-content: center; }
+  .teacher-link { width: 44px; padding: 0; justify-content: center; }
 }
 @media (max-width: 1023px) {
   /* Подписи скрыты только визуально — ссылки сохраняют имя для экранного диктора */

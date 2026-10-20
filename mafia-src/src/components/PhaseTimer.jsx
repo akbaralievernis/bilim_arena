@@ -31,8 +31,8 @@ const PhaseTimer = ({ socket, initialTime = null }) => {
 
   const isLowTime = timeLeft <= 5;
   const timerColor = isTransition 
-    ? 'var(--accent-purple)' 
-    : isLowTime ? 'var(--accent-red)' : 'var(--accent-blue)';
+    ? 'var(--text-soft)'
+    : isLowTime ? 'var(--primary-ink)' : 'inherit';
 
   return (
     <div style={{ textAlign: 'center' }}>
@@ -58,7 +58,7 @@ const PhaseTimer = ({ socket, initialTime = null }) => {
             initial={{ width: 0 }} 
             animate={{ width: '100%' }} 
             transition={{ duration: timeLeft, ease: 'linear' }}
-            style={{ height: '2px', background: 'var(--accent-purple)', marginTop: '4px' }} 
+            style={{ height: '2px', background: 'var(--primary)', marginTop: '4px' }} 
         />
       )}
     </div>

@@ -7,9 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "voice": "node scripts/make-voice.mjs"
   },
   "dependencies": {
+    "@emotion/is-prop-valid": "^1.4.0",
     "@supabase/supabase-js": "^2.102.1",
     "classnames": "^2.5.1",
     "framer-motion": "^12.38.0",

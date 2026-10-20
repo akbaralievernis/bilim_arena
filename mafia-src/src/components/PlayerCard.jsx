@@ -6,9 +6,9 @@ const getRoleColor = (role) => {
   switch (role) {
     case 'mafia': case 'don': return 'var(--accent-red)';
     case 'doctor': case 'detective': return 'var(--accent-blue)';
-    case 'maniac': return '#ff8c00';
+    case 'maniac': return '#B54708';
     case 'putana': return 'var(--accent-purple)';
-    case 'bodyguard': return '#4caf50';
+    case 'bodyguard': return '#0E7A4E';
     default: return 'var(--text-secondary)';
   }
 };
@@ -31,28 +31,28 @@ const PlayerCard = ({
   isHostView = false
 }) => {
   return (
-    <motion.div
+    <motion.button
+      type="button"
       initial={{ opacity: 0 }}
-      animate={{ opacity: isDead ? 0.35 : 1 }}
+      animate={{ opacity: isDead ? 0.55 : 1 }}
       transition={{ duration: 0.15, type: 'tween' }}
-      className={`player-card ${isSelected ? 'selected' : ''} ${isDead ? 'dead' : ''} ${isHostView ? 'host-view' : ''}`}
-      onClick={() => !isDead && onSelect && onSelect(player.id)}
+      className={`player-card ${isSelected ? 'selected' : ''} ${isDead ? 'dead' : ''} ${canSelect && !isDead ? 'can-select' : ''} ${isHostView ? 'host-view' : ''}`}
+      onClick={() => !isDead && canSelect && onSelect && onSelect(player.id)}
+      disabled={isDead || !canSelect}
+      aria-pressed={canSelect ? isSelected : undefined}
+      aria-label={[`${index + 1}. ${player.name}`, roleName, isDead ? '✝' : null, isVoting && votes ? `${votes}` : null].filter(Boolean).join(', ')}
       whileTap={{ scale: canSelect && !isDead ? 0.98 : 1 }}
-      style={{ 
-        transform: 'translateZ(0)',
-        padding: '0.8rem 0.5rem',
-        minWidth: isHostView ? '100px' : '120px'
-      }}
+      style={{ minWidth: isHostView ? '100px' : '120px' }}
     >
-      <div className="player-number">{index + 1}</div>
+      <span className="player-number" aria-hidden="true">{index + 1}</span>
       
-      <div style={{ 
+      <span style={{ 
         width: isHostView ? '45px' : '60px', 
         height: isHostView ? '45px' : '60px', 
         borderRadius: '50%', 
-        background: isDead ? '#222' : 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(0,0,0,0.2))',
+        background: 'var(--surface-2)',
         margin: '0 auto 0.5rem auto',
-        border: isSelected ? '2px solid var(--accent-red)' : '1px solid var(--glass-border)',
+        border: isSelected ? '2px solid var(--primary)' : '1px solid var(--line)',
         overflow: 'hidden',
         display: 'flex',
         justifyContent: 'center',
@@ -61,13 +61,13 @@ const PlayerCard = ({
         transform: 'translateZ(0)'
       }}>
         {player.avatar ? (
-          <img src={player.avatar} alt={player.name} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isDead ? 0.2 : 1 }} />
+          <img src={player.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isDead ? 0.4 : 1 }} />
         ) : (
           <User size={isHostView ? 16 : 22} style={{ opacity: 0.5 }} aria-hidden="true" />
         )}
-      </div>
+      </span>
       
-      <h4 style={{ 
+      <span style={{ display: 'block', 
         fontWeight: 600, 
         fontSize: isHostView ? '0.8rem' : '0.9rem', 
         overflow: 'hidden', 
@@ -76,11 +76,12 @@ const PlayerCard = ({
         marginBottom: '2px'
       }}>
         {player.name}{player.isBot && <Bot size={12} style={{ marginLeft: 4, verticalAlign: '-1px', opacity: 0.7 }} aria-label="bot" />}
-      </h4>
+      </span>
       
       {roleName && (
-        <p style={{ 
-          fontSize: '0.65rem', 
+        <span style={{ 
+          display: 'block',
+          fontSize: '0.7rem', 
           color: getRoleColor(roleKey), 
           marginTop: '0.2rem', 
           fontWeight: 700,
@@ -88,43 +89,44 @@ const PlayerCard = ({
           letterSpacing: '0.5px'
         }}>
           {roleName}
-        </p>
+        </span>
       )}
 
       {isDead && !roleName && (
-         <Skull size={14} color="var(--accent-red)" style={{ marginTop: '0.2rem' }} aria-hidden="true" />
+         <Skull size={14} color="var(--primary-ink)" style={{ marginTop: '0.2rem' }} aria-hidden="true" />
       )}
 
       {isVoting && votes > 0 && (
-        <motion.div 
+        <motion.span 
           initial={{ scale: 0 }} 
           animate={{ scale: 1 }} 
           transition={{ type: 'tween', duration: 0.1 }}
           style={{ 
+            display: 'inline-block',
             marginTop: '0.4rem', 
-            background: 'rgba(255, 42, 95, 0.25)', 
+            background: 'var(--primary-soft)',
             padding: '2px 8px', 
             borderRadius: '10px', 
             fontSize: '0.75rem', 
-            color: 'var(--accent-red)', 
+            color: 'var(--primary-ink)',
             fontWeight: 'bold',
-            border: '1px solid rgba(255, 42, 95, 0.3)'
+            border: '1px solid #F2B8BF'
           }}
         >
           {votes}
-        </motion.div>
+        </motion.span>
       )}
 
       {isSelected && (
-        <motion.div 
+        <motion.span 
           initial={{ scale: 0 }} 
           animate={{ scale: 1 }} 
-          style={{ position: 'absolute', top: 5, right: 5, background: 'var(--accent-red)', borderRadius: '50%', padding: '3px', boxShadow: '0 0 10px rgba(255,42,95,0.5)' }}
+          style={{ position: 'absolute', top: 5, right: 5, background: 'var(--primary)', borderRadius: '50%', padding: '3px', lineHeight: 0 }}
         >
           <Check size={10} color="#fff" strokeWidth={3} />
-        </motion.div>
+        </motion.span>
       )}
-    </motion.div>
+    </motion.button>
   );
 };
 

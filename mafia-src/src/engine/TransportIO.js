@@ -40,6 +40,8 @@ export default class TransportIO {
         if (isBroadcast || targetId === this.hostId) {
           this.eventBus.emit(event, payload);
         }
+        // Состояние ведущего (с ролями всех игроков) никогда не уходит в сеть
+        if (targetId === this.hostId) return;
         this.transport?.send(isBroadcast ? null : targetId, { event, data: payload });
       }
     };

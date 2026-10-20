@@ -174,8 +174,9 @@ body::before {
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  animation: borderRotate 4s linear infinite;
   pointer-events: none;
+  /* Вращение рамки убрано: на телефонах маска не срабатывала и через всю
+     страницу крутилась диагональная полоса */
 }
 
 @keyframes borderRotate {
@@ -758,3 +759,16 @@ textarea {
 body.theme-aura-light .dot.active { border-color: #0f172a; }
 /* Платформа: скрытые элементы (например, переключатель темы) */
 [hidden] { display: none !important; }
+
+/* Телефон: шапка помещается в экран, кнопка «Оюндар» видна */
+@media (max-width: 600px) {
+  .topbar { padding: 0.6rem 0.75rem; gap: 0.5rem; }
+  .brand { gap: 0.5rem; min-width: 0; }
+  .logo { width: 36px; height: 36px; border-radius: 10px; flex: none; }
+  .brandText { min-width: 0; }
+  .brandText .title { font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .brandText .subtitle { display: none; }
+  .topActions { gap: 0.4rem; flex: none; }
+  .main { padding: 1rem 0.75rem; }
+  .panel { padding: 1.25rem; }
+}

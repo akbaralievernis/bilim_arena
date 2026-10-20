@@ -13,7 +13,7 @@ import { icon } from './core/icons.js';
 import { cover, avatar } from './core/art.js';
 import { getProgress, history, migrateLegacy } from './core/progress.js';
 import { getProfile } from './core/profile.js';
-import { getTopic } from './core/curriculum.js';
+import { getTopic, getSubject } from './core/curriculum.js';
 import { gameCard, categoryCard, sortGames, metaLine } from './core/catalog.js';
 import { GAMES, CATEGORIES, getGame, getCategory } from './data/games.js';
 
@@ -114,6 +114,40 @@ async function renderContinue(pr) {
   );
 }
 
+// ─── Задания учителя: что сделать и до какого числа ──────────────────────────
+
+const two = (n) => String(n).padStart(2, '0');
+const fmtDate = (ms) => { const d = new Date(ms); return `${two(d.getDate())}.${two(d.getMonth() + 1)}`; };
+
+async function renderTasks(profile) {
+  const lang = getLang();
+  const { studentAssignments, STATUS, getRun } = await import('./core/assignments.js');
+  const list = (await studentAssignments({ studentId: profile.id || 'me', classId: profile.classId, grade: profile.grade }))
+    .filter((x) => x.status !== STATUS.DONE && x.attemptsLeft > 0);
+  $('#tasksSection').classList.toggle('hidden', !list.length);
+  if (!list.length) return;
+  const now = Date.now();
+  const rows = await Promise.all(list.slice(0, 3).map(async ({ assignment: a, status }) => {
+    const run = await getRun(a.id, profile.id || 'me');
+    const late = status === STATUS.LATE || a.dueAt < now;
+    const soon = !late && a.dueAt - now < 2 * 86400000;
+    return el('a', { class: 'home-task', href: `./tasks.html?id=${encodeURIComponent(a.id)}` },
+      el('span', { class: 'home-task-main' },
+        el('b', {}, a.title || pick(getTopic(a.topic)?.title, lang) || '—'),
+        el('span', { class: 'small muted' }, [pick(getSubject(a.subject)?.title, lang), a.check ? t('hw_mode_check_chip') : null].filter(Boolean).join(' · '))),
+      el('span', { class: `home-task-due ${late ? 'late' : soon ? 'soon' : ''}` },
+        run ? t('home_task_started', { n: run.log.length, total: run.refs.length })
+          : late ? t('home_task_late', { d: fmtDate(a.dueAt) }) : t('home_task_due', { d: fmtDate(a.dueAt) }))
+    );
+  }));
+  $('#tasksHome').replaceChildren(
+    el('div', { class: 'row between' },
+      el('h2', { id: 'tasksHomeTitle', style: 'margin:0' }, icon('tasks', { size: 22 }), ' ', t('home_tasks_title', { n: list.length })),
+      list.length > 3 ? el('a', { class: 'section-link', href: './tasks.html' }, t('home_tasks_all')) : null),
+    ...rows
+  );
+}
+
 // ─── «Сенин прогрессиң» ───────────────────────────────────────────────────────
 
 function renderProgress(profile, pr) {
@@ -174,6 +208,7 @@ function renderFooter() {
   renderSearch();
   renderCategories();
   renderPopular(plays);
+  renderTasks(profile).catch((e) => console.warn('[tasks]', e));
   await renderContinue(pr);
   renderProgress(profile, pr);
   renderRace();
