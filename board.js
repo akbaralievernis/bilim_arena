@@ -11,6 +11,7 @@
 
 import { bootstrap, el, $, toast, sfx, confetti, fmtTime } from './core/ui.js';
 import { icon } from './core/icons.js';
+import { gameCover } from './core/covers.js';
 
 /** Иконка улики по её типу — вместо эмодзи из данных дела */
 const CLUE_ICON = { document: 'tasks', photo: 'camera', map: 'map', testimony: 'users', table: 'grid', date: 'clock', quote: 'sentence', object: 'cube' };
@@ -423,6 +424,8 @@ async function startStage(stageIndex, customQuestions = null) {
   questions.forEach((q) => usedIds().add(q.id));
 
   state.game?.destroy();
+  // Свой вид экрана у каждой игры (core/board.css → body[data-game])
+  document.body.dataset.game = stage.game;
   state.game = new GameClass({
     questions,
     topic: state.topic,
@@ -457,6 +460,7 @@ async function startLab() {
   state.topic = lab.topic;
 
   state.game?.destroy();
+  document.body.dataset.game = 'lab';
   state.game = new LabGame({
     lab,
     lang: getLang(),
@@ -483,6 +487,7 @@ async function startInvestigation() {
   if (!data) return toast(t('empty_none'), { icon: '⚠️' });
 
   state.game?.destroy();
+  document.body.dataset.game = 'investigation';
   state.game = new InvestigationGame({
     investigation: data,
     lang: getLang(),
@@ -704,6 +709,11 @@ function showResults(game) {
   const r = game.results;
   if (!r) return;
   show('resultScreen');
+  // Экран завершения в стиле своей игры: её сцена во всю ширину
+  const scene = gameCover(game.meta?.id);
+  $('#resultHero').replaceChildren(...(scene ? [scene] : []));
+  $('#resultHero').hidden = !scene;
+  if (scene) $('#resultHero').style.background = scene.dataset.bg;
   sfx.win();
   if (r.accuracy >= 70) confetti();
 

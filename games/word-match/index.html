@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b1020" />
   <title>Жупташтыр — Билим Арена</title>
   <link rel="icon" href="../../assets/logo.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="../../shared/game.css?v=16" />
+  <link rel="stylesheet" href="../../shared/game.css?v=17" />
   <style>
     .board { display: grid; gap: 10px; grid-template-columns: repeat(var(--cols, 4), 1fr); perspective: 1000px; }
     .mcard { position: relative; aspect-ratio: 3 / 4; border: 0; padding: 0; background: none; }
@@ -27,7 +27,7 @@
   <script src="./i18n.js?v=15"></script>
   <script src="../../shared/sw-register.js?v=15"></script>
 </head>
-<body>
+<body data-game="word-match">
   <header class="gTop">
     <a class="iconBtn" href="../../games.html" aria-label="Оюндар"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M15 5l-7 7 7 7"/></svg></a>
     <div class="title">Жупташтыр <small>Сөз менен анын котормосун тап</small></div>

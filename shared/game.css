@@ -26,15 +26,19 @@ body.light {
   --bg2: #FDECEB;
   --card: #FFFFFF;
   --card-strong: #FFFFFF;
-  --line: #E3E6F0;
+  --line: #E3E5E8;
   --text: #282828;
-  --soft: #5B6583;
+  --soft: #5F6368;
   --primary: #D91E18;
   --primary-2: #E8453C;
-  --pink: #F0607E;
-  --ok: #16A36A;
-  --bad: #E5484D;
-  --warn: #D9860B;
+  --pink: #E8453C;
+  --ok: #1E8E3E;
+  --ok-ink: #137A3F;
+  --bad: #D93025;
+  --bad-ink: #B3261E;
+  --warn: #FFCE00;
+  --yellow: #FFCE00;
+  --ink: #282828;
   --shadow: 0 1px 2px rgba(40, 40, 40, 0.05), 0 8px 24px rgba(40, 40, 40, 0.07);
 }
 
@@ -45,11 +49,7 @@ body {
   min-height: 100dvh;
   font-family: var(--font);
   color: var(--text);
-  background:
-    radial-gradient(900px 500px at 10% -10%, rgba(217, 30, 24, 0.18), transparent 60%),
-    radial-gradient(800px 500px at 110% 10%, rgba(236, 72, 153, 0.18), transparent 60%),
-    var(--bg);
-  background-attachment: fixed;
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
@@ -107,9 +107,10 @@ h2.gH { font-family: var(--font-title); font-size: clamp(1.5rem, 4vw, 2.2rem); m
 .btn:active { transform: scale(.97); }
 .btn.primary {
   border: 0; color: #fff;
-  background: linear-gradient(135deg, var(--primary), var(--primary-2));
-  box-shadow: 0 10px 24px rgba(217, 30, 24, .3);
+  background: var(--primary);
+  box-shadow: 0 1px 2px rgba(40, 40, 40, .12);
 }
+.btn.primary:hover { filter: none; background: #B3170F; }
 .btn.big { padding: 16px 30px; font-size: 1.1rem; }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
 
@@ -135,7 +136,7 @@ h2.gH { font-family: var(--font-title); font-size: clamp(1.5rem, 4vw, 2.2rem); m
 /* ---------- Жыйынтык терезеси ---------- */
 .modal {
   position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 16px;
-  background: rgba(2, 6, 23, .6); backdrop-filter: blur(6px);
+  background: rgba(40, 40, 40, .5); backdrop-filter: blur(4px);
 }
 .modal .panel { max-width: 440px; width: 100%; text-align: center; animation: pop .35s cubic-bezier(.16, 1, .3, 1); }
 .bigEmoji { font-size: 4rem; line-height: 1; margin-bottom: 8px; }
@@ -150,3 +151,108 @@ h2.gH { font-family: var(--font-title); font-size: clamp(1.5rem, 4vw, 2.2rem); m
 
 /* Скрытые элементы остаются скрытыми, даже если у класса задан display */
 [hidden] { display: none !important; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Свой характер каждой игры (уровень игры поверх общего уровня бренда).
+   Шапка, кнопки, окна и шрифт — общие; фон, игровое поле, плитки и
+   анимации — свои, по механике игры. Верно/неверно — всегда со значком ✓/✗.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Общие игровые состояния ответа: не только цветом */
+.btn.know::before, .ans.ok::before { content: '✓'; font-weight: 900; margin-right: 6px; }
+.ans.no::before { content: '✗'; font-weight: 900; margin-right: 6px; }
+
+/* ─── «Сөз табышмак» (wordle): доска с плитками букв ──────────────────────── */
+body[data-game='wordle'] { --bg: #ECEEF0; }
+body[data-game='wordle'] .gWrap { background-image: radial-gradient(circle, rgba(40, 40, 40, .08) 1px, transparent 1.5px); background-size: 18px 18px; border-radius: 24px; }
+body[data-game='wordle'] .cell { background: #fff; border: 2px solid #D5D8DC; border-bottom-width: 4px; border-radius: 10px; position: relative; color: var(--ink); }
+body[data-game='wordle'] .cell.filled { border-color: #9AA0A6; }
+body[data-game='wordle'] .cell.g { background: #1E8E3E; border-color: #146C2E; color: #fff; }
+body[data-game='wordle'] .cell.y { background: #FFCE00; border-color: #D9AE00; color: var(--ink); }
+body[data-game='wordle'] .cell.x { background: #5F6368; border-color: #45484C; color: #fff; }
+/* Значки состояния в углу плитки: ✓ — на месте, ↔ — в другом месте */
+body[data-game='wordle'] .cell.g::after, body[data-game='wordle'] .cell.y::after {
+  position: absolute; top: 2px; right: 4px; font-size: .7rem; font-weight: 900; line-height: 1;
+}
+body[data-game='wordle'] .cell.g::after { content: '✓'; }
+body[data-game='wordle'] .cell.y::after { content: '↔'; }
+body[data-game='wordle'] .key { background: #fff; color: var(--ink); box-shadow: 0 3px 0 #C4C8CE; border: 1px solid #D5D8DC; }
+body[data-game='wordle'] .key:active { transform: translateY(2px); box-shadow: 0 1px 0 #C4C8CE; }
+body[data-game='wordle'] .key.g { background: #1E8E3E; color: #fff; box-shadow: 0 3px 0 #146C2E; }
+body[data-game='wordle'] .key.y { background: #FFCE00; color: var(--ink); box-shadow: 0 3px 0 #D9AE00; }
+body[data-game='wordle'] .key.x { background: #9AA0A6; color: #fff; box-shadow: 0 3px 0 #80868B; }
+body[data-game='wordle'] .legend i[style*='--ok'], body[data-game='wordle'] .legendList i[style*='--ok'] { background: #1E8E3E !important; }
+body[data-game='wordle'] .legend i[style*='475569'], body[data-game='wordle'] .legendList i[style*='475569'] { background: #5F6368 !important; }
+body[data-game='wordle'] .legend i[style*='--warn'], body[data-game='wordle'] .legendList i[style*='--warn'] { background: #FFCE00 !important; }
+
+/* ─── «Карточки слов» (flashcards): карточка-картотека в линейку ──────────── */
+body[data-game='flashcards'] { --bg: #FFF7D6; }
+body[data-game='flashcards'] .side.front {
+  background-color: #fff;
+  background-image: linear-gradient(#fff 0 44px, transparent 44px), repeating-linear-gradient(transparent 0 31px, #DCE6F2 31px 32px);
+  border: 1px solid #EADFB4;
+}
+body[data-game='flashcards'] .side.front::before { content: ''; position: absolute; top: 0; bottom: 0; left: 36px; width: 2px; background: #F4B4B0; }
+body[data-game='flashcards'] .side.back { background: #D91E18; color: #fff; border: 0; }
+body[data-game='flashcards'] .side.back .tr div { background: rgba(255, 255, 255, .12); border-color: rgba(255, 255, 255, .25); color: #fff; }
+body[data-game='flashcards'] .side.back .say { background: #FFCE00; color: var(--ink); }
+body[data-game='flashcards'] .side.back .tapHint { color: #FFE3E1; }
+body[data-game='flashcards'] .deckTop .bar i { background: #D91E18; }
+body[data-game='flashcards'] .btn.again { background: #fff; border: 2px solid #FFCE00; }
+body[data-game='flashcards'] .btn.again::before { content: '↻'; font-weight: 900; margin-right: 6px; }
+body[data-game='flashcards'] .btn.know { background: #1E8E3E; }
+body[data-game='flashcards'] .catCard { border-width: 1px; }
+body[data-game='flashcards'] .catCard.on { border: 2px solid #D91E18; background: #FDECEB; }
+body[data-game='flashcards'] .bar i { background: #1E8E3E; }
+
+/* ─── «Найди пару» (word-match): игровой стол, рубашки с түндүком ─────────── */
+body[data-game='word-match'] { --bg: #E6F4EA; }
+body[data-game='word-match'] .board { padding: 14px; border-radius: 24px; background: #CFE8D7; }
+body[data-game='word-match'] .front {
+  background-color: #137A3F;
+  background-image: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, .14) 0 22%, transparent 23%), repeating-linear-gradient(45deg, rgba(255, 255, 255, .06) 0 6px, transparent 6px 12px);
+  box-shadow: 0 3px 0 #0C5A2D;
+}
+body[data-game='word-match'] .back { background: #fff; border: 2px solid #B7DFC2; color: var(--ink); }
+body[data-game='word-match'] .mcard.done .back { background: #fff; border: 3px solid #FFCE00; }
+body[data-game='word-match'] .mcard.done .back::after { content: '✓'; position: absolute; top: 6px; right: 8px; width: 22px; height: 22px; border-radius: 50%; background: #1E8E3E; color: #fff; font-size: .8rem; display: grid; place-items: center; }
+body[data-game='word-match'] .mcard.wrong .back { border-color: #D93025; animation: shake .4s; }
+body[data-game='word-match'] .mcard.wrong .back::after { content: '✗'; position: absolute; top: 6px; right: 8px; color: #B3261E; font-weight: 900; }
+body[data-game='word-match'] .mcard:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; border-radius: 16px; }
+
+/* ─── «Словопад» (word-rain): небо, облака и полоска земли ────────────────── */
+body[data-game='word-rain'] { --bg: #EAF2FF; }
+body[data-game='word-rain'] .sky {
+  background-color: #CFE2FF; border: 0;
+  background-image: radial-gradient(ellipse 70px 26px at 18% 22%, #fff 98%, transparent), radial-gradient(ellipse 90px 30px at 76% 14%, #fff 98%, transparent), radial-gradient(ellipse 60px 22px at 58% 40%, rgba(255, 255, 255, .7) 98%, transparent);
+}
+body[data-game='word-rain'] .ground { height: 18px; background: #1E8E3E; box-shadow: inset 0 4px 0 #34A853; }
+body[data-game='word-rain'] .drop { border: 2px solid #3367D6; color: var(--ink); border-radius: 18px 18px 18px 4px; }
+body[data-game='word-rain'] .drop.hit { background: #1E8E3E; border-color: #1E8E3E; color: #fff; }
+body[data-game='word-rain'] .drop.hit::before { content: '✓ '; }
+body[data-game='word-rain'] .drop.miss { background: #D93025; border-color: #D93025; color: #fff; }
+body[data-game='word-rain'] .drop.miss::before { content: '✗ '; }
+body[data-game='word-rain'] .ans { border: 2px solid #C6D6F5; box-shadow: 0 3px 0 #C6D6F5; min-height: 64px; font-size: 1.1rem; }
+body[data-game='word-rain'] .ans.ok { background: #1E8E3E; border-color: #1E8E3E; box-shadow: 0 3px 0 #146C2E; }
+body[data-game='word-rain'] .ans.no { background: #D93025; border-color: #D93025; box-shadow: 0 3px 0 #A52714; }
+
+/* ─── «Шарики» (balloons): ярмарка, буквы на шарах ────────────────────────── */
+body[data-game='balloons'] { --bg: #FFF0F3; }
+body[data-game='balloons'] .bl:nth-child(4n+1) { --c: #D91E18; }
+body[data-game='balloons'] .bl:nth-child(4n+2) { --c: #FFCE00; }
+body[data-game='balloons'] .bl:nth-child(4n+3) { --c: #3367D6; }
+body[data-game='balloons'] .bl:nth-child(4n+4) { --c: #1E8E3E; }
+body[data-game='balloons'] .slot { border-bottom-color: #D91E18; background: #fff; border-radius: 10px 10px 0 0; }
+body[data-game='balloons'] .slot.missed::after { content: '✗'; font-size: .5em; vertical-align: super; color: #B3261E; }
+body[data-game='balloons'] .key { background: #fff; color: var(--ink); box-shadow: 0 3px 0 #F2C4CC; border: 1px solid #F2C4CC; }
+body[data-game='balloons'] .key.ok { background: #1E8E3E; color: #fff; box-shadow: 0 3px 0 #146C2E; }
+body[data-game='balloons'] .key.ok::after { content: '✓'; font-size: .7em; margin-left: 2px; }
+body[data-game='balloons'] .key.no { background: #9AA0A6; color: #fff; box-shadow: none; text-decoration: line-through; }
+
+/* Общие игровые жесты: нажатие «проваливается», без бесконечных эффектов */
+@media (prefers-reduced-motion: reduce) {
+  body[data-game] .bl { animation: none !important; }
+}
+
+body[data-game='flashcards'] .side.back .tr .muted { color: #FFD9D6; font-weight: 800; }
+body[data-game='word-match'] .board { max-width: 640px; margin: 0 auto; }

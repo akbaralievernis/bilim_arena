@@ -177,7 +177,7 @@ body::before {
 .progressFill {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  background: var(--accent);
   transition: width 0.1s linear;
 }
 
@@ -510,3 +510,6 @@ body.teacher-on .teacherOnly { display: block; }
 
 /* Платформа: скрытые элементы (например, переключатель темы) */
 [hidden] { display: none !important; }
+
+/* Знак Bilim Arena вместо инициалов */
+img.logo { background: none !important; box-shadow: none !important; padding: 0 !important; border-radius: 12px; object-fit: contain; }

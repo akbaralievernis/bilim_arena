@@ -11,8 +11,8 @@
   <title>Доска режими — Билим Арена</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
-  <link rel="stylesheet" href="./core/ui.css?v=19" />
-  <link rel="stylesheet" href="./core/board.css?v=16" />
+  <link rel="stylesheet" href="./core/ui.css?v=20" />
+  <link rel="stylesheet" href="./core/board.css?v=17" />
 </head>
 
 <body class="board-mode">
@@ -124,6 +124,7 @@
     <!-- 4. Результаты -->
     <section class="screen hidden" id="resultScreen">
       <div class="wrap stack">
+        <div class="result-hero" id="resultHero" aria-hidden="true"></div>
         <h1 class="center" id="resultTitle" data-i18n="results_title">Жыйынтык</h1>
         <div class="stats" id="resultStats"></div>
 
@@ -165,6 +166,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./board.js?v=21"></script>
+  <script type="module" src="./board.js?v=22"></script>
 </body>
 </html>

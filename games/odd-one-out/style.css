@@ -772,3 +772,6 @@ body.theme-aura-light .dot.active { border-color: #0f172a; }
   .main { padding: 1rem 0.75rem; }
   .panel { padding: 1.25rem; }
 }
+
+/* Знак Bilim Arena вместо инициалов */
+img.logo { background: none !important; box-shadow: none !important; padding: 0 !important; border-radius: 12px; object-fit: contain; }

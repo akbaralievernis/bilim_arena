@@ -253,7 +253,7 @@ body.controller {
     color-mix(in srgb, var(--team-a) 30%, transparent) 0 12.5%, transparent 12.5% 87.5%,
     color-mix(in srgb, var(--team-b) 30%, transparent) 87.5% 100%);
 }
-.rope-line { position: absolute; left: 4%; right: 4%; top: 50%; height: 6px; transform: translateY(-50%); border-radius: 3px; background: repeating-linear-gradient(90deg, #b45309 0 10px, #92400e 10px 20px); }
+.rope-line { position: absolute; left: 4%; right: 4%; top: 50%; height: 6px; transform: translateY(-50%); border-radius: 3px; background: repeating-linear-gradient(90deg, #8D6E63 0 10px, #6D4C41 10px 20px); }
 .rope-center { position: absolute; left: 50%; top: 6px; bottom: 6px; width: 3px; transform: translateX(-50%); background: var(--text-soft); opacity: 0.6; }
 .rope-knot {
   position: absolute; top: 50%; transform: translate(-50%, -50%);
@@ -276,7 +276,7 @@ body.controller {
 }
 .lab-flask i {
   position: absolute; left: 0; right: 0; bottom: 0; display: block;
-  background: linear-gradient(180deg, #22d3ee, #21B8A6);
+  background: #26A69A;
   transition: height 0.8s var(--ease);
 }
 .lab-note { margin: 0; text-align: center; font-weight: 700; }
@@ -308,3 +308,110 @@ body.controller {
 
 /* Сервер знакомства недоступен — новые ученики не войдут */
 .room-warn { margin: 0 0 12px; padding: 10px 14px; border: 1px solid var(--warn); border-left-width: 4px; border-radius: 12px; background: var(--surface); color: var(--text); font-weight: 600; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Свой характер каждой игры на доске (body[data-game] ставит board.js).
+   Общее у всех: шапка урока, таймер, кнопки, крупный шрифт для доски,
+   значки ✓/✗ у ответов. Своё: фон экрана, «сцена» задания, подача вариантов.
+   ═══════════════════════════════════════════════════════════════════════════ */
+body[data-game] #gameScreen { background: var(--g-bg, var(--bg)); transition: background-color var(--dur-slow); }
+body[data-game] .question-area {
+  position: relative; padding: clamp(16px, 2.6vw, 36px); border-radius: var(--radius-lg);
+  background: var(--g-stage, var(--surface)); box-shadow: var(--shadow); border: 1px solid var(--border);
+}
+body[data-game] #gameName { background: var(--g-accent, var(--primary)); border-color: transparent; color: var(--g-accent-ink, #fff); }
+/* Новый вопрос появляется коротко и один раз */
+@media (prefers-reduced-motion: no-preference) {
+  body[data-game] .question-prompt { animation: q-in var(--dur-slow) var(--ease); }
+}
+@keyframes q-in { from { opacity: 0; transform: translateY(10px); } }
+
+/* «Быстрый опрос»: табло голосования, у каждого варианта свой цвет и буква */
+body[data-game='quickvote'] { --g-bg: #F1F3F4; }
+body[data-game='quickvote'] .options .option { border-left-width: 8px; }
+body[data-game='quickvote'] .options .option:nth-child(4n+1) { border-left-color: #D91E18; }
+body[data-game='quickvote'] .options .option:nth-child(4n+2) { border-left-color: #3367D6; }
+body[data-game='quickvote'] .options .option:nth-child(4n+3) { border-left-color: #FFCE00; }
+body[data-game='quickvote'] .options .option:nth-child(4n+4) { border-left-color: #1E8E3E; }
+body[data-game='quickvote'] .options .option:nth-child(4n+1) .key { background: #D91E18; color: #fff; }
+body[data-game='quickvote'] .options .option:nth-child(4n+2) .key { background: #3367D6; color: #fff; }
+body[data-game='quickvote'] .options .option:nth-child(4n+3) .key { background: #FFCE00; color: #282828; }
+body[data-game='quickvote'] .options .option:nth-child(4n+4) .key { background: #1E8E3E; color: #fff; }
+
+/* «Захват территории»: поле поделено между двумя командами */
+body[data-game='territory'] { --g-bg: #F1F3F4; --g-accent: #3367D6; }
+body[data-game='territory'] #gameScreen { background: linear-gradient(90deg, #E8F0FE 0 50%, #FDECEB 50% 100%); }
+body[data-game='territory'] .territory-map .cell { border-radius: 12px; font-weight: 800; }
+body[data-game='territory'] .territory-map .cell.team-a { background: var(--team-a); }
+body[data-game='territory'] .territory-map .cell.team-b { background: var(--team-b); }
+
+/* «Формула-бой»: тетрадь в клетку, крупные цифры */
+body[data-game='formula'] { --g-accent: #3367D6; }
+body[data-game='formula'] #gameScreen {
+  background-color: #FFFDF5;
+  background-image: linear-gradient(#E3ECF7 1px, transparent 1px), linear-gradient(90deg, #E3ECF7 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+body[data-game='formula'] .question-prompt { font-variant-numeric: tabular-nums; letter-spacing: 0.02em; font-size: clamp(1.8rem, 5vw, 3.4rem); }
+body[data-game='formula'] .option { font-variant-numeric: tabular-nums; font-size: 1.3rem; justify-content: center; }
+
+/* «Кодовый замок»: сейф — тёмная панель, жёлтые цифры */
+body[data-game='codelock'] #gameScreen {
+  --g-bg: #1F2433; --g-stage: #2B2F3A; --g-accent: #FFCE00; --g-accent-ink: #282828;
+  --surface: #2B2F3A; --surface-2: #363B47; --line: #4A5060; --border: rgba(255, 255, 255, 0.08);
+  --text: #FFFFFF; --text-soft: #C4C8CE; --text-secondary: #C4C8CE; --ok-ink: #81C995; --bad-ink: #F28B82; --primary-ink: #FFCE00;
+  color: var(--text);
+}
+body[data-game='codelock'] .lock-digit { background: #1F2433; color: #FFCE00; border-color: #4A5060; font-variant-numeric: tabular-nums; }
+body[data-game='codelock'] .lock-digit.open { background: #FFCE00; color: #282828; border-color: #FFCE00; }
+body[data-game='codelock'] .lock-icon { color: #FFCE00; }
+body[data-game='codelock'] .option .key { background: #FFCE00; color: #282828; }
+
+/* «Экономика города»: небо и силуэт города внизу экрана */
+body[data-game='city'] { --g-accent: #1E8E3E; }
+body[data-game='city'] #gameScreen {
+  background-color: #E8F0FE;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='90' viewBox='0 0 320 90'%3E%3Cpath d='M0 90V52h26V30h22v22h18V12h30v40h14V40h24v50zM134 90V20h28v30h16V36h20v54zM198 90V44h22V26h26v22h20V8h24v82z' fill='%23C6D6F5'/%3E%3C/svg%3E");
+  background-repeat: repeat-x; background-position: bottom; background-size: 320px 90px;
+}
+body[data-game='city'] .city-box { border-color: #C6D6F5; }
+
+/* «Ошибка учителя»: тетрадь в линейку с полями */
+body[data-game='errorhunt'] { --g-bg: #FFF7D6; --g-accent: #D91E18; }
+body[data-game='errorhunt'] .question-area {
+  background-color: #fff;
+  background-image: linear-gradient(90deg, transparent 0 46px, #F4B4B0 46px 48px, transparent 48px), repeating-linear-gradient(transparent 0 35px, #DCE6F2 35px 36px);
+  padding-left: 64px;
+}
+body[data-game='errorhunt'] .solution-lines .option { background: transparent; box-shadow: none; }
+
+/* «Карта истории»: песочный фон, задание — карточка события */
+body[data-game='timeline'] { --g-bg: #FFF7D6; --g-accent: #7A5A00; }
+body[data-game='timeline'] .question-area::before {
+  content: ''; position: absolute; left: 24px; right: 24px; top: 14px; height: 4px; border-radius: 2px;
+  background: repeating-linear-gradient(90deg, #282828 0 60%, transparent 60% 100%) 0 0 / 22px 4px;
+  opacity: 0.25;
+}
+
+/* «Лаборатория»: лабораторный журнал на миллиметровке */
+body[data-game='lab'] { --g-accent: #0B6B60; }
+body[data-game='lab'] #gameScreen {
+  background-color: #E4F4F1;
+  background-image: linear-gradient(rgba(11, 107, 96, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(11, 107, 96, 0.08) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* «Расследование»: тёмная комната, улики — светлые карточки */
+body[data-game='investigation'] { --g-accent: #FFCE00; --g-accent-ink: #282828; --g-stage: #FFFDF5; }
+body[data-game='investigation'] #gameScreen { background: #2B2F3A; }
+body[data-game='investigation'] .game-side > * { border-radius: var(--radius); }
+body[data-game='investigation'] .clue-cell { background: #FFFDF5; }
+
+/* Экран завершения этапа: сцена своей игры полосой над итогами */
+.result-hero { height: clamp(90px, 16vh, 160px); border-radius: var(--radius-lg); overflow: hidden; display: grid; place-items: center; }
+.result-hero .art-cover { height: 100%; width: auto; max-width: 100%; aspect-ratio: 16 / 10; }
+@media (prefers-reduced-motion: no-preference) {
+  .result-hero .cv-move { transform-box: fill-box; transform-origin: center; animation: hero-cheer 0.9s var(--ease) 0.2s both; }
+}
+@keyframes hero-cheer { 0% { transform: translateY(14px) scale(0.9); opacity: 0; } 60% { transform: translateY(-4px) scale(1.04); opacity: 1; } 100% { transform: none; } }
+
