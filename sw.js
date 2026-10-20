@@ -8,7 +8,7 @@
  * Прогресс, XP и данные Supabase хранятся в localStorage/облаке — кэш их не трогает.
  */
 const PREFIX = 'ba-';
-const VERSION = 'ba-v51';
+const VERSION = 'ba-v52';
 const CORE = [
   './', './index.html', './home.css', './home.js',
   './board.html', './board.js', './play.html', './play.js',
@@ -27,7 +27,7 @@ const CORE = [
   './core/ui.css', './core/board.css', './core/ui.js', './core/i18n.js',
   './core/store.js', './core/profile.js', './core/curriculum.js',
   './core/progress.js', './core/engine.js', './core/realtime.js',
-  './core/questions.js', './core/assignments.js', './core/quiz-ui.js', './core/sync.js', './core/speech.js', './core/config.js', './core/cloud.js', './core/icons.js', './core/art.js', './core/catalog.js', './core/results.js', './core/race.js', './core/turn.js', './core/import.js', './core/lessons.js', './core/merge.js', './core/errors.js', './core/selection.js', './core/duplicates.js', './core/mastery.js', './core/tests.js', './core/omr.js', './core/xlsx.js', './core/images.js', './core/parent-report.js', './core/report-export.js', './core/cycles.js', './core/fx.js', './core/review.js',
+  './core/questions.js', './core/assignments.js', './core/quiz-ui.js', './core/sync.js', './core/speech.js', './core/config.js', './core/cloud.js', './core/icons.js', './core/art.js', './core/catalog.js', './core/results.js', './core/race.js', './core/turn.js', './core/import.js', './core/lessons.js', './core/merge.js', './core/errors.js', './core/selection.js', './core/duplicates.js', './core/mastery.js', './core/tests.js', './core/omr.js', './core/xlsx.js', './core/images.js', './core/parent-report.js', './core/report-export.js', './core/cycles.js', './core/fx.js', './core/review.js', './core/tunduk-map.js', './core/yurt.js',
   // Оюндардын иллюстрациялары
   './assets/art/games/balloons.svg', './assets/art/games/build-3d.svg', './assets/art/games/citadel.svg', './assets/art/games/city.svg', './assets/art/games/codelock.svg', './assets/art/games/eagle.svg', './assets/art/games/errorhunt.svg', './assets/art/games/flashcards.svg', './assets/art/games/focus.svg', './assets/art/games/formula.svg', './assets/art/games/hand-shooter.svg', './assets/art/games/investigation.svg', './assets/art/games/lab.svg', './assets/art/games/mafia.svg', './assets/art/games/neon-draw.svg', './assets/art/games/odd.svg', './assets/art/games/quickvote.svg', './assets/art/games/race.svg', './assets/art/games/reaction.svg', './assets/art/games/sentence.svg', './assets/art/games/speak.svg', './assets/art/games/territory.svg', './assets/art/games/timeline.svg', './assets/art/games/word-match.svg', './assets/art/games/word-rain.svg', './assets/art/games/wordle.svg', './assets/art/cat/camera.svg', './assets/art/cat/languages.svg', './assets/art/cat/logic.svg', './assets/art/cat/team.svg',
   './vendor/peerjs-1.5.5.min.js', './vendor/qrcode-generator-1.4.4.js', './vendor/supabase-js-2.117.3.js', './vendor/canvas-confetti-1.6.0.js',
