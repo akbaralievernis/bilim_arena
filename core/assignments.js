@@ -121,7 +121,8 @@ export async function saveSubmission({ assignmentId, studentId, studentName, cor
   sub.skillStats = mergeSkillStats(sub.skillStats, skillStats);
   sub.mistakes = mistakes || [];
   sub.late = assignment ? now > assignment.dueAt : false;
-  sub.history.push({ at: now, percent, correct, total });
+  // Навыки каждой попытки — для сравнения первой и последней проверки (core/cycles.js)
+  sub.history.push({ at: now, percent, correct, total, ...(skillStats ? { bySkill: skillStats } : {}) });
 
   await store.set(SUBMISSIONS, list);
   return sub;

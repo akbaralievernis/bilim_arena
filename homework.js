@@ -371,6 +371,9 @@ async function openStats(assignmentId) {
     $('#fSubject').value = topic.subject;
     $('#fGrade').value = topic.grade;
     await syncTopics(topic.id);
+    // Из учебного цикла: диагностика или итоговая проверка — сразу режим «Проверка»
+    if (params.get('check') === '1') { $('#fCheck').value = '1'; updatePoolNote(); }
+    if (params.get('class')) { $('#fClass').value = params.get('class'); }
   }
   void STATUS;
 })();

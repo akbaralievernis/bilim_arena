@@ -13,7 +13,7 @@
   <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
   <link rel="stylesheet" href="./core/ui.css?v=17" />
   <link rel="stylesheet" href="./home.css?v=14" />
-  <link rel="stylesheet" href="./reports.css?v=1" />
+  <link rel="stylesheet" href="./reports.css?v=2" />
 </head>
 
 <body>
@@ -28,6 +28,7 @@
     <div class="row tabs no-print" role="tablist">
       <button class="chip on" id="tabLessons" type="button" role="tab" aria-selected="true" data-i18n="rep_tab_lessons">Сабактар тарыхы</button>
       <button class="chip" id="tabStudents" type="button" role="tab" aria-selected="false" data-i18n="rep_tab_students">Окуучулар</button>
+      <button class="chip" id="tabCycles" type="button" role="tab" aria-selected="false" data-i18n="cy_tab">Тема боюнча цикл</button>
     </div>
 
     <!-- История уроков -->
@@ -69,6 +70,39 @@
       <div class="stack" id="studentList"></div>
     </section>
 
+    <!-- Учебные циклы: диагностика → обучение → итоговая проверка -->
+    <section class="stack hidden" id="cyclesScreen">
+      <p class="muted" data-i18n="cy_intro">Тема үчүн мөөнөт коюңуз: башында диагностика, аягында жаңы суроолор менен жыйынтыктоочу текшерүү. Отчет ар бир окуучунун алгачкы жана акыркы жыйынтыгын салыштырат.</p>
+      <div class="row no-print"><button class="btn primary" id="cycleNewBtn" type="button" data-i18n="cy_new">Жаңы цикл</button></div>
+      <div class="stack" id="cycleList"></div>
+    </section>
+
+    <section class="stack hidden" id="cycleFormScreen">
+      <div class="row no-print"><button class="btn ghost" id="cycleFormBackBtn" type="button" data-i18n="rep_back">Артка</button></div>
+      <form class="card stack" id="cycleForm" novalidate>
+        <h2 id="cycleFormTitle" style="margin:0" data-i18n="cy_new">Жаңы цикл</h2>
+        <div class="form-grid">
+          <label class="field"><span class="label" data-i18n="f_subject">Предмет</span><select class="input" id="cySubject" required></select></label>
+          <label class="field"><span class="label" data-i18n="rep_topic">Тема</span><select class="input" id="cyTopic" required></select></label>
+          <label class="field"><span class="label" data-i18n="cy_class">Класс (милдеттүү эмес)</span><select class="input" id="cyClass"></select></label>
+          <label class="field"><span class="label" data-i18n="cy_threshold">Босого, %</span><input class="input" id="cyThreshold" type="number" min="50" max="100" step="5" required /></label>
+          <label class="field"><span class="label" data-i18n="cy_from">Башталышы</span><input class="input" id="cyFrom" type="date" required /></label>
+          <label class="field"><span class="label" data-i18n="cy_to">Аягы</span><input class="input" id="cyTo" type="date" required /></label>
+        </div>
+        <label class="field"><span class="label" data-i18n="cy_goal">Окуу максаты</span>
+          <textarea class="input" id="cyGoal" rows="2" maxlength="300" data-i18n-attr="placeholder:cy_goal_hint"></textarea></label>
+        <p class="small" id="cyFormError" role="alert"></p>
+        <div class="row" style="gap:8px">
+          <button class="btn primary" id="cySaveBtn" type="submit" data-i18n="save">Сактоо</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="stack hidden" id="cycleScreen">
+      <div class="row no-print"><button class="btn ghost" id="cycleBackBtn" type="button" data-i18n="rep_back">Артка</button></div>
+      <div class="card stack" id="cycleDetail" aria-live="polite"></div>
+    </section>
+
     <!-- Один ученик -->
     <section class="stack hidden" id="studentScreen">
       <div class="row no-print"><button class="btn ghost" id="studentBackBtn" type="button" data-i18n="rep_back">Артка</button></div>
@@ -76,6 +110,6 @@
     </section>
   </main>
   <div id="toasts"></div>
-  <script type="module" src="./reports.js?v=5"></script>
+  <script type="module" src="./reports.js?v=6"></script>
 </body>
 </html>

@@ -14,6 +14,11 @@
 .rep-table-wrap { overflow-x: auto; }
 .rep-weak { display: grid; gap: 6px; }
 .rep-weak-row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+/* Учебный цикл */
+.cy-goal { margin: 0; padding: 10px 12px; border-left: 4px solid var(--primary); background: var(--surface-2); border-radius: 0 10px 10px 0; overflow-wrap: anywhere; }
+.cy-warn { padding: 10px 14px; border: 1px solid var(--warn); border-left-width: 4px; background: var(--surface); color: var(--text); border-radius: 12px; }
+.cy-warn ul, .cy-list { margin: 6px 0 0; padding-left: 1.2em; display: grid; gap: 4px; }
+.cy-list li { overflow-wrap: anywhere; }
 @media print {
   .no-print, .tabbar, header, .topbar, #header, .skip-link { display: none !important; }
   body { background: #fff; padding: 0 !important; }
