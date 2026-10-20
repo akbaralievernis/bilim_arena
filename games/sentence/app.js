@@ -537,9 +537,11 @@
       showHintButton(k, false);
       
       t.phase = "done"; // БЛОКИРУЕМ ЛИШНИЕ КЛИКИ
-      
+      t.pendingFinish = true; // если в эти 50 мс нажмут «Тыным» — раунд закончится после паузы
+
       setTimeout(() => {
-        if(!Game.running || Game.paused) return;
+        if(!Game.running || Game.paused || !t.pendingFinish) return;
+        t.pendingFinish = false;
         finishSentence(k);
       }, 50); 
     }
@@ -580,6 +582,8 @@
       for (const k of ["A", "B"]) {
         const t = Game.teams[k];
         if (t.phase === "flash") runFlash(k, t.words);
+        // Предложение собрано прямо перед паузой — раньше команда застревала навсегда
+        else if (t.pendingFinish) { t.pendingFinish = false; finishSentence(k); }
       }
     }
     document.body.classList.toggle("paused", Game.paused);
@@ -650,6 +654,14 @@
       const text = UI.textInput.value.trim();
       Game.sentences = splitIntoSentences(text).filter(s => tokenize(s).length >= 2);
     }
+    // Пустой текст: панель не закрывается молча — учитель видит, что нужно сделать
+    if (!totalRounds()) {
+      UI.textInput.setAttribute("aria-invalid", "true");
+      UI.textInput.placeholder = tr("Кеминде эки сөздөн турган бир сүйлөм жазыңыз же даяр топтомду тандаңыз.");
+      UI.textInput.focus();
+      return;
+    }
+    UI.textInput.removeAttribute("aria-invalid");
     hideOverlay(UI.setupOverlay);
     const T = I18N[getLang()];
     setNote("A", T.noteReady(totalRounds())); setNote("B", T.noteReady(totalRounds()));
@@ -683,6 +695,8 @@
     UI.timeRange.addEventListener("input", () => { Game.config.globalSeconds = Number(UI.timeRange.value); UI.timeVal.textContent = UI.timeRange.value; });
 
     UI.presetSelect.addEventListener("change", () => { if (UI.presetSelect.value !== "custom") UI.textInput.value = presetText(UI.presetSelect.value); });
+    // По умолчанию — готовый простой набор: «Ырастоо» сразу даёт раунды
+    if (!UI.textInput.value.trim()) { UI.presetSelect.value = "text_easy"; UI.textInput.value = presetText("text_easy"); }
     UI.penaltyRange.addEventListener("input", () => { Game.config.penaltyOn3Wrong = Number(UI.penaltyRange.value); UI.penaltyVal.textContent = UI.penaltyRange.value; });
 
     // Переключатели: подпись «Күйүк / Өчүк» и класс .on
