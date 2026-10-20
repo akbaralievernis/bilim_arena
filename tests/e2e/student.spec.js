@@ -100,3 +100,26 @@ test('practice: start over is offered; repeating mistakes does not change the te
     expect(after.best).toBe(before.best);
   }
 });
+
+test('home shows the tasks to do with deadlines; the menu counts them; overdue is marked', async ({ page }) => {
+  const D = 86400000;
+  await page.addInitScript((d) => {
+    localStorage.setItem('BA2_lang', '"ru"');
+    localStorage.setItem('BA2_profile', JSON.stringify({ id: 'stu1', name: 'Айбек', role: 'student', grade: 6 }));
+    localStorage.setItem('BA2_assignments', JSON.stringify([
+      { id: 'late', title: 'Просроченное', subject: 'math', grade: 6, topic: 'math-6-fractions', count: 5, attempts: 1, xp: 10, assignedAt: Date.now() - 3 * d, dueAt: Date.now() - d },
+      { id: 'soon', title: 'Скоро срок', subject: 'math', grade: 6, topic: 'math-6-fractions', count: 5, attempts: 1, xp: 10, assignedAt: Date.now() - d, dueAt: Date.now() + d, check: true },
+      { id: 'future', title: 'Ещё не выдано', subject: 'math', grade: 6, topic: 'math-6-fractions', count: 5, attempts: 1, xp: 10, assignedAt: Date.now() + d, dueAt: Date.now() + 3 * d }
+    ]));
+    localStorage.setItem('BA2_submissions', '[]');
+  }, D);
+  await page.goto('/index.html');
+  const box = page.locator('#tasksHome');
+  await expect(box).toContainText('Задания: 2'); // ещё не выданное не показывается
+  await expect(box.locator('.home-task', { hasText: 'Просроченное' }).locator('.late')).toContainText('Срок прошёл');
+  await expect(box.locator('.home-task', { hasText: 'Скоро срок' })).toContainText('Проверка');
+  await expect(page.locator('.topbar [data-badge="tasks"]')).toHaveText('2');
+  await box.locator('.home-task', { hasText: 'Скоро срок' }).click();
+  await expect(page).toHaveURL(/tasks\.html\?id=soon/);
+  await expect(page.locator('#introScreen')).toBeVisible();
+});

@@ -924,4 +924,10 @@ export default {
   hw_save_failed: "The answer was not saved on this device: storage may be full.",
   hw_review_not_counted: "This is mistake practice — it does not go to the teacher’s report.",
   hw_continue_at: "Continue (question {n} of {total})",
+  nav_tasks_pending: "Tasks to do: {n}",
+  home_tasks_title: "Tasks: {n}",
+  home_tasks_all: "All tasks",
+  home_task_due: "by {d}",
+  home_task_late: "Overdue ({d})",
+  home_task_started: "Started: {n}/{total}",
 };

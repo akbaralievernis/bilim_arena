@@ -941,4 +941,10 @@ export default {
   hw_save_failed: "Жооп түзмөккө сакталган жок: эс тутум толуп калган болушу мүмкүн.",
   hw_review_not_counted: "Бул ката боюнча машыгуу — мугалимдин отчетуна кирбейт.",
   hw_continue_at: "Улантуу (суроо {n} / {total})",
+  nav_tasks_pending: "Аткарыла элек тапшырмалар: {n}",
+  home_tasks_title: "Тапшырмалар: {n}",
+  home_tasks_all: "Баарын көрүү",
+  home_task_due: "{d} чейин",
+  home_task_late: "Мөөнөтү өттү ({d})",
+  home_task_started: "Башталды: {n}/{total}",
 };

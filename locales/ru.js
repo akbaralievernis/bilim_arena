@@ -924,4 +924,10 @@ export default {
   hw_save_failed: "Ответ не сохранился на устройстве: возможно, память заполнена.",
   hw_review_not_counted: "Это тренировка по ошибкам — в отчёт учителю не идёт.",
   hw_continue_at: "Продолжить (вопрос {n} из {total})",
+  nav_tasks_pending: "Невыполненных заданий: {n}",
+  home_tasks_title: "Задания: {n}",
+  home_tasks_all: "Все задания",
+  home_task_due: "до {d}",
+  home_task_late: "Срок прошёл ({d})",
+  home_task_started: "Начато: {n}/{total}",
 };
