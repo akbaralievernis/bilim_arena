@@ -76,8 +76,18 @@ function weakList(weak, sameTopic = null) {
 
 // ─── История уроков ───────────────────────────────────────────────────────────
 
+/**
+ * Экран, открытый последним. Данные читаются асинхронно: запоздавшая отрисовка прежнего экрана
+ * (например, начальная «История уроков» на медленном телефоне) не должна перекрыть вкладку,
+ * которую учитель уже открыл.
+ */
+let viewSeq = 0;
+const nextView = () => { const n = ++viewSeq; return () => n === viewSeq; };
+
 async function renderLessons() {
+  const current = nextView();
   const lessons = await lessonHistory();
+  if (!current()) return;
   show('lessonsScreen');
   if (!lessons.length) {
     $('#lessonList').replaceChildren(el('div', { class: 'card center muted' }, t('rep_lessons_empty')));
@@ -97,7 +107,9 @@ async function renderLessons() {
 }
 
 async function openLesson(id) {
+  const current = nextView();
   const lesson = await getLesson(id);
+  if (!current()) return;
   if (!lesson) return renderLessons();
   const students = Object.values(lesson.students || {})
     .map((s) => ({ ...s, pct: pctOf(s.correct, s.answered) }))
@@ -163,8 +175,11 @@ async function openLesson(id) {
 let summaries = [];
 
 async function renderStudents() {
-  summaries = await studentSummaries();
+  const current = nextView();
+  const list = await studentSummaries();
   const m = await masterySettings();
+  if (!current()) return;
+  summaries = list;
   $('#mThreshold').value = m.threshold;
   $('#mMinAnswers').value = m.minAnswers;
   show('studentsScreen');
@@ -216,7 +231,9 @@ function parentReportBox(r) {
 
 async function openStudent(name) {
   const key = String(name).replace(/\s+/g, ' ').trim().toLowerCase();
+  const current = nextView();
   const r = await studentReport(key);
+  if (!current()) return;
   if (!r) return renderStudents();
   const weakTopic = r.weak.find((w) => getTopic(w.topic))?.topic;
 
@@ -297,13 +314,16 @@ const deltaText = (d) => (d === null || d === undefined ? '—' : `${d > 0 ? '+'
 const cyclePeriod = (c) => `${fmtDate(c.from)} — ${fmtDate(c.to)}`;
 
 async function renderCycles() {
+  const current = nextView();
   show('cyclesScreen');
   const list = (await allCycles()).sort((a, b) => b.from - a.from);
+  if (!current()) return;
   if (!list.length) {
     $('#cycleList').replaceChildren(el('div', { class: 'card center muted' }, t('cy_empty')));
     return;
   }
   const classes = new Map((await store.get(KEYS.classes, [])).map((c) => [c.id, c.name]));
+  if (!current()) return;
   const now = Date.now();
   $('#cycleList').replaceChildren(...list.map((c) => {
     const state = now < c.from ? t('cy_planned') : now > c.to ? t('cy_finished') : t('cy_running');
@@ -333,6 +353,7 @@ function syncCycleTopics(topicId = null) {
 let editingCycle = null;
 
 async function openCycleForm(cycle = null) {
+  const current = nextView();
   const lang = getLang();
   editingCycle = cycle;
   const withTopics = new Set(TOPICS.map((x) => x.subject));
@@ -347,6 +368,7 @@ async function openCycleForm(cycle = null) {
   $('#cyGoal').value = cycle?.goal || '';
   $('#cyFormError').textContent = '';
   $('#cycleFormTitle').textContent = cycle ? t('cy_edit') : t('cy_new');
+  if (!current()) return;
   show('cycleFormScreen');
   $('#cySubject').focus();
 }
@@ -378,9 +400,12 @@ async function submitCycle(e) {
 }
 
 async function openCycle(id) {
+  const current = nextView();
   const cycle = await getCycle(id);
+  if (!current()) return;
   if (!cycle) return renderCycles();
   const r = await cycleReport(cycle);
+  if (!current()) return;
   const lang = getLang();
   const topic = getTopic(cycle.topic);
   const sum = r.summary;
@@ -419,6 +444,7 @@ async function openCycle(id) {
     const q = await findQuestion(cycle.topic, w.id).catch(() => null);
     return { ...w, text: q ? pick(q.prompt, lang) : null };
   }));
+  if (!current()) return;
 
   const stat = (value, label) => el('div', { class: 'stat' }, el('b', {}, value), el('span', {}, label));
   const pctOrDash = (p) => (p === null || p === undefined ? '—' : `${p}%`);
@@ -518,6 +544,8 @@ async function openCycle(id) {
   $('#exportStudentsBtn').replaceChildren(icon('download', { size: 18 }), ' ', t('xl_export_all'));
   $('#exportStudentsBtn').addEventListener('click', () => toExcel('students'));
   $('#printBtn').addEventListener('click', () => window.print());
+  // Вкладки оживают, когда обработчики на месте (раньше нажатие на медленном телефоне терялось)
+  ['#tabLessons', '#tabStudents', '#tabCycles'].forEach((s) => { $(s).disabled = false; });
   // Результаты учеников пришли из облака — обновить открытый список
   window.addEventListener('ba:synced', () => {
     if (!$('#lessonsScreen').classList.contains('hidden')) renderLessons();
