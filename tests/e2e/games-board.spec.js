@@ -145,3 +145,64 @@ test('investigation: a half-filled accusation is not reset when another student 
   await expect(a.last()).toHaveAttribute('aria-pressed', 'true');
   await boardCtx.close();
 });
+
+test('a whole 30-minute lesson: every stage in order, then the lesson summary', async ({ browser }) => {
+  test.setTimeout(480_000);
+  const errors = [];
+  const watch = (page, who) => {
+    page.on('pageerror', (e) => errors.push(`${who}: ${e.message}`));
+    page.on('console', (m) => { if (m.type() === 'error' && !/ERR_TUNNEL|fonts\.g/.test(m.text())) errors.push(`${who} console: ${m.text()}`); });
+  };
+  const boardCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await boardCtx.addInitScript(() => localStorage.setItem('BA2_lang', '"ky"'));
+  const board = await boardCtx.newPage();
+  watch(board, 'board');
+  await board.goto(`/board.html?subject=math&topic=math-6-fractions&duration=30&signal=${SIG}`);
+  const stages = await board.locator('#planPreview li').count();
+  expect(stages).toBeGreaterThan(1);
+  await board.locator('#startLessonBtn').click();
+  await expect(board.locator('#roomCode')).toHaveText(/^[A-Z0-9]{4}$/, { timeout: 30_000 });
+  const code = await board.locator('#roomCode').textContent();
+  const phones = [];
+  for (const name of ['Айбек', 'Нурай', 'Бекзат']) {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 800 }, isMobile: true, hasTouch: true });
+    await ctx.addInitScript(() => localStorage.setItem('BA2_lang', '"ky"'));
+    const page = await ctx.newPage();
+    watch(page, name);
+    await page.goto(`/play.html?room=${code}&signal=${SIG}`);
+    await page.locator('#nameInput').fill(name);
+    await page.locator('#joinBtn').click();
+    await expect(page.locator('#gameScreen')).toBeVisible({ timeout: 30_000 });
+    phones.push(page);
+  }
+  await expect(board.locator('#playerCount')).toHaveText('3', { timeout: 20_000 });
+
+  const games = [];
+  for (let stage = 0; stage < stages; stage++) {
+    if (stage === 0) await board.locator('#startGameBtn').click();
+    const result = board.locator('#resultScreen');
+    await expect(board.locator('#gameScreen')).toBeVisible({ timeout: 15_000 });
+    for (let i = 0; i < 150 && !(await result.isVisible()); i++) {
+      for (const p of phones) await phoneAct(p);
+      if (i % 6 === 5) await board.locator('#skipBtn:visible').click({ timeout: 500 }).catch(() => {});
+      await board.waitForTimeout(400);
+    }
+    await expect(result).toBeVisible({ timeout: 20_000 });
+    games.push(await board.locator('#stages li.on').textContent().catch(() => ''));
+    const next = board.locator('#nextStageBtn:visible');
+    if (stage < stages - 1) {
+      await next.click(); // следующий этап начинается сразу, ученики остаются в комнате
+    }
+  }
+  // Последний этап → итог урока
+  await board.locator('#nextStageBtn').click();
+  await expect(board.locator('#summaryScreen')).toBeVisible({ timeout: 15_000 });
+  // Урок попал в отчёты: все этапы, все ученики
+  const lesson = await board.evaluate(() => JSON.parse(localStorage.getItem('BA2_lessons') || '[]').at(-1));
+  expect(lesson.stages.length).toBe(stages);
+  expect(Object.keys(lesson.students).length).toBe(3);
+  console.log('stages:', stages, games.join(' | '));
+  expect(errors).toEqual([]);
+  for (const p of phones) await p.context().close();
+  await boardCtx.close();
+});
