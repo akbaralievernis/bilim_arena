@@ -34,3 +34,36 @@
   .pr-section { break-inside: avoid; }
   #report { border: 0; box-shadow: none; padding: 0; }
 }
+
+/* «Боз үй класса» (reports.html → Цикл по теме) */
+.yurt-card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: center; }
+@media (max-width: 720px) { .yurt-card { grid-template-columns: 1fr; } }
+.yurt-svg { width: 100%; height: auto; display: block; }
+.yp-todo * { fill: none !important; stroke: #C9CFDB !important; stroke-width: 1.5 !important; stroke-dasharray: 4 4; opacity: 0.8; }
+.yp-done .y-wood line, .yp-done .y-wood path { fill: none; stroke: #B7793F; stroke-width: 3; stroke-linecap: round; }
+.yp-done .y-lattice line { stroke-width: 2.2; }
+.yp-done .y-frame { fill: none; stroke: #8A5A2B; stroke-width: 3; }
+.yp-done .y-felt { fill: #F3EBDD; stroke: #D8C7A8; stroke-width: 2; opacity: 0.94; }
+.yp-done .y-roof { fill: #EEE3CF; }
+.yp-done .y-crown { fill: #F7E7C8; stroke: #8A5A2B; stroke-width: 4; }
+.yp-done .y-crown-bars { fill: none; stroke: #8A5A2B; stroke-width: 3; stroke-linecap: round; }
+.yp-done .y-band { fill: var(--primary); }
+.yp-done .y-band-line { fill: none; stroke: var(--primary); stroke-width: 4; stroke-linecap: round; }
+.yp-done .y-orn-light path { fill: none; stroke: #fff; stroke-width: 1.2; stroke-linecap: round; }
+.yp-done .y-carpet { fill: var(--primary); opacity: 0.9; }
+.yp-done .y-orn path { fill: none; stroke: #FFD9A0; stroke-width: 1.4; stroke-linecap: round; }
+.yp-done .y-door { fill: #A0522D; stroke: #6E3B1E; stroke-width: 2; }
+.yp-done .y-door-orn { fill: none; stroke: #FFD9A0; stroke-width: 2; stroke-linecap: round; }
+@media (prefers-reduced-motion: no-preference) {
+  .yp-done { animation: yurt-part 0.7s var(--ease) both; animation-delay: calc(var(--k, 0) * 140ms); }
+}
+@keyframes yurt-part { from { opacity: 0; transform: translateY(-14px); } }
+.yurt-parts { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.yurt-parts li { display: flex; gap: 8px; align-items: baseline; font-size: 0.9375rem; }
+.yurt-parts .yurt-tick { flex: none; width: 1.2em; text-align: center; font-weight: 800; color: var(--ok-ink); }
+.yurt-parts .todo { color: var(--text-soft); }
+.yurt-full:fullscreen { background: #fff; display: grid; place-content: center; padding: 4vh 4vw; }
+.yurt-full:fullscreen .yurt-svg { width: min(90vw, 140vh); }
+.yurt-mini { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 16px; align-items: center; text-decoration: none; color: inherit; }
+.yurt-mini-art .yurt-svg { width: 160px; }
+@media (max-width: 480px) { .yurt-mini { grid-template-columns: 110px minmax(0, 1fr); } .yurt-mini-art .yurt-svg { width: 110px; } }

@@ -240,6 +240,24 @@ const stat = (value, label) => el('div', { class: 'stat' }, el('b', {}, String(v
 
 // ─── Запуск ───────────────────────────────────────────────────────────────────
 
+/** Маленькая юрта класса: сколько тем класс освоил по проверкам (подробно — в «Отчётах») */
+async function renderYurtMini() {
+  const [{ allCycles, cycleReport }, { classYurts, yurtSvg }] = await Promise.all([import('./core/cycles.js'), import('./core/yurt.js')]);
+  const cycles = await allCycles();
+  const box = $('#yurtMini');
+  box.classList.toggle('hidden', !cycles.length);
+  if (!cycles.length) return;
+  const groups = classYurts((await Promise.all(cycles.map((c) => cycleReport(c)))).filter(Boolean));
+  const best = groups.sort((a, b) => b.count - a.count)[0];
+  const title = t('yt_title', { cls: best.className || t('cy_all_students') });
+  box.replaceChildren(
+    el('div', { class: 'yurt-mini-art', html: yurtSvg(best.inCurrent, title) }),
+    el('div', {},
+      el('b', {}, title),
+      el('div', { class: 'small muted' }, t('yt_count', { n: best.count }), best.fullYurts ? ` · ${t('yt_full', { n: best.fullYurts })}` : ''),
+      el('span', { class: 'small', style: 'color:var(--primary-ink);font-weight:700' }, t('yt_open'))));
+}
+
 (async function init() {
   await bootstrap();
   await setRole('teacher');
@@ -251,7 +269,8 @@ const stat = (value, label) => el('div', { class: 'stat' }, el('b', {}, String(v
   renderLessonSetup();
   await renderClasses();
   await renderResults();
-  window.addEventListener('ba:synced', () => { renderClasses(); renderResults(); });
+  renderYurtMini();
+  window.addEventListener('ba:synced', () => { renderClasses(); renderResults(); renderYurtMini(); });
 
   $('#startBtn').addEventListener('click', startLesson);
   $('#addClassBtn').addEventListener('click', addClass);

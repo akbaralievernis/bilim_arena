@@ -12,8 +12,8 @@
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
   <link rel="stylesheet" href="./core/ui.css?v=19" />
-  <link rel="stylesheet" href="./home.css?v=19" />
-  <link rel="stylesheet" href="./reports.css?v=2" />
+  <link rel="stylesheet" href="./home.css?v=20" />
+  <link rel="stylesheet" href="./reports.css?v=3" />
 </head>
 
 <body>
@@ -73,6 +73,7 @@
     <!-- Учебные циклы: диагностика → обучение → итоговая проверка -->
     <section class="stack hidden" id="cyclesScreen">
       <p class="muted" data-i18n="cy_intro">Тема үчүн мөөнөт коюңуз: башында диагностика, аягында жаңы суроолор менен жыйынтыктоочу текшерүү. Отчет ар бир окуучунун алгачкы жана акыркы жыйынтыгын салыштырат.</p>
+      <div class="stack" id="yurtBox"></div>
       <div class="row no-print"><button class="btn primary" id="cycleNewBtn" type="button" data-i18n="cy_new">Жаңы цикл</button></div>
       <div class="stack" id="cycleList"></div>
     </section>
@@ -110,6 +111,6 @@
     </section>
   </main>
   <div id="toasts"></div>
-  <script type="module" src="./reports.js?v=6"></script>
+  <script type="module" src="./reports.js?v=7"></script>
 </body>
 </html>

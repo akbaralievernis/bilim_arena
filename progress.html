@@ -13,7 +13,7 @@
   <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="stylesheet" href="./core/ui.css?v=19" />
-  <link rel="stylesheet" href="./home.css?v=19" />
+  <link rel="stylesheet" href="./home.css?v=20" />
 </head>
 
 <body>
@@ -69,6 +69,13 @@
       </section>
 
       <!-- Карта знаний: только начатые предметы -->
+      <section class="card stack hidden tm-section" id="tundukSection" aria-labelledby="tundukTitle">
+        <h2 id="tundukTitle" class="section-title" data-i18n="tm_title">Билим түндүгү</h2>
+        <p class="small muted" data-i18n="tm_hint">Ар бир нур — бир тема. Тема текшерүүдөн өткөндө нур күйөт.</p>
+        <div id="tundukMap"></div>
+        <ul class="tm-legend" id="tundukLegend"></ul>
+      </section>
+
       <section class="card stack hidden" id="journeySection" aria-labelledby="journeyTitle">
         <h2 id="journeyTitle" data-i18n="jr_title">Менин темаларым</h2>
         <p class="small muted" data-i18n="jr_hint">Жыйынтык — текшерүүлөр боюнча гана. Машыгуу жана оюндар статусту өзгөртпөйт.</p>
@@ -89,6 +96,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./progress.js?v=16"></script>
+  <script type="module" src="./progress.js?v=17"></script>
 </body>
 </html>
