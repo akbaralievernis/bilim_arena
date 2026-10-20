@@ -163,6 +163,30 @@ create policy members_update on public.class_members for update to authenticated
 create policy members_delete on public.class_members for delete to authenticated
   using (user_id = auth.uid() or public.is_class_teacher(class_id));
 
+-- В своей записи ученик меняет только имя. Класс и пользователь записи
+-- задаются лишь через join_class(); политика выше старые значения не видит,
+-- поэтому без этого блока UPDATE мог перенести запись в чужой класс.
+-- 1) Права PostgreSQL: UPDATE только колонки name (Supabase по умолчанию
+--    выдаёт anon/authenticated права на всю таблицу — забираем их).
+revoke update on public.class_members from anon, authenticated;
+grant update (name) on public.class_members to authenticated;
+
+-- 2) Второй рубеж, если права на всю таблицу выдадут снова («grant all»):
+--    для ролей сайта class_id и user_id неизменяемы. Владелец базы,
+--    service_role и join_class() (security definer) не затронуты.
+create or replace function public.class_members_keep_keys()
+returns trigger language plpgsql set search_path = public as $$
+begin
+  if current_user in ('anon', 'authenticated')
+     and (new.class_id is distinct from old.class_id or new.user_id is distinct from old.user_id) then
+    raise exception 'class_members_keys_immutable' using errcode = '42501';
+  end if;
+  return new;
+end $$;
+drop trigger if exists class_members_keep_keys on public.class_members;
+create trigger class_members_keep_keys before update on public.class_members
+  for each row execute function public.class_members_keep_keys();
+
 -- assignments
 drop policy if exists assignments_select on public.assignments;
 drop policy if exists assignments_write on public.assignments;
