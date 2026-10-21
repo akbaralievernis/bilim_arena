@@ -13,18 +13,63 @@ import { icon } from './core/icons.js';
 import { cover, avatar } from './core/art.js';
 import { getProgress, history, migrateLegacy } from './core/progress.js';
 import { getProfile } from './core/profile.js';
-import { getTopic, getSubject } from './core/curriculum.js';
-import { gameCard, categoryCard, sortGames, metaLine } from './core/catalog.js';
+import { getTopic, getSubject, TOPICS } from './core/curriculum.js';
+import { gameCard, categoryCard, sortGames, metaLine, artImage } from './core/catalog.js';
+import { waveBand, countUp, parallax, particles, tilt } from './core/fx.js';
 import { GAMES, CATEGORIES, getGame, getCategory } from './data/games.js';
 
 function renderHero(profile) {
+  const lang = getLang();
   $('#heroKicker').textContent = profile.name ? t('home_hello', { name: profile.name }) : t('home_hello_guest');
   $('#heroGames').replaceChildren(icon('games', { size: 20 }), el('span', {}, t('home_see_games')));
   $('#heroProgress').replaceChildren(icon('progress', { size: 20 }), el('span', {}, t('nav_progress')));
 
-  // Иллюстрация: обложки трёх разделов, без постоянного движения
-  $('#heroArt').replaceChildren(...CATEGORIES.slice(0, 3).map((c, i) =>
-    el('div', { class: `hero-tile hero-tile-${i + 1}` }, cover(icon(c.art.icon, { size: 48 }), c.art.tone))));
+  // Акыркы эки сөз — градиент менен
+  const h1 = $('#heroTitle');
+  const words = h1.textContent.trim().split(/\s+/);
+  if (words.length > 2) {
+    const tail = words.splice(-2).join(' ');
+    h1.replaceChildren(document.createTextNode(words.join(' ') + ' '), el('span', { class: 'hx-grad' }, tail));
+  }
+
+  // Сандар: оюндар, темалар, тилдер
+  const stats = [[GAMES.length, t('home_stat_games'), 'games'], [TOPICS.length, t('home_stat_topics'), 'book'], [3, t('home_stat_langs'), 'language']];
+  $('#heroStats').replaceChildren(...stats.map(([n, label, ic]) => {
+    const b = el('b', {}, String(n));
+    countUp(b, n);
+    return el('li', {}, el('span', { class: 'hx-stat-ic' }, icon(ic, { size: 18 })), el('span', {}, b, el('small', {}, label)));
+  }));
+
+  // Сахна: үч оюндун сүрөтү калкып турат + белгилер
+  const pickIds = ['race', 'investigation', 'wordle'];
+  const cards = pickIds.map(getGame).filter(Boolean).map((g, i) =>
+    el('div', { class: `hx-card hx-card-${i + 1}` },
+      el('div', { class: 'hx-card-in' },
+        artImage('games', g.id, g.art, { eager: true }),
+        el('span', { class: 'hx-card-cap' }, pick(g.title, lang)))));
+  $('#heroArt').replaceChildren(
+    el('div', { class: 'hx-ring' }),
+    ...cards,
+    el('div', { class: 'hx-chip hx-chip-xp' }, icon('star', { size: 18 }), el('b', {}, '+50 XP')),
+    el('div', { class: 'hx-chip hx-chip-win' }, icon('trophy', { size: 18 }), el('b', {}, t('home_hero_win'))),
+    el('div', { class: 'hx-chip hx-chip-ok' }, icon('check', { size: 18 }), el('b', {}, t('home_hero_ok')))
+  );
+
+  particles($('#heroParticles'), 26);
+  $('#hero').append(waveBand('#F7F8FC', { height: 90 }));
+  parallax($('#hero'));
+}
+
+/** Бардык оюндардын сүрөттөрү чексиз лента болуп агат (чычкан келгенде токтойт) */
+function renderMarquee() {
+  const lang = getLang();
+  const row = (list, hidden) => el('div', { class: 'mq-row', ...(hidden ? { 'aria-hidden': 'true' } : {}) },
+    ...list.map((g) => el('a', { class: 'mq-item', href: g.href, ...(hidden ? { tabindex: '-1' } : {}) },
+      artImage('games', g.id, g.art), el('span', {}, pick(g.title, lang)))));
+  const half = Math.ceil(GAMES.length / 2);
+  const tracks = [GAMES.slice(0, half), GAMES.slice(half)].map((list, i) =>
+    el('div', { class: `mq-track ${i ? 'reverse' : ''}` }, row(list, false), row(list, true)));
+  $('#marquee').replaceChildren(...tracks);
 }
 
 function renderSearch() {
@@ -39,12 +84,12 @@ function renderSearch() {
 }
 
 function renderCategories() {
-  $('#catGrid').replaceChildren(...CATEGORIES.map((c) => categoryCard(c, GAMES.filter((g) => g.category === c.id).length)));
+  $('#catGrid').replaceChildren(...CATEGORIES.map((c, i) => categoryCard(c, GAMES.filter((g) => g.category === c.id).length, i)));
 }
 
 function renderPopular(plays) {
   $('#popAll').replaceChildren(el('span', {}, t('home_see_all')), icon('chevron', { size: 16 }));
-  $('#popularGrid').replaceChildren(...sortGames(GAMES, 'popular', plays).slice(0, 4).map((g) => gameCard(g)));
+  $('#popularGrid').replaceChildren(...sortGames(GAMES, 'popular', plays).slice(0, 4).map((g, i) => gameCard(g, { index: i })));
 }
 
 // ─── «Продолжить» ─────────────────────────────────────────────────────────────
@@ -85,7 +130,7 @@ async function renderContinue(pr) {
   if (!last) {
     card.classList.add('is-empty');
     card.replaceChildren(
-      el('div', { class: 'cont-art' }, cover(icon('play', { size: 48 }), 'violet')),
+      el('div', { class: 'cont-art' }, artImage('cat', 'languages', { icon: 'play', tone: 'violet' })),
       el('div', { class: 'cont-body' },
         el('h2', { id: 'contTitle' }, t('home_start_title')),
         el('p', { class: 'muted' }, t('home_start_text')),
@@ -97,7 +142,7 @@ async function renderContinue(pr) {
 
   const g = last.game;
   const title = g ? pick(g.title, lang) : last.title;
-  const art = g ? cover(icon(g.art.icon, { size: 48 }), g.art.tone) : cover(icon(last.art[0], { size: 48 }), last.art[1]);
+  const art = g ? artImage('games', g.id, g.art) : cover(icon(last.art[0], { size: 48 }), last.art[1]);
   card.classList.remove('is-empty');
   card.replaceChildren(
     el('h2', { id: 'contTitle' }, t('home_continue_title')),
@@ -181,12 +226,12 @@ function renderProgress(profile, pr) {
 }
 
 function renderRace() {
-  $('#raceHomeArt').replaceChildren(cover(icon('flag', { size: 48 }), 'violet'));
+  $('#raceHomeArt').replaceChildren(artImage('games', 'race', { icon: 'flag', tone: 'violet' }));
   $('#raceHomeBtn').replaceChildren(icon('flag', { size: 18 }), el('span', {}, t('home_race_cta')));
 }
 
 function renderTeacher() {
-  $('#teacherArt').replaceChildren(cover(icon('teacher', { size: 48 }), 'teal'));
+  $('#teacherArt').replaceChildren(artImage('games', 'quickvote', { icon: 'teacher', tone: 'teal' }));
   $('#teacherBtn').replaceChildren(icon('teacher', { size: 18 }), el('span', {}, t('home_teacher_cta')));
 }
 
@@ -208,6 +253,8 @@ function renderFooter() {
   renderSearch();
   renderCategories();
   renderPopular(plays);
+  renderMarquee();
+  document.querySelectorAll('.game-card, .cat-card, .teacher-card').forEach((c) => tilt(c, 5));
   renderTasks(profile).catch((e) => console.warn('[tasks]', e));
   await renderContinue(pr);
   renderProgress(profile, pr);

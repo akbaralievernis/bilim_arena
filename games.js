@@ -13,7 +13,8 @@ import { t, pick, getLang } from './core/i18n.js';
 import { icon } from './core/icons.js';
 import { cover } from './core/art.js';
 import { getProgress } from './core/progress.js';
-import { gameCard, matches, sortGames } from './core/catalog.js';
+import { gameCard, matches, sortGames, artImage } from './core/catalog.js';
+import { waveBand } from './core/fx.js';
 import {
   GAMES, CATEGORIES, SUBJECT_FILTERS, TYPES, DIFFICULTY, PLAYER_RANGES, DEVICES, fitsPlayers, getCategory
 } from './data/games.js';
@@ -67,6 +68,10 @@ function renderHead() {
   $('#pageDesc').textContent = cat ? pick(cat.desc, lang) : t('cat_all_desc');
   document.title = `${$('#pageTitle').textContent} — ${t('app_name')}`;
 
+  // Баннердеги үч сүрөт — тандалган бөлүмдүн эң популярдуу оюндары
+  const top = sortGames(GAMES.filter((g) => !state.cat || g.category === state.cat), 'popular', state.plays).slice(0, 3);
+  $('#bannerArt').replaceChildren(...top.map((g) => artImage('games', g.id, g.art, { eager: true })));
+
   const tabs = [{ id: '', art: { icon: 'grid' } }, ...CATEGORIES];
   $('#catTabs').replaceChildren(...tabs.map((c) => el('a', {
     class: 'cat-tab', href: c.id ? `?category=${c.id}` : '?',
@@ -112,7 +117,7 @@ const activeFilterCount = () => Object.keys(state.filters).length;
 function renderResults() {
   const list = sortGames(filtered(), state.sort, state.plays);
   $('#resultCount').textContent = t('games_n', { n: list.length });
-  $('#gameGrid').replaceChildren(...list.map((g) => gameCard(g)));
+  $('#gameGrid').replaceChildren(...list.map((g, i) => gameCard(g, { index: i })));
   $('#gameGrid').classList.toggle('hidden', !list.length);
   $('#emptyState').classList.toggle('hidden', list.length > 0);
 
@@ -193,6 +198,7 @@ function trapFocus(e) {
 
   try { state.plays = (await getProgress()).games || {}; } catch { state.plays = {}; }
 
+  $('#pageBanner').append(waveBand('#F5F6FB', { height: 46 }));
   readUrl();
   render();
 

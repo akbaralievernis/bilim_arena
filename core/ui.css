@@ -72,9 +72,6 @@
   --dur: 0.25s;
   --header-h: 68px;            /* высота шапки: якоря не прячутся под неё */
 
-  /* Орнамент «кочкор мүйүз» (бараньи рога) — узор с кыргызских шырдаков. Свой знак сайта:
-     полоса под заголовками, угол приветствия, разделители. Цвет задаётся маской (background-color). */
-  --ornament: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='16' viewBox='0 0 48 16'%3E%3Cpath d='M24 15v-3c0-4-2-7-6-7.5S11 7 12.5 10s5 2.5 5.5 0-1.5-3-3-1.5M24 12c0-4 2-7 6-7.5S37 7 35.5 10s-5 2.5-5.5 0 1.5-3 3-1.5' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -996,32 +993,216 @@ body { overscroll-behavior-y: none; }
 }
 @keyframes ba-rise { from { transform: translateY(18px) scale(0.985); } to { transform: none; } }
 
-/* ═══ Характер сайта: орнамент «кочкор мүйүз» ═════════════════════════════════ */
-.ornament {
-  display: block; height: 16px; width: 144px; margin: 6px 0 14px;
-  background-color: var(--primary);
-  -webkit-mask: var(--ornament) repeat-x left center / 48px 16px;
-  mask: var(--ornament) repeat-x left center / 48px 16px;
-}
-/* Заголовок страницы с короткой полосой орнамента */
-main h1:not(.center):not(.profile-name):not(#heroTitle)::after {
-  content: ''; display: block; height: 14px; width: 126px; margin-top: 8px;
-  background-color: var(--primary);
-  -webkit-mask: var(--ornament) repeat-x left center / 42px 14px;
-  mask: var(--ornament) repeat-x left center / 42px 14px;
-}
-main .row h1:not(.center)::after, main .row.between h1::after { margin-bottom: 0; }
-body.board-mode main h1::after { display: none; }
-@media print { main h1::after { display: none !important; } }
 
-/* Пустое состояние: спокойнее и понятнее, с узором */
-.card.center.muted {
-  position: relative; padding-top: 44px; overflow: hidden;
-  background: linear-gradient(180deg, var(--surface-2), var(--surface) 70%);
+/* ═══════════════════════════════════════════════════════════════════════════
+   Bilim Arena 2.0 — жаңы көрүнүш (StudExpo)
+   Толкундар фондо, градиенттер, «тирүү» карточкалар, жумшак анимациялар.
+   Бардык кыймыл prefers-reduced-motion менен өчөт.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --font-title: 'Montserrat', var(--font);
+  --radius: 22px;
+  --radius-lg: 30px;
+  --grad: linear-gradient(120deg, #E0162B 0%, #FF3D57 45%, #FF7A59 100%);
+  --grad-cool: linear-gradient(120deg, #0FA595 0%, #2F74E0 100%);
+  --grad-night: linear-gradient(135deg, #0B1026 0%, #1B1446 55%, #3A0D2E 100%);
+  --glow: 0 12px 28px -10px rgba(224, 22, 43, 0.65);
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 10px 30px -10px rgba(32, 43, 70, 0.14);
+  --shadow-lg: 0 2px 6px rgba(16, 24, 40, 0.05), 0 28px 56px -16px rgba(32, 43, 70, 0.28);
+  --border: rgba(32, 43, 70, 0.07);
 }
-.card.center.muted::before {
-  content: ''; position: absolute; left: 50%; top: 14px; width: 48px; height: 16px; transform: translateX(-50%);
-  background-color: var(--line-strong);
-  -webkit-mask: var(--ornament) no-repeat center / 48px 16px;
-  mask: var(--ornament) no-repeat center / 48px 16px;
+body:not(.board-mode) { background: linear-gradient(180deg, #F7F8FC 0%, #F3F4FB 100%); }
+h1, h2, h3, .title { letter-spacing: -0.025em; }
+
+/* ─── Фон: пятна + толкундар ─────────────────────────────────────────────── */
+.bg-fx { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.bg-blob { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.55; }
+.bg-blob.b1 { width: 46vmax; height: 46vmax; left: -14vmax; top: -18vmax; background: radial-gradient(circle, rgba(255, 71, 87, 0.28), transparent 65%); }
+.bg-blob.b2 { width: 40vmax; height: 40vmax; right: -12vmax; top: 18vh; background: radial-gradient(circle, rgba(33, 184, 166, 0.22), transparent 65%); }
+.bg-blob.b3 { width: 36vmax; height: 36vmax; left: 30vw; bottom: -16vmax; background: radial-gradient(circle, rgba(255, 181, 71, 0.22), transparent 65%); }
+.bg-waves { position: absolute; left: 0; right: 0; bottom: 0; height: 240px; }
+.bg-waves .w { position: absolute; inset: 0; background-repeat: repeat-x; background-position: 0 bottom; background-size: 1440px 100%; }
+.bg-waves .w1 { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 240' preserveAspectRatio='none'%3E%3Cpath d='M0 120 C240 60 480 60 720 120 S1200 180 1440 120 V240 H0Z' fill='%23E0162B' fill-opacity='.06'/%3E%3C/svg%3E"); }
+.bg-waves .w2 { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 240' preserveAspectRatio='none'%3E%3Cpath d='M0 160 C360 100 540 210 720 160 S1080 100 1440 160 V240 H0Z' fill='%2321B8A6' fill-opacity='.08'/%3E%3C/svg%3E"); background-size: 1100px 100%; }
+.bg-waves .w3 { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 240' preserveAspectRatio='none'%3E%3Cpath d='M0 200 C240 170 480 230 720 200 S1200 170 1440 200 V240 H0Z' fill='%233B6CF6' fill-opacity='.06'/%3E%3C/svg%3E"); background-size: 900px 100%; }
+@media (prefers-reduced-motion: no-preference) {
+  .bg-blob.b1 { animation: blob-drift 22s ease-in-out infinite alternate; }
+  .bg-blob.b2 { animation: blob-drift 28s ease-in-out -6s infinite alternate-reverse; }
+  .bg-blob.b3 { animation: blob-drift 25s ease-in-out -12s infinite alternate; }
+  .bg-waves .w1 { animation: wave-x 26s linear infinite; }
+  .bg-waves .w2 { animation: wave-x2 19s linear infinite reverse; }
+  .bg-waves .w3 { animation: wave-x3 33s linear infinite; }
 }
+@keyframes blob-drift { to { transform: translate(6vw, 5vh) scale(1.12); } }
+@keyframes wave-x { to { background-position-x: 1440px; } }
+@keyframes wave-x2 { to { background-position-x: 1100px; } }
+@keyframes wave-x3 { to { background-position-x: 900px; } }
+
+/* ─── Шапка: айнек эффект ────────────────────────────────────────────────── */
+.topbar {
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: saturate(180%) blur(18px); backdrop-filter: saturate(180%) blur(18px);
+  border-bottom: 1px solid rgba(32, 43, 70, 0.06);
+}
+.brand .logo { transition: transform 0.5s var(--ease); }
+.brand:hover .logo { transform: rotate(-8deg) scale(1.08); }
+.nav a { border-radius: 999px; }
+.nav a[aria-current='page'], .nav a.active { background: var(--grad); color: #fff; box-shadow: var(--glow); }
+.nav a[aria-current='page'] .icon, .nav a.active .icon { color: #fff; }
+.tabbar { background: rgba(255, 255, 255, 0.86); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+
+/* ─── Баскычтар ──────────────────────────────────────────────────────────── */
+.btn { border-radius: 14px; }
+.btn.primary { background: var(--grad); background-size: 160% 100%; background-position: 0 0; box-shadow: var(--glow); position: relative; overflow: hidden; isolation: isolate; }
+.btn.primary::after {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+  transform: translateX(-120%); transition: transform 0.7s var(--ease);
+}
+.btn.soft:hover { background: #FBDADF; }
+@media (hover: hover) {
+  .btn.primary:hover { background: var(--grad); background-size: 160% 100%; background-position: 100% 0; transform: translateY(-2px); box-shadow: 0 16px 32px -10px rgba(224, 22, 43, 0.7); }
+  .btn.primary:hover::after { transform: translateX(120%); }
+  .btn:not(.primary):hover { transform: translateY(-1px); }
+}
+.btn.primary:active { transform: scale(0.97); }
+
+/* ─── Карточкалар ────────────────────────────────────────────────────────── */
+.card { border-radius: var(--radius); }
+@media (hover: hover) {
+  .card-link:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: rgba(224, 22, 43, 0.18); }
+}
+.art-img { display: block; width: 100%; height: 100%; object-fit: cover; user-select: none; }
+
+/* Оюн карточкасы */
+.game-grid { gap: 22px; }
+.game-card { position: relative; padding: 10px; gap: 12px; overflow: hidden; }
+.game-card::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none;
+  background: linear-gradient(135deg, rgba(224, 22, 43, 0.55), rgba(255, 181, 71, 0.4), rgba(33, 184, 166, 0.5));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  opacity: 0; transition: opacity 0.35s;
+}
+.gc-art { position: relative; border-radius: 16px; isolation: isolate; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15); }
+.gc-art .art-img, .cat-art .art-img { transition: transform 0.8s var(--ease); }
+.gc-art::after, .cat-art::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.5) 50%, transparent 65%);
+  transform: translateX(-130%); transition: transform 0.9s var(--ease);
+}
+.gc-badge {
+  position: absolute; top: 10px; right: 10px; z-index: 1;
+  display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px;
+  background: rgba(15, 20, 40, 0.5); color: #fff; font-size: 0.8125rem; font-weight: 700;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.gc-badge-teacher { right: auto; left: 10px; padding: 6px; }
+.gc-cat {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 2px;
+  padding: 3px 10px; border-radius: 999px; background: var(--primary-soft); font-size: 0.8125rem; font-weight: 700;
+}
+.tone-teal .gc-cat { background: var(--secondary-soft); color: var(--secondary-ink); }
+.tone-amber .gc-cat { background: var(--reward-soft); color: var(--reward-ink); }
+.tone-sky .gc-cat { background: #E6F0FF; color: #1F4FA8; }
+.tone-ink .gc-cat { background: #E8EAF3; color: #202B46; }
+.tone-rose .gc-cat { background: #FDE7EE; color: #A3214A; }
+.gc-cat .gc-teacher { color: inherit; opacity: 0.8; }
+.gc-title { font-family: var(--font-title); font-size: 1.15rem; }
+.gc-play { border-radius: 12px; }
+@media (hover: hover) {
+  .game-card:hover::before, .cat-card:hover::before { opacity: 1; }
+  .game-card:hover .art-img, .cat-card:hover .art-img { transform: scale(1.08); }
+  .game-card:hover .gc-art::after, .cat-card:hover .cat-art::after { transform: translateX(130%); }
+  .game-card:hover .gc-play { background-position: 100% 0; }
+  .game-card .gc-art .art-cover { transition: none; }
+}
+
+/* Категория карточкасы: сүрөт бүт карточканы ээлейт, жазуу үстүндө */
+.cat-grid { gap: 22px; }
+.cat-card { position: relative; padding: 0; overflow: hidden; min-height: 250px; gap: 0; border: 0; color: #fff; }
+.cat-card .cat-art { position: absolute; inset: 0; aspect-ratio: auto; border-radius: 0; }
+.cat-card .cat-art::before {
+  content: ''; position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(180deg, transparent 30%, rgba(10, 14, 32, 0.25) 55%, rgba(10, 14, 32, 0.82) 100%);
+}
+.cat-card .cat-art::after { z-index: 2; }
+.cat-card .cat-body { position: relative; z-index: 3; margin-top: auto; padding: 18px 18px 16px; gap: 2px; }
+.cat-card h3 { color: #fff; font-family: var(--font-title); font-size: 1.35rem; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3); }
+.cat-card p.small { color: rgba(255, 255, 255, 0.86); flex: 0; }
+.cat-card .cat-count {
+  align-self: flex-start; margin-top: 10px; padding: 6px 12px; border-radius: 999px; color: #fff;
+  background: rgba(255, 255, 255, 0.18); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.cat-card .cat-count .icon { transition: transform 0.3s var(--ease); }
+.cat-card:hover .cat-count .icon { transform: translateX(4px); }
+.cat-card:focus-visible { outline-offset: 4px; }
+@media (max-width: 599px) {
+  .cat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .cat-card { flex-direction: column; align-items: stretch; min-height: 190px; }
+  .cat-card .cat-art { width: auto; aspect-ratio: auto; border-radius: 0; }
+  .cat-card .cat-body { padding: 12px; }
+  .cat-card h3 { font-size: 1.05rem; }
+  .cat-card p.small { display: none; }
+  .cat-card .cat-count { margin-top: 6px; font-size: 0.8rem; padding: 4px 10px; }
+}
+
+/* Карточкалар бирден-бирден «чыгат» */
+@media (prefers-reduced-motion: no-preference) {
+  .game-card, .cat-card { animation: card-in 0.7s var(--ease) backwards; animation-delay: calc(min(var(--i, 0), 12) * 70ms); }
+}
+@keyframes card-in { from { opacity: 0; transform: translateY(26px) scale(0.97); } }
+
+/* Скролл менен пайда болуу (браузер колдосо) */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal { animation: reveal-up linear both; animation-timeline: view(); animation-range: entry 0% cover 22%; }
+  }
+}
+@keyframes reveal-up { from { opacity: 0; transform: translateY(48px) scale(0.98); } }
+
+/* ─── Каталог ────────────────────────────────────────────────────────────── */
+.cat-tab { border-radius: 999px; background: rgba(255, 255, 255, 0.8); }
+.cat-tab[aria-current='page'] { background: var(--grad); border-color: transparent; box-shadow: var(--glow); }
+.filter-panel { background: rgba(255, 255, 255, 0.85); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.pill-option span { border-radius: 999px; }
+.pill-option input:checked + span { background: var(--grad); border-color: transparent; color: #fff; }
+
+/* Баннер барактын башында (каталог) */
+.page-banner {
+  position: relative; overflow: hidden; isolation: isolate;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 24px;
+  padding: clamp(22px, 4vw, 40px); padding-bottom: clamp(44px, 6vw, 64px);
+  margin-bottom: 22px; border-radius: var(--radius-lg); color: #fff; background: var(--grad-night);
+  box-shadow: var(--shadow-lg);
+}
+.page-banner h1 { color: #fff; font-size: clamp(1.7rem, 4.4vw, 2.6rem); }
+.page-banner p { color: rgba(255, 255, 255, 0.82); margin: 0; }
+.page-banner .pb-glow { position: absolute; z-index: -1; border-radius: 50%; filter: blur(50px); }
+.page-banner .pb-glow.g1 { width: 340px; height: 340px; left: -80px; top: -140px; background: rgba(224, 22, 43, 0.6); }
+.page-banner .pb-glow.g2 { width: 300px; height: 300px; right: 10%; bottom: -160px; background: rgba(33, 184, 166, 0.5); }
+.pb-stack { position: relative; width: 300px; height: 150px; }
+.pb-stack .art-img, .pb-stack .art-cover { position: absolute; width: 180px; height: 101px; border-radius: 14px; box-shadow: 0 18px 30px -12px rgba(0, 0, 0, 0.5); border: 3px solid rgba(255, 255, 255, 0.9); }
+.pb-stack > :nth-child(1) { left: 0; top: 30px; transform: rotate(-8deg); }
+.pb-stack > :nth-child(2) { right: 0; top: 0; transform: rotate(7deg); }
+.pb-stack > :nth-child(3) { left: 60px; top: 48px; z-index: 2; }
+@media (prefers-reduced-motion: no-preference) {
+  .pb-stack > * { animation: float-y 6s ease-in-out infinite; }
+  .pb-stack > :nth-child(2) { animation-delay: -2s; }
+  .pb-stack > :nth-child(3) { animation-delay: -4s; }
+}
+@media (max-width: 760px) { .page-banner { grid-template-columns: 1fr; } .pb-stack { display: none; } }
+@keyframes float-y { 50% { translate: 0 -10px; } }
+
+/* Толкун SVG (баннер жана hero ылдыйында) */
+.wave-band { position: absolute; left: 0; right: 0; bottom: -1px; height: 70px; z-index: -1; pointer-events: none; }
+.wave-band svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.wave-band path { will-change: transform; }
+@media (prefers-reduced-motion: no-preference) {
+  .wave-band .wv1 { animation: wave-path 14s linear infinite; }
+  .wave-band .wv2 { animation: wave-path 9s linear infinite reverse; }
+  .wave-band .wv3 { animation: wave-path 20s linear infinite; }
+}
+@keyframes wave-path { to { transform: translateX(-720px); } }
+.cat-card .cat-body { flex: 0 0 auto; }
+@media (min-width: 1024px) { .filter-head .drawer-close { display: none; } }

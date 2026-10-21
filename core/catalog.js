@@ -11,6 +11,22 @@ import { icon } from './icons.js';
 import { cover } from './art.js';
 import { CATEGORIES, DIFFICULTY, playersLabel, getCategory } from '../data/games.js';
 
+/** Папка с иллюстрациями (assets/art) — путь считается от этого файла, работает с любой страницы */
+const ART_BASE = new URL('../assets/art/', import.meta.url).href;
+
+/**
+ * Иллюстрация игры или категории: своя SVG-картинка из assets/art,
+ * а если её нет (новая игра) — прежняя обложка-градиент с иконкой.
+ */
+export function artImage(kind, id, art = {}, { eager = false } = {}) {
+  const img = el('img', {
+    class: 'art-img', src: `${ART_BASE}${kind}/${id}.svg`, alt: '', width: '640', height: '360',
+    decoding: 'async', loading: eager ? 'eager' : 'lazy', draggable: 'false'
+  });
+  img.addEventListener('error', () => img.replaceWith(cover(icon(art.icon || 'games', { size: 48 }), art.tone)), { once: true });
+  return img;
+}
+
 /** Игра идёт на доске с классом — ученик сам её не запустит */
 export const needsTeacher = (g) => g.devices.includes('board') && !g.devices.includes('computer');
 
@@ -53,15 +69,19 @@ export function metaLine(g) {
  * Карточка игры: обложка 16:9, категория, название (до 2 строк),
  * описание (до 3 строк), «сложность · игроки · время», кнопка «Ойноо».
  */
-export function gameCard(g, { headingLevel = 3 } = {}) {
+export function gameCard(g, { headingLevel = 3, index = 0 } = {}) {
   const lang = getLang();
   const cat = getCategory(g.category);
   const title = pick(g.title, lang);
   const H = `h${headingLevel}`;
   const teacher = needsTeacher(g);
 
-  return el('a', { class: 'game-card card card-link', href: g.href, dataset: { game: g.id } },
-    el('div', { class: 'gc-art' }, cover(icon(g.art.icon, { size: 48 }), g.art.tone)),
+  return el('a', { class: `game-card card card-link tone-${g.art.tone}`, href: g.href, dataset: { game: g.id }, style: `--i:${index}` },
+    el('div', { class: 'gc-art' },
+      artImage('games', g.id, g.art),
+      el('span', { class: 'gc-badge', 'aria-hidden': 'true' }, icon('clock', { size: 14 }), t('minutes_n', { n: g.minutes })),
+      teacher ? el('span', { class: 'gc-badge gc-badge-teacher', 'aria-hidden': 'true' }, icon('teacher', { size: 14 })) : null
+    ),
     el('div', { class: 'gc-body' },
       el('span', { class: 'gc-cat' }, pick(cat?.title, lang), teacher ? el('span', { class: 'gc-teacher' }, ` · ${t('with_teacher_short')}`) : null),
       el(H, { class: 'gc-title' }, title),
@@ -73,13 +93,13 @@ export function gameCard(g, { headingLevel = 3 } = {}) {
 }
 
 /** Карточка категории: иллюстрация, название, подпись, число игр */
-export function categoryCard(cat, count) {
+export function categoryCard(cat, count, index = 0) {
   const lang = getLang();
-  return el('a', { class: 'cat-card card card-link', href: `./games.html?category=${cat.id}` },
-    el('div', { class: 'cat-art' }, cover(icon(cat.art.icon, { size: 48 }), cat.art.tone)),
+  return el('a', { class: `cat-card card card-link tone-${cat.art.tone}`, href: `./games.html?category=${cat.id}`, style: `--i:${index}` },
+    el('div', { class: 'cat-art' }, artImage('cat', cat.id, cat.art)),
     el('div', { class: 'cat-body' },
       el('h3', {}, pick(cat.title, lang)),
-      el('p', { class: 'small muted' }, pick(cat.desc, lang)),
+      el('p', { class: 'small' }, pick(cat.desc, lang)),
       el('span', { class: 'cat-count' }, t('games_n', { n: count }), icon('chevron', { size: 16 }))
     )
   );

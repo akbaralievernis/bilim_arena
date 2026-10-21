@@ -147,9 +147,21 @@ async function updateTaskBadge(profile) {
  * Телефон: логотип слева, профиль справа, меню из четырёх пунктов внизу экрана.
  * @param {object} opts { role:'student'|'teacher', active:'index.html' }
  */
+/**
+ * Фон страницы: мягкие цветные пятна и толкундар (волны) внизу экрана.
+ * Только украшение: aria-hidden, не ловит клики, на доске не показывается.
+ */
+export function mountBackdrop() {
+  if (document.body.classList.contains('board-mode') || document.querySelector('.bg-fx')) return;
+  document.body.append(el('div', { class: 'bg-fx', 'aria-hidden': 'true' },
+    el('i', { class: 'bg-blob b1' }), el('i', { class: 'bg-blob b2' }), el('i', { class: 'bg-blob b3' }),
+    el('div', { class: 'bg-waves' }, el('i', { class: 'w w1' }), el('i', { class: 'w w2' }), el('i', { class: 'w w3' }))));
+}
+
 export function mountHeader(target, { role = 'student', active = '' } = {}) {
   const teacher = role === 'teacher';
   const items = teacher ? TEACHER_NAV : STUDENT_NAV;
+  mountBackdrop();
 
   const nav = el('nav', { class: 'nav', 'aria-label': t('nav_main') }, items.map((it) => navLink(it, active)));
 
