@@ -91,11 +91,12 @@ test('a whole game from the first night to the final screen, without page errors
     for (const p of players) {
       const card = p.page.locator('.player-card.can-select:not(.dead)');
       if (await card.count()) {
-        await card.last().click().catch(() => {});
+        await card.last().click({ timeout: 2000 }).catch(() => {});
         await p.page.locator('.confirm-bar button').click({ timeout: 1000 }).catch(() => {});
       }
     }
-    seen.add(await host.page.locator('.host-view-head h3').textContent().catch(() => ''));
+    // Ограничение по времени: в части фаз заголовка нет, и без него тест ждал бы до конца лимита
+    seen.add(await host.page.locator('.host-view-head h3').textContent({ timeout: 1000 }).catch(() => ''));
     // Ведущий двигает игру дальше
     await host.page.locator('.host-advance').click({ timeout: 1000 }).catch(() => {});
     await host.page.waitForTimeout(600);

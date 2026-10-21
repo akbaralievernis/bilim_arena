@@ -12,8 +12,8 @@
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
   <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="stylesheet" href="./core/ui.css?v=19" />
-  <link rel="stylesheet" href="./home.css?v=17" />
+  <link rel="stylesheet" href="./core/ui.css?v=21" />
+  <link rel="stylesheet" href="./home.css?v=19" />
 </head>
 
 <body>
@@ -21,9 +21,13 @@
   <div id="header"></div>
 
   <main id="main" class="wrap page catalog-page">
-    <header class="page-head">
-      <h1 id="pageTitle" data-i18n="cat_all_games">Бардык оюндар</h1>
-      <p class="muted" id="pageDesc" data-i18n="cat_all_desc">Өзүңө жаккан оюнду танда.</p>
+    <header class="page-banner" id="pageBanner">
+      <span class="pb-glow g1" aria-hidden="true"></span><span class="pb-glow g2" aria-hidden="true"></span>
+      <div>
+        <h1 id="pageTitle" data-i18n="cat_all_games">Бардык оюндар</h1>
+        <p id="pageDesc" data-i18n="cat_all_desc">Өзүңө жаккан оюнду танда.</p>
+      </div>
+      <div class="pb-stack" id="bannerArt" aria-hidden="true"></div>
     </header>
 
     <!-- Поиск, сортировка, кнопка фильтров -->
@@ -70,6 +74,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./games.js?v=15"></script>
+  <script type="module" src="./games.js?v=17"></script>
 </body>
 </html>

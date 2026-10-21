@@ -147,9 +147,21 @@ async function updateTaskBadge(profile) {
  * Телефон: логотип слева, профиль справа, меню из четырёх пунктов внизу экрана.
  * @param {object} opts { role:'student'|'teacher', active:'index.html' }
  */
+/**
+ * Фон страницы: мягкие цветные пятна и толкундар (волны) внизу экрана.
+ * Только украшение: aria-hidden, не ловит клики, на доске не показывается.
+ */
+export function mountBackdrop() {
+  if (document.body.classList.contains('board-mode') || document.querySelector('.bg-fx')) return;
+  document.body.append(el('div', { class: 'bg-fx', 'aria-hidden': 'true' },
+    el('i', { class: 'bg-blob b1' }), el('i', { class: 'bg-blob b2' }), el('i', { class: 'bg-blob b3' }),
+    el('div', { class: 'bg-waves' }, el('i', { class: 'w w1' }), el('i', { class: 'w w2' }), el('i', { class: 'w w3' }))));
+}
+
 export function mountHeader(target, { role = 'student', active = '' } = {}) {
   const teacher = role === 'teacher';
   const items = teacher ? TEACHER_NAV : STUDENT_NAV;
+  mountBackdrop();
 
   const nav = el('nav', { class: 'nav', 'aria-label': t('nav_main') }, items.map((it) => navLink(it, active)));
 
@@ -201,7 +213,43 @@ export function mountHeader(target, { role = 'student', active = '' } = {}) {
   document.body.append(tabbar);
   document.body.classList.add('has-tabbar');
   document.body.classList.toggle('teacher-mode', teacher);
+  watchScroll(header);
   return header;
+}
+
+/**
+ * Прокрутка: тень у шапки, когда страница сдвинута, и кнопка «Наверх» на длинных страницах.
+ * Выбранный чип в ряду, который на телефоне прокручивается вбок, сам оказывается на виду.
+ */
+function watchScroll(header) {
+  const toTop = el('button', { class: 'to-top', type: 'button', 'aria-label': t('to_top'), title: t('to_top'), tabindex: '-1',
+    onclick: () => { window.scrollTo({ top: 0 }); header.querySelector('a, button')?.focus({ preventScroll: true }); } }, icon('up', { size: 22 }));
+  document.body.append(toTop);
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const y = window.scrollY;
+    header.classList.toggle('scrolled', y > 4);
+    const show = y > window.innerHeight * 1.5;
+    toTop.classList.toggle('show', show);
+    toTop.tabIndex = show ? 0 : -1;
+  };
+  window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+  update();
+  // Ряды-прокрутки: после перерисовки показать выбранный чип (а не оставить его за краем экрана)
+  const reveal = (row) => {
+    const on = row.querySelector('[aria-pressed="true"], .on');
+    if (!on || row.scrollWidth <= row.clientWidth) return;
+    const left = on.getBoundingClientRect().left - row.getBoundingClientRect().left + row.scrollLeft;
+    // По центру; широкий чип — от начала, чтобы надпись не обрезалась
+    row.scrollTo({ left: Math.max(0, Math.min(left - 16, left - (row.clientWidth - on.offsetWidth) / 2)), behavior: 'instant' });
+  };
+  const rows = () => document.querySelectorAll('.scroll-x, .row.tabs');
+  const mo = new MutationObserver((list) => list.forEach((m) => {
+    const row = m.target.closest?.('.scroll-x, .row.tabs');
+    if (row) reveal(row);
+  }));
+  rows().forEach((r) => { mo.observe(r, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-pressed', 'class'] }); reveal(r); });
 }
 
 /**

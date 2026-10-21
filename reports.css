@@ -1,6 +1,6 @@
 /* Отчёты учителя (reports.html) */
 .rep-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; width: 100%; text-align: left; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: inherit; font: inherit; cursor: pointer; }
-.rep-row:hover { border-color: #CDD2E4; }
+.rep-row:hover { border-color: var(--line-strong); }
 .rep-row b { overflow-wrap: anywhere; }
 .rep-row .rep-sub { grid-column: 1 / -1; }
 .rep-pct { font-weight: 800; font-variant-numeric: tabular-nums; }
