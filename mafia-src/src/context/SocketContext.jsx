@@ -180,7 +180,7 @@ export const SocketProvider = ({ children }) => {
 
       const humanCount = room.players.filter((p) => !p.isHost).length;
       if (humanCount < MIN_PLAYERS) {
-        room.players.push(...AIBot.generateBots(humanCount, MIN_PLAYERS));
+        room.players.push(...AIBot.generateBots(humanCount, MIN_PLAYERS, room.players.map((p) => p.name)));
       }
 
       pushRoomUpdate();

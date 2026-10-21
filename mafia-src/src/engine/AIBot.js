@@ -1,9 +1,15 @@
 class AIBot {
-  static generateBots(currentCount, minRequired = 4) {
+  /**
+   * @param {string[]} takenNames имена, которые уже есть в комнате: бот не должен совпасть с живым игроком
+   *   (в классе почти всегда есть Айбек или Нурай — иначе в игре появлялись два одинаковых имени)
+   */
+  static generateBots(currentCount, minRequired = 4, takenNames = []) {
     // Имена не повторяются: иначе двух «Алекс (Бот)» невозможно различить
     // Что это бот, видно по значку рядом с именем (player.isBot)
+    const key = (n) => String(n).trim().toLowerCase();
+    const taken = new Set(takenNames.map(key));
     const names = ['Айбек', 'Айпери', 'Бекзат', 'Нурай', 'Эрлан', 'Жамиля', 'Т-800', 'HAL 9000'];
-    const pool = names.slice();
+    const pool = names.filter((n) => !taken.has(key(n)));
     for (let i = pool.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [pool[i], pool[j]] = [pool[j], pool[i]];
@@ -11,10 +17,15 @@ class AIBot {
 
     const needed = Math.max(0, minRequired - currentCount);
     const bots = [];
+    let spare = 1;
+    const nextSpare = () => {
+      while (taken.has(key(`Bot ${spare}`))) spare++;
+      return `Bot ${spare++}`;
+    };
     for (let i = 0; i < needed; i++) {
       bots.push({
         id: `bot_${Date.now()}_${i}`,
-        name: pool[i] || `Bot ${i + 1}`,
+        name: pool[i] || nextSpare(),
         isBot: true,
         avatar: null
       });
