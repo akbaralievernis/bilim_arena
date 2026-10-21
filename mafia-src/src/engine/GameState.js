@@ -93,8 +93,9 @@ class GameState {
     const isGameEnded = this.phase === 'end';
     const myRole = this.roles[playerId];
     const isMafiaTeam = myRole === 'mafia' || myRole === 'don';
-    // Ведущий не играет и ведёт ночь — он видит все роли (его состояние не уходит в сеть)
-    const isHostViewer = !!this.players.find((p) => p.id === playerId)?.isHost;
+    // Экран ведущего выводится на интерактивную доску, его видит весь класс: роли живых игроков
+    // на нём не показываются (как у зрителя) — только роли выбывших; все роли — на финальном экране.
+    // Игру ведёт движок и озвучка, знать роли ведущему не нужно.
 
     return {
       id: this.id,
@@ -102,7 +103,7 @@ class GameState {
       subPhase: this.subPhase,
       round: this.round,
       alivePlayers: this.alivePlayers,
-      roles: isGameEnded || isHostViewer ? this.roles : this._getVisibleRoles(isMafiaTeam, playerId),
+      roles: isGameEnded ? this.roles : this._getVisibleRoles(isMafiaTeam, playerId),
       votes: this.phase === 'vote' ? this.votes : {},
       players: this.players.map(p => ({
         id: p.id,
