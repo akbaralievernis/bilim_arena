@@ -798,6 +798,7 @@ export default {
   omr_unknown_test: 'The test of this sheet is not on this device',
   omr_bad_file: 'the file could not be opened',
   omr_no_tests: 'There are no tests on this device. Create one here or sign in to the cloud.',
+  omr_blocked: "This sheet's key is out of date: answers or questions changed after printing. It cannot be saved — print the test again or enter the answers by hand.",
   omr_changed: 'The test changed after printing — the key may not match.',
   omr_number_unsure: 'The number is unclear — please check.',
   omr_check_these: 'Please check:',

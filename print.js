@@ -58,7 +58,7 @@ function questionBlock(item) {
 function answerSheet(test, v, items) {
   const box = el('div', { class: 'p-omr' });
   box.innerHTML = sheetSvg({
-    testId: test.id, questionIds: test.questionIds, variant: v, items,
+    testId: test.id, questionIds: test.questionIds, questions: state.questions, variant: v, items,
     title: test.title, variantLabel: `${t('tst_variant')} ${variantName(v)}`,
     labels: {
       name: t('tst_p_name'), number: t('omr_number'), tens: t('omr_tens'), units: t('omr_units'),

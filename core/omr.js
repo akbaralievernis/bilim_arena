@@ -70,11 +70,22 @@ function crc8(bytes) {
 }
 
 export const testCode = (testId) => hash32(testId) & 0xffff;
-export const versionCode = (questionIds) => hash32((questionIds || []).join(',')) & 0x3f;
+// Что определяет ключ бланка: тип, число вариантов, правильные ответы. Текст вопроса и вариантов
+// ключ не меняет — исправленная опечатка не мешает сканировать уже напечатанные бланки.
+const keyPrint = (q) => [q.id, q.type, (q.options || []).length, JSON.stringify(q.correct ?? null),
+  (q.pairs || []).length, (q.items || []).length, (q.answer || []).join('/'), q.errorHunt ? 1 : 0].join(':');
+
+/**
+ * Код версии теста (6 бит) на бланке. С `questions` учитывает ключ ответов: если вопрос
+ * изменился или пропал после печати, сканер это заметит (иначе проверил бы по чужому ключу).
+ * Без `questions` — прежний код по списку вопросов (так напечатаны бланки до 21.10.2026).
+ */
+export const versionCode = (questionIds, questions = null) =>
+  hash32((questionIds || []).join(',') + (questions ? '|' + questions.map(keyPrint).join(',') : '')) & 0x3f;
 
 /** Биты полоски-кода (34 клетки, 1 — чёрная) */
-export function encodeSheet({ testId, variant, questionIds }) {
-  const payload = (testCode(testId) << 8) | ((variant & 3) << 6) | versionCode(questionIds);
+export function encodeSheet({ testId, variant, questionIds, questions = null }) {
+  const payload = (testCode(testId) << 8) | ((variant & 3) << 6) | versionCode(questionIds, questions);
   const bytes = [(payload >>> 16) & 0xff, (payload >>> 8) & 0xff, payload & 0xff];
   const word = [...bytes, crc8(bytes)];
   const bits = [1];
@@ -433,7 +444,7 @@ export function sheetSvg(o) {
   text(8, 8.5, o.title.slice(0, 60), 3.6, 'font-weight="700"');
   text(SHEET.w - 8, 8.5, o.variantLabel, 4.2, 'font-weight="800" text-anchor="end"');
   // Код
-  const bits = encodeSheet({ testId: o.testId, variant: o.variant, questionIds: o.questionIds });
+  const bits = encodeSheet({ testId: o.testId, variant: o.variant, questionIds: o.questionIds, questions: o.questions || null });
   codeCells().forEach((c, i) => { if (bits[i]) parts.push(`<rect x="${c.x - c.size / 2}" y="${c.y - c.size / 2}" width="${c.size}" height="${c.size}" fill="#000"/>`); });
   // Имя и номер ученика
   text(6, 31, `${o.labels.name}:`, 3.2);
