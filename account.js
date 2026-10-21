@@ -131,7 +131,10 @@ async function renderStatus(s) {
   }));
 
   $('#signOutBtn').addEventListener('click', (e) => busy(e.currentTarget, async () => {
-    if (!confirm(t('acc_sign_out_confirm'))) return;
+    // У ученика нет пароля (анонимный вход по коду): после выхода в этот аккаунт не вернуться —
+    // честно предупреждаем, а не «данные останутся в облаке» (аудит 21.10)
+    const anonymous = !!cloud.cloudStatus().user?.is_anonymous;
+    if (!confirm(t(anonymous ? 'acc_sign_out_confirm_student' : 'acc_sign_out_confirm'))) return;
     try {
       await cloud.signOut();
     } catch (err) {

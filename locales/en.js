@@ -479,6 +479,7 @@ export default {
   acc_sync_now: 'Sync now',
   acc_sign_out: 'Sign out',
   acc_sign_out_confirm: 'Sign out? Your data stays in the cloud and is removed from this device.',
+  acc_sign_out_confirm_student: 'Sign out? Students have no password: you will not be able to return to this account. Progress will be removed from this device, and joining again with the class code starts from zero. Sign out only if this is not your device.',
   acc_signed_out: 'Signed out',
   acc_privacy: 'Students only give a name. Passwords are stored and protected by Supabase; Bilim Arena never sees them.',
   acc_state_idle: 'Connected',
