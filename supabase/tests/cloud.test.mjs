@@ -180,6 +180,25 @@ await T2b.cloud.syncAll();
 check('на втором устройстве задание тоже исчезло', !(await T2b.hw.allAssignments()).some((a) => a.id === a1.id));
 check('второе устройство не вернуло задание в облако', (await db.query('select * from assignments')).rows.length === 0);
 
+// ── 5б. Удалённое задание не блокирует отправку новых результатов ученика ─────
+// Раньше все результаты уходили одним запросом: строка удалённого задания не проходила
+// RLS — и не уходило ничего, в том числе новые домашки (аудит 21.10, P0).
+console.log('Удалённое задание и новые результаты');
+T = await device('T1');
+const a2 = await T.hw.saveAssignment({ title: 'ДЗ 2', subject: 'math', grade: 6, topic: 'math-6-fractions',
+  classId: cls.id, questionIds: [q1.id], count: 1, attempts: 2, xp: 50 });
+await T.cloud.flush();
+S = await device('S1');
+await S.cloud.syncAll();
+check('ученик получил новое задание', (await S.hw.allAssignments()).some((a) => a.id === a2.id));
+await S.hw.saveSubmission({ assignmentId: a2.id, studentId: p.id, studentName: 'Айбек', correct: 1, total: 1,
+  skillStats: { compare: { ok: 1, total: 1 } }, mistakes: [] });
+await S.cloud.flush();
+const rowsA2 = await db.query('select assignment_id from submissions where assignment_id = $1', [a2.id]);
+check('результат по новому заданию ушёл в облако, хотя старое задание удалено', rowsA2.rows.length === 1,
+  JSON.stringify(S.cloud.cloudStatus()));
+check('синхронизация ученика без ошибки', S.cloud.cloudStatus().state === 'ok', JSON.stringify(S.cloud.cloudStatus()));
+
 // ── 6. Выход ученика убирает его данные с устройства ─────────────────────────
 console.log('Выход ученика (S1)');
 S = await device('S1');

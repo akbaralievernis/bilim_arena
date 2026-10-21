@@ -492,8 +492,14 @@ async function pullStudentAssignments() {
 async function pushSubmissions() {
   const c = await getClient();
   const assignments = await allAssignments();
+  // Только задания, которые ученик видит в облаке сейчас. Результат по удалённому заданию
+  // (или классу) не проходит RLS — а один отказ отменял весь запрос, и не уходили
+  // никакие результаты, в том числе новые.
+  const { data: visible, error: e1 } = await c.from('assignments').select('id');
+  if (e1) throw e1;
+  const live = new Set(visible.map((r) => r.id));
   const rows = (await allSubmissions())
-    .filter((s) => s.studentId === user.id)
+    .filter((s) => s.studentId === user.id && live.has(s.assignmentId))
     .map((s) => ({ s, a: assignments.find((a) => a.id === s.assignmentId) }))
     .filter(({ a }) => a?.classId)
     .map(({ s, a }) => ({ assignment_id: s.assignmentId, student_id: user.id, class_id: a.classId, data: s, updated_at: new Date().toISOString() }));
