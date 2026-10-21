@@ -201,7 +201,7 @@ export function mountHeader(target, { role = 'student', active = '' } = {}) {
 
   const header = el('header', { class: 'topbar' },
     el('a', { class: 'brand', href: teacher ? 'teacher.html' : 'index.html', 'aria-label': t('app_name') },
-      el('img', { class: 'logo', src: 'assets/logo.svg', alt: '', width: 36, height: 36 }),
+      el('img', { class: 'logo', src: 'assets/brand/bilim-arena-mark.png', alt: '', width: 36, height: 36 }),
       el('span', { class: 'brand-name' }, t('app_name'))
     ),
     nav,
