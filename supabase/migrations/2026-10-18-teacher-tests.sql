@@ -4,4 +4,4 @@
 
 alter table public.user_data drop constraint if exists user_data_key_check;
 alter table public.user_data add constraint user_data_key_check
-  check (key in ('profile', 'progress', 'errors', 'history', 'questions', 'lessons', 'tests'));
+  check (key in ('profile', 'progress', 'errors', 'history', 'questions', 'lessons', 'tests', 'cycles', 'dup_reviewed', 'qreview'));

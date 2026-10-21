@@ -79,11 +79,13 @@
   // --- Game Mechanics ---
   function initBoard(difficulty) {
     // Берем базу вопросов по выбранной сложности
-    const baseBank = [...(QUIZ_BANKS[difficulty] || QUIZ_BANKS.kyrgyz_history_geo)];
+    let baseBank = [...(QUIZ_BANKS[difficulty] || QUIZ_BANKS.kyrgyz_history_geo)];
     for (let i = baseBank.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [baseBank[i], baseBank[j]] = [baseBank[j], baseBank[i]];
     }
+    // Сначала вопросы, которых на этом устройстве ещё не было (shared/fresh.js)
+    if (window.BA_FRESH) baseBank = window.BA_FRESH.order('citadel', baseBank, (q) => q.q);
     
     // Перемешиваем вопросы случайным образом
     // (перемешано выше, без sort со случайным компаратором)
@@ -137,6 +139,7 @@
 
   function openQuestion(team, id) {
     const q = currentQuestions[id];
+    window.BA_FRESH?.mark('citadel', q.q);
     const textEl = team === "A" ? UI.qTextA : UI.qTextB;
     const ansEl = team === "A" ? UI.answersA : UI.answersB;
 

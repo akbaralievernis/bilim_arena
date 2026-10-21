@@ -10,6 +10,7 @@
 
 import { pick } from './i18n.js';
 import { engineQuestions as teacherQuestions, engineQuestionsByIds } from './questions.js';
+import { flaggedRefs } from './review.js';
 
 /** Предметы платформы. `bank` — есть ли уже банк вопросов. */
 export const SUBJECTS = [
@@ -301,8 +302,9 @@ const shuffle = (arr) => {
  * @param {string[]} opts.types   — 'choice' | 'input' | 'order' | 'truefalse'
  * @param {function} opts.filter  — отбор под формат игры (например, только «поиск ошибки»)
  * @param {boolean} opts.strict   — не добирать вопросы другого формата
- * @param {Iterable<string>} opts.avoid — id уже показанных вопросов: они идут
- *   только если новых не хватает (сколько повторилось — считает вызывающий)
+ * @param {Iterable<string>|Map<string,number>} opts.avoid — id уже показанных вопросов: они идут
+ *   только если новых не хватает (сколько повторилось — считает вызывающий). Map id → время
+ *   показа: из уже показанных первыми идут самые давние
  */
 export async function getQuestions({ topic, count = 10, skills, difficulty, types, ids, filter, strict = false, includeCustom = true, avoid } = {}) {
   // Явный список вопросов (домашнее задание с ручным выбором)
@@ -313,8 +315,10 @@ export async function getQuestions({ topic, count = 10, skills, difficulty, type
     return [...fromBank, ...fromTeacher];
   }
 
-  // Вопросы предмета + вопросы, созданные учителем в конструкторе
-  const bank = await loadBank(topic);
+  // Вопросы предмета + вопросы, созданные учителем в конструкторе.
+  // Вопросы, где учитель отметил ошибку (core/review.js), не выдаются
+  const flagged = await flaggedRefs();
+  const bank = (await loadBank(topic)).filter((q) => !flagged.has(`${topic}::${q.id}`));
   const custom = includeCustom ? await teacherQuestions({ topic }) : [];
   const pool = filter ? [...bank, ...custom].filter(filter) : [...bank, ...custom];
 
@@ -325,10 +329,10 @@ export async function getQuestions({ topic, count = 10, skills, difficulty, type
 
   // Порядок: новые подходящие → новые из остальной темы (если не strict)
   // → уже показанные подходящие → уже показанные из остальной темы
-  const seen = new Set(avoid || []);
+  const seen = avoid instanceof Map ? avoid : new Map([...(avoid || [])].map((id) => [id, 0]));
   const rest = strict ? [] : pool.filter((q) => !list.includes(q));
   const fresh = (arr) => shuffle(arr.filter((q) => !seen.has(q.id)));
-  const again = (arr) => shuffle(arr.filter((q) => seen.has(q.id)));
+  const again = (arr) => shuffle(arr.filter((q) => seen.has(q.id))).sort((a, b) => seen.get(a.id) - seen.get(b.id));
   return shuffle([...fresh(list), ...fresh(rest), ...again(list), ...again(rest)].slice(0, count));
 }
 

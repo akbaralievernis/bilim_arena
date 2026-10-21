@@ -1,5 +1,5 @@
 // «Мафия»: ведущий создаёт комнату, игроки входят (один — кодом на кириллице),
-// игра начинается, у каждого своя роль; ведущий видит все роли и звучит голос.
+// игра начинается, у каждого своя роль; на экране ведущего (он на интерактивной доске) ролей нет, звучит голос.
 import { test, expect } from '@playwright/test';
 
 const SIG = process.env.E2E_SIGNAL || 'local';
@@ -53,8 +53,13 @@ test('host + 3 players: Cyrillic code works, the game starts with roles', async 
 
   await expect.poll(() => voiceRequests.some((u) => u.endsWith('/voice/ru/night_start.mp3')), { timeout: 15_000 }).toBe(true);
   expect(voiceRequests.some((u) => u.endsWith('/ru/mafia.mp3'))).toBe(false);
-  // Ведущий видит роли всех игроков (только у себя на панели)
-  await expect(host.page.locator('.player-card').first()).toContainText(/Мафия|Дон|Доктор|Комиссар|Маньяк|Мирный|житель|Гипн|Телохран/i);
+  // Экран ведущего видит весь класс (интерактивная доска): ролей живых игроков на нём нет — ни подписей, ни значков
+  const ROLE = /Мафия|Дон|Доктор|Комиссар|Маньяк|Мирный|житель|Гипн|Телохран/i;
+  await expect(host.page.locator('.host-view-head')).toBeVisible();
+  for (const card of await host.page.locator('.player-card').all()) await expect(card).not.toContainText(ROLE);
+  // В «Статусе игроков» у живых нет значков ролей (щит, прицел, сердце…)
+  await expect(host.page.locator('div:has(> span.status-alive)').first()).toBeVisible();
+  expect(await host.page.locator('div:has(> span.status-alive) svg').count()).toBe(0);
   // А игрок — только свою: у второго игрока в карточке первого роли нет
   await expect(players[1].page.locator('.player-card', { hasText: 'Айбек' })).not.toContainText(/Мафия|Дон|Доктор|Комиссар|Маньяк|Мирный|Гипн|Телохран/i);
 

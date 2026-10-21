@@ -91,7 +91,7 @@ export default function Home() {
   return (
     <div className="container-center">
       <a className="brand" href="../../index.html" style={{ marginBottom: '1rem' }}>
-        <img src="../../assets/logo.svg" alt="" width="28" height="28" /> Билим Арена
+        <img src="../../assets/brand/bilim-arena-mark.png" alt="" width="28" height="28" /> Билим Арена
       </a>
       <motion.div
         initial={{ opacity: 0, y: 30 }}

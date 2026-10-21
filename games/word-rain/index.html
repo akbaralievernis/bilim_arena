@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
   <title>Сөз жамгыры — Билим Арена</title>
-  <link rel="icon" href="../../assets/logo.svg" type="image/svg+xml" />
+  <link rel="icon" href="../../assets/brand/favicon-64.png" type="image/png" />
   <link rel="stylesheet" href="../../shared/game.css?v=17" />
   <style>
     .gWrap { max-width: 720px; padding-bottom: 20px; }
@@ -89,7 +89,8 @@
     </div>
   </div>
 
-  <script src="../../shared/vocab.js?v=15"></script>
+  <script src="../../shared/fresh.js?v=1"></script>
+  <script src="../../shared/vocab.js?v=16"></script>
   <script src="../../shared/progress.js?v=15"></script>
   <script src="../../shared/game-shell.js?v=15"></script>
   <script>
@@ -115,7 +116,7 @@
       const [from, to] = cfg.pair.split('-');
       let pool = V.words(cfg.cat);
       if (pool.length < 6) pool = V.words('all');
-      st = { from, to, pool, queue: V.shuffle(pool), score: 0, combo: 0, lives: 3, right: 0, level: 1,
+      st = { from, to, pool, queue: V.fresh(null, pool).reverse(), score: 0, combo: 0, lives: 3, right: 0, level: 1,
              drop: null, paused: false, last: 0, mistakes: [], total: 0 };
       $('sky').querySelectorAll('.drop, .pauseCover').forEach((x) => x.remove());
       $('pauseBtn').innerHTML = ICON_PAUSE;
@@ -133,8 +134,9 @@
     function speed() { return 38 + st.level * 12; } // px/сек
 
     function nextDrop() {
-      if (!st.queue.length) st.queue = V.shuffle(st.pool);
+      if (!st.queue.length) st.queue = V.fresh(null, st.pool).reverse(); // pop() берёт с конца — самые свежие там
       const w = st.queue.pop();
+      V.seen(w);
       const el = document.createElement('div');
       el.className = 'drop';
       el.innerHTML = label(w, st.from);

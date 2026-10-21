@@ -311,3 +311,47 @@
 .progress-card { background: linear-gradient(150deg, #FFFFFF 40%, #E9FAF7); }
 .section-head h2 { font-size: clamp(1.45rem, 3.2vw, 2rem); }
 .section-head h2::after { content: ''; display: block; width: 44px; height: 5px; margin-top: 8px; border-radius: 999px; background: var(--grad); }
+/* Проверка вопросов банка учителем (questions.html) */
+.rv-card { border-left: 4px solid var(--line); }
+.rv-card.rv-ok { border-left-color: var(--ok); }
+.rv-card.rv-issue { border-left-color: var(--bad); }
+.rv-options { margin: 0; padding-left: 1.6em; display: grid; gap: 2px; }
+.rv-options li { overflow-wrap: anywhere; }
+.rv-right { font-weight: 700; color: var(--ok-ink); }
+.rv-right::after { content: ' ✓'; }
+.rv-issue { color: var(--bad-ink); font-weight: 600; }
+
+/* «Билим түндүгү» — карта знаний ученика (progress.html) */
+.tm-figure { position: relative; width: min(440px, 100%); margin: 4px auto 0; }
+.tm-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.tm-ray path { transition: transform 0.3s var(--ease), opacity 0.3s; transform-box: fill-box; transform-origin: center; }
+.tm-ray:focus { outline: none; }
+.tm-ray:focus-visible path, .tm-ray:hover path { transform: scale(1.12); }
+.tm-ray:focus-visible path { stroke: var(--text); stroke-width: 3; }
+.tm-mastered path { fill: var(--primary); }
+.tm-ready path { fill: #F5A524; }
+.tm-learning path { fill: #F2A5AE; }
+.tm-insufficient path { fill: #CDD2DC; }
+.tm-new path { fill: #E4E7EC; }
+.tm-crown .tm-ring { fill: var(--surface); stroke: var(--text); stroke-width: 10; }
+.tm-crown .tm-bar { fill: none; stroke: var(--text); stroke-width: 7; stroke-linecap: round; opacity: 0.12; }
+.tm-center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none; padding: 0 30%; gap: 2px; }
+.tm-big { font-size: clamp(1.8rem, 7vw, 2.6rem); font-weight: 800; line-height: 1; color: var(--text); }
+.tm-topic { font-size: clamp(0.85rem, 3vw, 1rem); font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
+.tm-sub { font-size: 0.8125rem; font-weight: 600; color: var(--text-soft); }
+.tm-sub.tm-mastered { color: var(--primary-ink); }
+.tm-sub.tm-ready { color: var(--warn-ink); }
+.tm-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; margin: 0; padding: 0; list-style: none; font-size: 0.875rem; color: var(--text-secondary); }
+.tm-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.tm-dot { width: 10px; height: 10px; border-radius: 3px; background: #E4E7EC; }
+.tm-dot.tm-mastered { background: var(--primary); }
+.tm-dot.tm-ready { background: #F5A524; }
+.tm-dot.tm-learning { background: #F2A5AE; }
+.tm-dot.tm-insufficient { background: #CDD2DC; }
+/* Лучи вырастают по очереди; освоенные мягко «светятся» */
+@media (prefers-reduced-motion: no-preference) {
+  .tm-ray path { animation: ray-in 0.5s var(--ease) both; animation-delay: calc(var(--i, 0) * 35ms); }
+  .tm-mastered path { animation: ray-in 0.5s var(--ease) both, ray-glow 3.2s ease-in-out 1s infinite; animation-delay: calc(var(--i, 0) * 35ms), calc(var(--i, 0) * 120ms); }
+}
+@keyframes ray-in { from { transform: scale(0.4); opacity: 0; } }
+@keyframes ray-glow { 50% { opacity: 0.72; } }

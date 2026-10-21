@@ -22,6 +22,7 @@ import { getProgress, knowledgeMap, weakSkills, reviewSuggestions, history, BADG
 import { getProfile } from './core/profile.js';
 import { fromStudent, reportLink } from './core/parent-report.js';
 import { masterySettings } from './core/mastery.js';
+import { tundukMap, RAY_ORDER } from './core/tunduk-map.js';
 
 /** Иконки достижений — из общего набора, а не эмодзи */
 const BADGE_ICON = {
@@ -105,10 +106,30 @@ const JR_STATUS = {
 const two = (n) => String(n).padStart(2, '0');
 const fmtDay = (ms) => { const d = new Date(ms); return `${two(d.getDate())}.${two(d.getMonth() + 1)}.${d.getFullYear()}`; };
 
+/** «Билим түндүгү»: все темы платформы лучами; статус — тот же, что у учителя */
+function renderTunduk(list) {
+  const lang = getLang();
+  const byTopic = new Map(list.map((j) => [j.topic, j.status]));
+  const items = SUBJECTS.flatMap((subj) => TOPICS.filter((x) => x.subject === subj.id && x.bank))
+    .map((x) => ({
+      id: x.id, title: `${pick(x.title, lang)} · ${pick(getSubject(x.subject)?.title, lang)}`,
+      status: byTopic.get(x.id) || 'new',
+      href: `./practice.html?${new URLSearchParams({ subject: x.subject, topic: x.id })}`
+    }));
+  const label = (s) => t(JR_STATUS[s]?.[1] || 'mastery_new');
+  $('#tundukSection').classList.toggle('hidden', !list.length);
+  if (!list.length) return;
+  $('#tundukMap').replaceChildren(tundukMap(items, { centerTitle: t('tm_title'), centerSub: t('tm_center'), statusLabel: label }));
+  const count = (s) => items.filter((x) => x.status === s).length;
+  $('#tundukLegend').replaceChildren(...RAY_ORDER.filter((s) => count(s)).map((s) =>
+    el('li', {}, el('span', { class: `tm-dot tm-${s}`, 'aria-hidden': 'true' }), `${label(s)}: `, el('b', {}, String(count(s))))));
+}
+
 async function renderJourneys() {
   const lang = getLang();
   const list = (await journeys(async (topic) => (getTopic(topic) ? (await loadBank(topic)).map((q) => q.id) : [])))
     .filter((j) => getTopic(j.topic));
+  renderTunduk(list);
   $('#journeySection').classList.toggle('hidden', !list.length);
   $('#journeyList').replaceChildren(...list.map((j) => {
     const topic = getTopic(j.topic);

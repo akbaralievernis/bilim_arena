@@ -31,6 +31,7 @@ import InvestigationGame, { PHASE } from './games/investigation/game.js';
 import { CASES, loadCase } from './data/investigations/index.js';
 import { packAssignments, mergeSubmissions } from './core/sync.js';
 import { recordStage } from './core/lessons.js';
+import { store } from './core/store.js';
 
 const GAMES = {
   quickvote: QuickVoteGame, territory: TerritoryGame, investigation: InvestigationGame,
@@ -107,6 +108,25 @@ const state = {
 function usedIds() {
   if (state.used.topic !== state.topic) state.used = { topic: state.topic, ids: new Set() };
   return state.used.ids;
+}
+
+/**
+ * Что показывали на доске на прошлых уроках по этой теме (на устройстве учителя):
+ * id → время показа. Раньше каждый урок выбирал заново, и класс снова видел те же вопросы.
+ */
+const BOARD_SEEN = 'board_seen';
+async function shownBefore(topic) {
+  const all = await store.get(BOARD_SEEN, {});
+  return new Map(Object.entries(all?.[topic] || {}));
+}
+async function rememberShown(topic, ids) {
+  const all = (await store.get(BOARD_SEEN, {})) || {};
+  const mem = all[topic] || (all[topic] = {});
+  const now = Date.now();
+  ids.forEach((id, i) => { mem[id] = now + i; });
+  const keys = Object.keys(mem);
+  if (keys.length > 400) keys.sort((a, b) => mem[a] - mem[b]).slice(0, keys.length - 400).forEach((k) => delete mem[k]);
+  await store.set(BOARD_SEEN, all);
 }
 
 // ─── Экраны ───────────────────────────────────────────────────────────────────
@@ -409,9 +429,12 @@ async function startStage(stageIndex, customQuestions = null) {
   if (!questions) {
     // Новый этап — новые вопросы: уже показанные на уроке идут, только если новых не хватает
     const used = usedIds();
+    // Уже показанные на этом уроке — самые «свежие» (идут последними); до них — бывшие на прошлых уроках
+    const avoid = await shownBefore(state.topic);
+    used.forEach((id) => avoid.set(id, Number.MAX_SAFE_INTEGER));
     questions = await getQuestions(GameClass.questionFilter
-      ? { topic: state.topic, count: stage.questions, filter: GameClass.questionFilter, strict: true, avoid: used }
-      : { topic: state.topic, count: stage.questions, difficulty: stage.difficulty, avoid: used });
+      ? { topic: state.topic, count: stage.questions, filter: GameClass.questionFilter, strict: true, avoid }
+      : { topic: state.topic, count: stage.questions, difficulty: stage.difficulty, avoid });
     const repeats = questions.filter((q) => used.has(q.id)).length;
     if (repeats) toast(t('lesson_repeats_warning', { n: repeats }), { icon: 'ℹ️', ms: 5000 });
   }
@@ -421,6 +444,7 @@ async function startStage(stageIndex, customQuestions = null) {
     return;
   }
   questions.forEach((q) => usedIds().add(q.id));
+  rememberShown(state.topic, questions.map((q) => String(q.id))).catch(() => {});
 
   state.game?.destroy();
   state.game = new GameClass({

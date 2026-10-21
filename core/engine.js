@@ -458,8 +458,10 @@ export class BaseGame {
         prompt: this.current.prompt,
         hasImage: !!this.current.image,
         options: this.current.options,
-        pairs: this.current.pairs,
-        items: this.current.items,
+        // Только тексты: поле index — это правильный ответ (ученик увидел бы его в инструментах
+        // разработчика). Ответ проверяет доска, правильный ответ телефон получает после показа
+        pairs: this.current.pairs && { left: this.current.pairs.left, right: this.current.pairs.right.map((r) => ({ text: r.text })) },
+        items: this.current.items && this.current.items.map((x) => ({ text: x.text })),
         numeric: this.current.numeric,
         errorHunt: this.current.errorHunt,
         timeLeft: this.timeLeft,

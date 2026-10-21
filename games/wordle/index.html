@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
   <title>Сөз табышмак — Билим Арена</title>
-  <link rel="icon" href="../../assets/logo.svg" type="image/svg+xml" />
+  <link rel="icon" href="../../assets/brand/favicon-64.png" type="image/png" />
   <link rel="stylesheet" href="../../shared/game.css?v=17" />
   <style>
     .gWrap { max-width: 560px; }
@@ -103,6 +103,7 @@
 
   <script src="../../shared/progress.js?v=15"></script>
   <script src="../../shared/game-shell.js?v=15"></script>
+  <script src="../../shared/fresh.js?v=1"></script>
   <script>
   (function () {
     'use strict';
@@ -185,8 +186,13 @@
       daily = isDaily;
       $('dailyBtn').classList.toggle('on', daily);
       $('freeBtn').classList.toggle('on', !daily);
-      const idx = daily ? dayIndex() : Math.floor(Math.random() * WORDS.length);
+      // Свободная игра: сначала слова, которых на этом устройстве ещё не было (shared/fresh.js)
+      const pickFree = () => (window.BA_FRESH
+        ? WORDS.indexOf(window.BA_FRESH.order('wordle', WORDS, (w) => w[0])[0])
+        : Math.floor(Math.random() * WORDS.length));
+      const idx = daily ? dayIndex() : pickFree();
       const [word, ru, en] = WORDS[idx];
+      if (!daily) window.BA_FRESH?.mark('wordle', word);
       st = { word: [...word], ru, en, row: 0, cur: [], over: false, hint: false, results: [] };
       buildGrid(); buildKb();
       $('msg').textContent = daily ? 'Бүгүнкү сөздү тап!' : 'Кокус сөз. Ийгилик!';

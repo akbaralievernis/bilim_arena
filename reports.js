@@ -12,6 +12,7 @@ import { lessonHistory, getLesson, deleteLesson, studentSummaries, studentReport
 import { masterySettings, saveMasterySettings } from './core/mastery.js';
 import { fromTeacher, reportLink } from './core/parent-report.js';
 import { allCycles, getCycle, saveCycle, deleteCycle, cycleReport } from './core/cycles.js';
+import { classYurts, yurtSvg, YURT_PARTS, SHARE, MIN_CHECKED } from './core/yurt.js';
 import { store, KEYS } from './core/store.js';
 
 /** Статус освоения темы → класс и подпись */
@@ -330,10 +331,44 @@ const fromInput = (v) => { const [y, m, d] = String(v).split('-').map(Number); r
 const deltaText = (d) => (d === null || d === undefined ? '—' : `${d > 0 ? '+' : d < 0 ? '−' : '±'}${Math.abs(d)} ${t('cy_pp')}`);
 const cyclePeriod = (c) => `${fmtDate(c.from)} — ${fmtDate(c.to)}`;
 
+/** «Боз үй класса»: каждая освоенная классом тема добавляет часть юрты */
+async function renderYurts(list) {
+  const lang = getLang();
+  const reports = await Promise.all(list.map((c) => cycleReport(c)));
+  const groups = classYurts(reports.filter(Boolean));
+  if (!groups.length) groups.push({ classId: null, className: null, built: [], pending: [], count: 0, fullYurts: 0, inCurrent: 0, next: YURT_PARTS[0] });
+  $('#yurtBox').replaceChildren(...groups.map((g) => {
+    const title = t('yt_title', { cls: g.className || t('cy_all_students') });
+    const figure = el('div', { class: 'yurt-full', html: yurtSvg(g.inCurrent, title) });
+    const partRows = YURT_PARTS.map((p, i) => {
+      const b = g.built[g.fullYurts * YURT_PARTS.length + i];
+      return el('li', {},
+        el('span', { class: 'yurt-tick', 'aria-hidden': 'true' }, b ? '✓' : i === g.inCurrent ? '→' : ''),
+        el('span', { class: b ? '' : 'todo' }, el('b', {}, pick(p.name, lang)),
+          b ? ` — ${pick(getTopic(b.topic)?.title, lang) || ''}` : i === g.inCurrent ? ` — ${t('yt_next')}` : ''));
+    });
+    return el('section', { class: 'card yurt-card', 'aria-label': title },
+      figure,
+      el('div', { class: 'stack', style: 'gap:10px' },
+        el('h2', { class: 'section-title', style: 'margin:0' }, title),
+        el('p', { class: 'small muted', style: 'margin:0' }, t('yt_rule', { share: Math.round(SHARE * 100), min: MIN_CHECKED })),
+        el('p', { style: 'margin:0' }, el('b', {}, t('yt_count', { n: g.count })), g.fullYurts ? ` · ${t('yt_full', { n: g.fullYurts })}` : ''),
+        el('ul', { class: 'yurt-parts' }, ...partRows),
+        g.pending.length ? el('p', { class: 'small muted', style: 'margin:0' }, t('yt_pending', {
+          list: g.pending.map((x) => `${pick(getTopic(x.topic)?.title, lang)} (${x.reached}/${x.base})`).join(', ')
+        })) : null,
+        el('div', { class: 'row no-print', style: 'gap:8px' },
+          el('button', { class: 'btn ghost', type: 'button', onclick: () => figure.requestFullscreen?.().catch(() => {}) }, icon('board', { size: 18 }), ' ', t('yt_show_board'))))
+    );
+  }));
+}
+
 async function renderCycles() {
   const current = nextView();
   show('cyclesScreen');
   const list = (await allCycles()).sort((a, b) => b.from - a.from);
+  if (!current()) return;
+  await renderYurts(list);
   if (!current()) return;
   if (!list.length) {
     $('#cycleList').replaceChildren(el('div', { class: 'card center muted' }, t('cy_empty')));

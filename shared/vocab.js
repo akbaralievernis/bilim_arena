@@ -223,9 +223,23 @@
     words(cat) {
       return !cat || cat === 'all' ? ALL.slice() : ALL.filter((w) => w.cat === cat);
     },
-    /** Кокус n сөз (кайталанбайт) */
+    /** Кокус n сөз (кайталанбайт) — алгач көрүлбөгөндөр (бардык оюндарда) */
     pick(n, cat) {
-      return shuffle(this.words(cat)).slice(0, n);
+      return this.fresh(cat).slice(0, n);
+    },
+    /**
+     * Сөздөр «жаңы» тартипте: бул түзмөктө эч бир тил оюнунда көрсөтүлө электери алгач,
+     * андан кийин эң мурун көрүлгөндөрү (shared/fresh.js). Мурда ар бир оюн кокус тандачу —
+     * ошол эле сөздөр кайра-кайра чыгып турчу.
+     */
+    fresh(cat, list) {
+      const pool = list || this.words(cat);
+      return window.BA_FRESH ? window.BA_FRESH.order('words', pool) : shuffle(pool);
+    },
+    /** Сөз көрсөтүлдү (бир же бир нече) — кийинки оюндарда ал кийинчерээк чыгат */
+    seen(words) {
+      if (!window.BA_FRESH) return;
+      window.BA_FRESH.mark('words', (Array.isArray(words) ? words : [words]).map((w) => (w && w.id) || w));
     },
     /** Туура эмес варианттар: ошол эле категориядан артыкчылык менен */
     distractors(word, n, lang) {

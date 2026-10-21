@@ -331,17 +331,33 @@ export function detectSheet(img, { maxSide = 1600 } = {}) {
       // Рамка вытянута по вертикали: короткая сторона — сверху
       const top = Math.hypot(dst[1][0] - dst[0][0], dst[1][1] - dst[0][1]);
       const left = Math.hypot(dst[3][0] - dst[0][0], dst[3][1] - dst[0][1]);
-      tries.push({ dst, plausible: Math.abs(Math.log((top / left) / (SHEET.w / SHEET.h))), area: areas.reduce((s, a) => s + a, 0) });
+      const comps = [0, 1, 2, 3].map((i) => four.find((c) => c.cx === dst[i][0] && c.cy === dst[i][1]));
+      tries.push({ dst, comps, plausible: Math.abs(Math.log((top / left) / (SHEET.w / SHEET.h))), area: areas.reduce((s, a) => s + a, 0) });
     }
   }
   tries.sort((a, b) => a.plausible - b.plausible || b.area - a.area);
   for (const tr of tries.slice(0, 40)) {
     const H = homography(CORNERS(), tr.dst);
     if (!H) continue;
+    // Метки — квадраты SHEET.marker мм: их размер на снимке должен подходить к размеру листа.
+    // Иначе четыре случайных пятна страницы (кнопки, значки) с вероятностью ~1/256 на попытку
+    // давали «сошедшийся» код (CRC-8) — и обычная страница принималась за бланк
+    if (!markersFit(H, tr.comps)) continue;
     const code = decodeBits(readCode(gray, H));
     if (code) return { gray, H, code, corners: tr.dst };
   }
   return null;
+}
+
+/** Площадь каждого пятна — как у метки SHEET.marker × SHEET.marker мм в этом месте снимка (с запасом на размытие) */
+function markersFit(H, comps) {
+  return CORNERS().every(([x, y], i) => {
+    const c = comps[i];
+    if (!c) return false;
+    const side = SHEET.marker * pxPerMm(H, x, y);
+    const ratio = c.area / (side * side);
+    return ratio > 0.3 && ratio < 2.6;
+  });
 }
 
 /** Выбор по строке кружков */
