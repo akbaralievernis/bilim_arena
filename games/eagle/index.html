@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <script src="../../shared/lang.js?v=16"></script>
-    <script src="./i18n.js?v=15"></script>
+    <script src="./i18n.js?v=16"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Кыргыз бүркүтү — Билим Арена</title>
   <link rel="icon" href="../../assets/brand/favicon-64.png" type="image/png" />
@@ -126,8 +126,40 @@
         .cam-ok .dot { background: #2ecc71; box-shadow: 0 0 8px #2ecc71; }
         .cam-err .dot { background: #e74c3c; box-shadow: 0 0 8px #e74c3c; }
 
+        /* ═══ Bilim Arena 2.0: цвета сайта, вопросы в полёте, жизни ═══ */
+        :root { --primary: #E0162B; --secondary: #0FA595; --gold: #FFB547; --glass-bg: rgba(16, 18, 46, 0.88); }
+        body { background: linear-gradient(135deg, #0B1026 0%, #1B1446 55%, #3A0D2E 100%); }
+        #game-container { border: 0; box-shadow: 0 40px 80px -30px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.08); border-radius: 26px; }
+        .panel { border-radius: 26px; background: linear-gradient(160deg, rgba(27,20,70,.94), rgba(58,13,46,.94)); }
+        .btn { border-radius: 14px; text-transform: none; letter-spacing: 0; }
+        .btn-primary { background: linear-gradient(120deg, #E0162B, #FF3D57 45%, #FF7A59); box-shadow: 0 12px 28px -10px rgba(224,22,43,.7); }
+        .btn-secondary { background: linear-gradient(120deg, #0FA595, #2F74E0); }
+        .btn-gold { background: #FFB547; color: #2a1600; }
+        .text-gold { color: #FFB547; text-shadow: 0 0 18px rgba(255,181,71,.45); }
+        .mode-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 14px; }
+        .mode-btn { padding: 10px 8px; border-radius: 12px; border: 2px solid rgba(255,255,255,.18); background: rgba(255,255,255,.06); color: #fff; font: 700 .95rem/1.2 'Inter', system-ui, sans-serif; cursor: pointer; }
+        .mode-btn[aria-pressed="true"] { border-color: #FFB547; background: rgba(255,181,71,.16); }
+        .mode-btn small { display: block; font-weight: 500; opacity: .75; margin-top: 2px; font-size: .78rem; }
+        #hud .hud-side { display: flex; flex-direction: column; gap: 4px; }
+        .hearts { font-size: 1.25rem; letter-spacing: 2px; text-shadow: 0 2px 6px rgba(0,0,0,.6); }
+        .hud-level { font: 800 .8rem/1 'Inter', system-ui, sans-serif; color: #FFB547; text-transform: uppercase; letter-spacing: .06em; }
+        #qbanner {
+            position: absolute; left: 50%; top: 18px; transform: translateX(-50%); z-index: 6; pointer-events: none;
+            padding: 10px 18px; border-radius: 16px; max-width: 70%;
+            background: rgba(11,16,38,.82); border: 2px solid #FFB547; box-shadow: 0 10px 30px rgba(0,0,0,.45);
+            font: 800 1.35rem/1.2 'Montserrat', 'Inter', sans-serif; color: #fff; text-align: center;
+            transition: opacity .2s, transform .2s;
+        }
+        #qbanner.hidden { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+        #qbanner small { display: block; font: 600 .8rem/1.3 'Inter', sans-serif; color: rgba(255,255,255,.7); margin-top: 2px; }
+        #flashmsg { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); z-index: 7; pointer-events: none;
+            font: 900 2.4rem/1 'Montserrat', sans-serif; text-shadow: 0 4px 18px rgba(0,0,0,.6); opacity: 0; transition: opacity .25s; }
+        #flashmsg.show { opacity: 1; }
+
     </style>
   <script src="../../shared/camera.js?v=17"></script>
+  <script src="../../shared/fresh.js?v=1"></script>
+  <script src="../../shared/vocab.js?v=17"></script>
   <script src="../../shared/sw-register.js?v=14"></script>
 </head>
 <body>
@@ -142,23 +174,38 @@
         <!-- HUD (Счет и Пауза) -->
         <div id="hud" class="hidden">
             <div style="display: flex; gap: 30px;">
-                <div>
+                <div class="hud-side">
                     <div style="font-size: 0.8rem; color: #bdc3c7; text-transform: uppercase; margin-bottom: -5px;">Команда Күн</div>
                     <div id="score-1p" class="hud-score team-red-score">0</div>
+                    <div class="hearts" id="hearts-1p" role="img" aria-label="Жашоо"></div>
+                    <div class="hud-level" id="hud-level"></div>
                 </div>
-                <div id="score-2p-container" class="hidden">
+                <div id="score-2p-container" class="hidden hud-side">
                     <div style="font-size: 0.8rem; color: #bdc3c7; text-transform: uppercase; margin-bottom: -5px;">Команда Асман</div>
                     <div id="score-2p" class="hud-score team-blue-score">0</div>
+                    <div class="hearts" id="hearts-2p" role="img" aria-label="Жашоо"></div>
                 </div>
             </div>
             <button id="btn-pause">II</button>
         </div>
+
+        <!-- Вопрос перед воротами и короткое сообщение «Туура!» -->
+        <div id="qbanner" class="hidden" aria-live="polite"></div>
+        <div id="flashmsg" aria-hidden="true"></div>
 
         <!-- ГЛАВНОЕ МЕНЮ -->
         <div id="menu-main" class="ui-layer">
             <div class="panel">
                 <h1 class="text-gold">КЫРГЫЗ<br><span style="color:white">БҮРКҮТҮ</span></h1>
                 <p class="subtitle">Кушту колдун кыймылдары менен башкарыңыз!</p>
+                <div class="mode-row" role="group" aria-label="Оюн режими">
+                    <button class="mode-btn" type="button" id="mode-learn" aria-pressed="true">Билим учуусу<small>Суроо дарбазалары</small></button>
+                    <button class="mode-btn" type="button" id="mode-classic" aria-pressed="false">Классикалык<small>Тоскоолдуктар гана</small></button>
+                </div>
+                <div class="mode-row" role="group" aria-label="Суроолор" id="content-row">
+                    <button class="mode-btn" type="button" id="content-words" aria-pressed="true">Сөздөр<small id="content-words-sub">Котормо</small></button>
+                    <button class="mode-btn" type="button" id="content-mult" aria-pressed="false">Көбөйтүү<small>2–9 таблица</small></button>
+                </div>
                 <button class="btn btn-primary" onclick="startGame(1)">1 Оюнчу (Жалгыз)</button>
                 <button class="btn btn-secondary" onclick="startGame(2)">2 Оюнчу (Команда)</button>
                 <button class="btn btn-gold" onclick="showScreen('menu-records')">Рекорддор тизмеси</button>
@@ -239,8 +286,58 @@
         const sfx = {
             jump: () => playTone(350, 'sine', 0.15, 0.1),
             score: () => { playTone(800, 'square', 0.1, 0.05); setTimeout(()=>playTone(1200, 'square', 0.1, 0.05), 100); },
-            crash: () => playTone(150, 'sawtooth', 0.4, 0.2)
+            crash: () => playTone(150, 'sawtooth', 0.4, 0.2),
+            correct: () => { playTone(660, 'triangle', 0.1, 0.08); setTimeout(() => playTone(990, 'triangle', 0.14, 0.08), 90); },
+            shield: () => playTone(520, 'triangle', 0.2, 0.08),
+            power: () => { playTone(880, 'sine', 0.08, 0.07); setTimeout(() => playTone(1320, 'sine', 0.12, 0.07), 80); }
         };
+
+        // --- РЕЖИМ, УРОВЕНЬ, ВОПРОСЫ ---
+        let learnMode = true;          // «Билим учуусу»: каждое 4-е препятствие — ворота с вопросом
+        let content = 'words';         // 'words' — перевод слов (общий словарь или набор учителя), 'mult' — таблица умножения
+        let level = 1;
+        let spawnCount = 0;
+        const speedNow = () => Math.min(7.2, 4 + (level - 1) * 0.4);
+        const spawnEvery = () => Math.max(66, 100 - (level - 1) * 4);
+        const V = window.BA_VOCAB;
+        const siteLang = () => (window.BALang && BALang.lang) || document.documentElement.lang || 'ky';
+
+        /** Вопрос и три ответа; повторов нет, пока не пройдены остальные (shared/fresh.js) */
+        function nextQuestion() {
+            if (content === 'mult') {
+                const all = [];
+                for (let a = 2; a <= 9; a++) for (let b = 2; b <= 9; b++) all.push([a, b]);
+                const [a, b] = window.BA_FRESH ? BA_FRESH.order('eagle:mult', all, (x) => x.join('x'))[0] : all[Math.floor(Math.random() * all.length)];
+                window.BA_FRESH?.mark('eagle:mult', `${a}x${b}`);
+                const right = a * b;
+                const wrong = new Set();
+                for (const d of [a, b, -a, -b, 1, -1, 10, -10]) { if (wrong.size >= 2) break; const v = right + d; if (v > 0 && v !== right) wrong.add(v); }
+                return { text: `${a} × ${b} = ?`, hint: '', options: [right, ...wrong].map(String), right: String(right) };
+            }
+            // Слова: с кыргызского на язык сайта (на кыргызском сайте — на русский)
+            const to = siteLang() === 'en' ? 'en' : 'ru';
+            const pool = V.words('all').filter((w) => w[to]);
+            const w = V.fresh(null, pool)[0];
+            V.seen(w);
+            const wrong = V.distractors(w, 2, to).map((x) => x[to]);
+            return { text: `${w.ky} → ?`, hint: w.emoji && w.emoji !== w.ky ? w.emoji : '', options: [w[to], ...wrong], right: w[to] };
+        }
+
+        function flash(text, color) {
+            const el = document.getElementById('flashmsg');
+            el.textContent = text; el.style.color = color; el.classList.add('show');
+            clearTimeout(flash.t); flash.t = setTimeout(() => el.classList.remove('show'), 700);
+        }
+        function showBanner(q) {
+            const el = document.getElementById('qbanner');
+            if (!q) { el.classList.add('hidden'); return; }
+            el.innerHTML = '';
+            el.append(document.createTextNode(`${q.hint ? q.hint + '  ' : ''}${q.text}`));
+            const small = document.createElement('small');
+            small.textContent = BALang.t('Туура жооптун дарбазасынан уч!');
+            el.append(small);
+            el.classList.remove('hidden');
+        }
 
         // --- ГЕНЕРАТОР ГРАФИКИ (Ассеты) ---
         const assets = { bg: new Image(), birdRed: new Image(), birdBlue: new Image(), pipeNorth: new Image(), pipeSouth: new Image() };
@@ -255,7 +352,7 @@
             // Фон 800x600 (Панорамный)
             assets.bg.src = createImg(800, 600, (c, w, h) => {
                 const sky = c.createLinearGradient(0, 0, 0, 450);
-                sky.addColorStop(0, '#1e3c72'); sky.addColorStop(1, '#2a5298');
+                sky.addColorStop(0, '#141a4a'); sky.addColorStop(0.6, '#5b2a6e'); sky.addColorStop(1, '#ff8a5c');
                 c.fillStyle = sky; c.fillRect(0, 0, w, h);
                 
                 // Луна/Солнце
@@ -266,10 +363,13 @@
                     c.fillStyle = color; c.beginPath(); c.moveTo(pts[0].x, pts[0].y);
                     for(let i=1; i<pts.length; i++) c.lineTo(pts[i].x, pts[i].y); c.fill();
                 };
-                drawMountain('#192a56', [{x:0, y:450}, {x:150, y:200}, {x:350, y:450}]);
-                drawMountain('#192a56', [{x:250, y:450}, {x:500, y:150}, {x:800, y:450}]);
-                drawMountain('#273c75', [{x:-50, y:450}, {x:100, y:300}, {x:250, y:450}]);
-                drawMountain('#273c75', [{x:400, y:450}, {x:600, y:250}, {x:850, y:450}]);
+                drawMountain('#2a1f5c', [{x:0, y:450}, {x:150, y:200}, {x:350, y:450}]);
+                drawMountain('#2a1f5c', [{x:250, y:450}, {x:500, y:150}, {x:800, y:450}]);
+                // Снежные шапки Ала-Тоо
+                drawMountain('#f4f1ff', [{x:150, y:200}, {x:122, y:258}, {x:150, y:244}, {x:178, y:258}]);
+                drawMountain('#f4f1ff', [{x:500, y:150}, {x:458, y:220}, {x:500, y:202}, {x:542, y:220}]);
+                drawMountain('#3d2a6e', [{x:-50, y:450}, {x:100, y:300}, {x:250, y:450}]);
+                drawMountain('#3d2a6e', [{x:400, y:450}, {x:600, y:250}, {x:850, y:450}]);
 
                 const ground = c.createLinearGradient(0, 450, 0, 600);
                 ground.addColorStop(0, '#2ecc71'); ground.addColorStop(1, '#27ae60');
@@ -348,6 +448,15 @@
                 this.x = this.startX; this.y = 300;
                 this.velocity = 0; this.gravity = 0.5; this.jumpStrength = -8;
                 this.rotation = 0; this.isAlive = true; this.score = 0;
+                this.lives = 3; this.shield = false; this.invuln = 0;
+            }
+            /** Удар: щит его гасит, иначе минус жизнь; потом 1,5 с неуязвимости (птица мигает) */
+            hit() {
+                if (!this.isAlive || this.invuln > 0) return;
+                if (this.shield) { this.shield = false; this.invuln = 60; sfx.shield(); return; }
+                this.lives--; this.invuln = 90; sfx.crash(); updateScoreUI();
+                if (this.lives <= 0) { this.die(); return; }
+                this.velocity = this.jumpStrength * 0.7;
             }
             jump() {
                 if(this.isAlive && !isPaused) {
@@ -360,14 +469,22 @@
                 this.velocity += this.gravity; this.y += this.velocity;
                 this.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, (this.velocity * 0.1)));
 
-                if (this.y + this.height >= 600 || this.y <= 0) this.die();
+                if (this.invuln > 0) this.invuln--;
+                // Земля и небо — тоже удар, птица отскакивает обратно
+                if (this.y + this.height >= 600) { this.y = 600 - this.height - 1; this.hit(); this.velocity = this.jumpStrength; }
+                if (this.y <= 0) { this.y = 1; this.velocity = 2; this.hit(); }
             }
             draw() {
                 if (!this.isAlive) return;
+                if (this.invuln > 0 && Math.floor(this.invuln / 6) % 2 === 0) return; // мигает
                 ctx.save();
                 ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
                 ctx.rotate(this.rotation);
                 ctx.drawImage(this.img, -this.width / 2, -this.height / 2, this.width, this.height);
+                if (this.shield) {
+                    ctx.beginPath(); ctx.arc(0, 0, 34, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(255,181,71,.9)'; ctx.lineWidth = 4; ctx.stroke();
+                }
                 ctx.restore();
             }
             die() {
@@ -377,9 +494,11 @@
 
         class Pipe {
             constructor() {
-                this.width = 80; this.gap = gameMode === 2 ? 220 : 180; // В 2Р окно шире
+                this.width = 80;
+                // Уровень растёт — окно уже, полёт быстрее (в 2Р окно шире)
+                this.gap = Math.max(gameMode === 2 ? 170 : 140, (gameMode === 2 ? 220 : 180) - (level - 1) * 6);
                 this.x = 800;
-                this.speed = 4; this.passedBy = { 'red': false, 'blue': false };
+                this.speed = speedNow(); this.passedBy = { 'red': false, 'blue': false };
                 const minH = 80; const maxH = 600 - this.gap - 80;
                 this.topH = Math.floor(Math.random() * (maxH - minH + 1) + minH);
             }
@@ -399,10 +518,78 @@
             }
         }
 
+        /**
+         * Ворота с вопросом: стена с тремя проходами, в каждом — ответ.
+         * Через правильный — +3 очка, через неправильный — минус жизнь (и подсказка, какой был верный).
+         */
+        class QuestionGate {
+            constructor(q) {
+                this.q = q; this.isGate = true;
+                this.width = 90; this.x = 800; this.speed = speedNow();
+                this.opening = gameMode === 2 ? 140 : 124;
+                this.centers = [150, 310, 470];
+                const order = q.options.slice().sort(() => Math.random() - 0.5);
+                this.labels = order;
+                this.passedBy = { 'red': false, 'blue': false };
+            }
+            update() { this.x -= this.speed; }
+            slotAt(y) { return this.centers.findIndex((c) => Math.abs(y - c) <= this.opening / 2); }
+            draw() {
+                const half = this.opening / 2;
+                const walls = [[0, this.centers[0] - half]];
+                for (let i = 0; i < 2; i++) walls.push([this.centers[i] + half, this.centers[i + 1] - half]);
+                walls.push([this.centers[2] + half, 600]);
+                walls.forEach(([y0, y1]) => {
+                    const g = ctx.createLinearGradient(this.x, 0, this.x + this.width, 0);
+                    g.addColorStop(0, '#3a0d2e'); g.addColorStop(0.5, '#E0162B'); g.addColorStop(1, '#3a0d2e');
+                    ctx.fillStyle = g; ctx.fillRect(this.x, y0, this.width, y1 - y0);
+                    ctx.fillStyle = '#FFB547'; ctx.fillRect(this.x - 4, y0, this.width + 8, 4); ctx.fillRect(this.x - 4, y1 - 4, this.width + 8, 4);
+                });
+                ctx.save();
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                this.centers.forEach((c, i) => {
+                    const label = this.labels[i];
+                    ctx.font = `800 ${label.length > 9 ? 17 : 22}px Montserrat, Inter, sans-serif`;
+                    const w = Math.min(170, ctx.measureText(label).width + 24);
+                    ctx.fillStyle = this.result && label === this.q.right ? 'rgba(15,165,149,.95)' : 'rgba(11,16,38,.82)';
+                    ctx.beginPath(); ctx.roundRect(this.x + this.width / 2 - w / 2, c - 18, w, 36, 12); ctx.fill();
+                    ctx.fillStyle = '#fff'; ctx.fillText(label, this.x + this.width / 2, c + 1, 160);
+                });
+                ctx.restore();
+            }
+            collides(bird) {
+                if (!bird.isAlive) return false;
+                const bx = bird.x + 8, bw = bird.width - 16;
+                if (!(bx < this.x + this.width && bx + bw > this.x)) return false;
+                const top = bird.y + 10, bottom = bird.y + bird.height - 8;
+                return this.slotAt(top) === -1 || this.slotAt(bottom) === -1 || this.slotAt(top) !== this.slotAt(bottom);
+            }
+        }
+
+        /** Тумар — золотой оберег: щит на один удар */
+        class Tumar {
+            constructor() { this.x = 800; this.y = 140 + Math.random() * 320; this.r = 18; this.speed = speedNow(); this.taken = false; this.isTumar = true; }
+            update() { this.x -= this.speed; }
+            draw() {
+                if (this.taken) return;
+                ctx.save();
+                ctx.translate(this.x, this.y); ctx.rotate(Math.PI / 4);
+                ctx.fillStyle = '#FFB547'; ctx.shadowColor = '#FFB547'; ctx.shadowBlur = 18;
+                ctx.fillRect(-this.r * 0.7, -this.r * 0.7, this.r * 1.4, this.r * 1.4);
+                ctx.shadowBlur = 0; ctx.fillStyle = '#E0162B'; ctx.fillRect(-this.r * 0.3, -this.r * 0.3, this.r * 0.6, this.r * 0.6);
+                ctx.restore();
+            }
+            touches(bird) {
+                if (this.taken || !bird.isAlive) return false;
+                return Math.hypot(bird.x + bird.width / 2 - this.x, bird.y + bird.height / 2 - this.y) < this.r + 22;
+            }
+        }
+
         // --- ЛОГИКА И СОСТОЯНИЯ ---
         const bg = new Background();
         let birds = [];
         let pipes = [];
+        let tumars = [];
         let activeMenu = 'menu-main';
 
         function showScreen(id) {
@@ -429,7 +616,8 @@
                 document.getElementById('score-2p-container').classList.add('hidden');
             }
             
-            pipes = []; frameCount = 0; isPaused = false;
+            pipes = []; tumars = []; frameCount = 0; spawnCount = 0; level = 1; isPaused = false;
+            showBanner(null);
             updateScoreUI(); showScreen(null);
             if(!animationId) animationId = requestAnimationFrame(gameLoop);
         }
@@ -445,7 +633,7 @@
 
         function restartGame() { startGame(gameMode); }
         function quitToMenu() {
-            isPaused = true; showScreen('menu-main');
+            isPaused = true; showScreen('menu-main'); showBanner(null);
             if(animationId) { cancelAnimationFrame(animationId); animationId = null; }
             // Рисуем статический фон
             ctx.clearRect(0, 0, 800, 600); bg.draw();
@@ -454,7 +642,7 @@
         function checkGameOver() {
             const anyAlive = birds.some(b => b.isAlive);
             if (!anyAlive) {
-                isPaused = true;
+                isPaused = true; showBanner(null);
                 let finalScoreText = '';
                 let winText = '';
                 let maxScore = 0;
@@ -482,6 +670,10 @@
         function updateScoreUI() {
             document.getElementById('score-1p').innerText = birds[0] ? birds[0].score : 0;
             if(gameMode === 2) document.getElementById('score-2p').innerText = birds[1] ? birds[1].score : 0;
+            const hearts = (b) => (b ? '❤'.repeat(Math.max(0, b.lives)) + '♡'.repeat(Math.max(0, 3 - b.lives)) : '');
+            document.getElementById('hearts-1p').textContent = hearts(birds[0]);
+            document.getElementById('hearts-2p').textContent = hearts(birds[1]);
+            document.getElementById('hud-level').textContent = BALang.t('{n}-деңгээл', { n: level });
         }
 
         function saveRecord(score) {
@@ -504,6 +696,15 @@
 
         // --- УПРАВЛЕНИЕ (КЛАВИАТУРА И HUD) ---
         document.getElementById('btn-pause').addEventListener('click', pauseGame);
+        // Режим и вопросы — кнопки-переключатели в главном меню
+        const pressed = (on, off) => { on.setAttribute('aria-pressed', 'true'); off.setAttribute('aria-pressed', 'false'); };
+        const $id = (id) => document.getElementById(id);
+        $id('mode-learn').addEventListener('click', () => { learnMode = true; pressed($id('mode-learn'), $id('mode-classic')); $id('content-row').style.opacity = 1; });
+        $id('mode-classic').addEventListener('click', () => { learnMode = false; pressed($id('mode-classic'), $id('mode-learn')); $id('content-row').style.opacity = 0.45; });
+        $id('content-words').addEventListener('click', () => { content = 'words'; pressed($id('content-words'), $id('content-mult')); });
+        $id('content-mult').addEventListener('click', () => { content = 'mult'; pressed($id('content-mult'), $id('content-words')); });
+        // Набор учителя по ссылке (#w=…) — на кнопке видно его название
+        if (V && V.teacherSet) $id('content-words-sub').textContent = V.teacherSet.title;
 
         window.addEventListener('keydown', (e) => {
             if (activeMenu !== null) return;
@@ -539,22 +740,52 @@
             birds.forEach(b => b.update());
 
             frameCount++;
-            if (frameCount % 100 === 0) pipes.push(new Pipe());
-
+            if (frameCount % spawnEvery() === 0) {
+                spawnCount++;
+                // Каждое 4-е препятствие в режиме «Билим учуусу» — ворота с вопросом (по одним за раз)
+                if (learnMode && spawnCount % 4 === 0 && !pipes.some((p) => p.isGate)) {
+                    const q = nextQuestion();
+                    pipes.push(new QuestionGate(q)); showBanner(q);
+                } else pipes.push(new Pipe());
+                // Изредка между препятствиями — тумар-щит
+                if (spawnCount % 7 === 5) { const t = new Tumar(); t.x = 800 + (spawnEvery() * speedNow()) / 2; tumars.push(t); }
+            }
             let scoreChanged = false;
             for (let i = pipes.length - 1; i >= 0; i--) {
-                pipes[i].update();
-                
+                const p = pipes[i];
+                p.update();
                 birds.forEach(bird => {
-                    if (pipes[i].collides(bird)) bird.die();
-                    // Подсчет очков индивидуально
-                    if (bird.isAlive && pipes[i].x + pipes[i].width < bird.x && !pipes[i].passedBy[bird.type]) {
-                        bird.score++; pipes[i].passedBy[bird.type] = true; scoreChanged = true;
+                    if (p.collides(bird)) bird.hit();
+                    if (p.isGate) {
+                        // Ответ засчитывается, когда птица долетела до середины ворот
+                        if (bird.isAlive && !p.passedBy[bird.type] && p.x + p.width / 2 < bird.x + bird.width / 2) {
+                            p.passedBy[bird.type] = true; p.result = true;
+                            const slot = p.slotAt(bird.y + bird.height / 2);
+                            if (slot >= 0 && p.labels[slot] === p.q.right) {
+                                bird.score += 3; scoreChanged = true; sfx.correct();
+                                flash(BALang.t('Туура! +3'), '#3ee6c4');
+                            } else {
+                                bird.hit();
+                                flash(BALang.t('Туура жооп: {a}', { a: p.q.right }), '#ff8a8a');
+                            }
+                            if (birds.every((b) => !b.isAlive || p.passedBy[b.type])) setTimeout(() => showBanner(null), 600);
+                        }
+                    } else if (bird.isAlive && p.x + p.width < bird.x && !p.passedBy[bird.type]) {
+                        bird.score++; p.passedBy[bird.type] = true; scoreChanged = true;
                     }
                 });
-
-                if (pipes[i].x + pipes[i].width < 0) pipes.splice(i, 1);
+                if (p.x + p.width < 0) pipes.splice(i, 1);
             }
+            for (let i = tumars.length - 1; i >= 0; i--) {
+                const t = tumars[i];
+                t.update();
+                birds.forEach((bird) => { if (t.touches(bird)) { t.taken = true; bird.shield = true; sfx.power(); flash(BALang.t('Тумар: калкан!'), '#FFB547'); } });
+                if (t.x < -30 || t.taken) tumars.splice(i, 1);
+            }
+            // Уровень: каждые 10 очков — быстрее и уже
+            const best = Math.max(...birds.map((b) => b.score));
+            const nextLevel = 1 + Math.floor(best / 10);
+            if (nextLevel > level) { level = nextLevel; flash(BALang.t('{n}-деңгээл!', { n: level }), '#FFB547'); updateScoreUI(); }
             if(scoreChanged) { sfx.score(); updateScoreUI(); }
         }
 
@@ -563,6 +794,7 @@
             bg.draw();
             if(activeMenu === null || isPaused) {
                 pipes.forEach(p => p.draw());
+                tumars.forEach(t => t.draw());
                 birds.forEach(b => b.draw());
             }
 

@@ -115,3 +115,42 @@ test('sentence: level 4 has trap words, the next game brings new sentences, a te
   await other.close();
   expect(errors).toEqual([]);
 });
+
+test('eagle: question gates — right answer +3, wrong answer costs a life, not the whole game', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.route('**/cdn.jsdelivr.net/**', (r) => r.abort()); // камеры в тесте нет — играем с клавиатуры
+  await page.addInitScript(() => localStorage.setItem('BA2_lang', '"ru"'));
+  await page.goto('/games/eagle/index.html');
+  await page.evaluate(() => document.getElementById('ba-camera-error')?.remove());
+  const result = await page.evaluate(async () => {
+    startGame(1);
+    const bird = birds[0];
+    const pass = (pickRight) => {
+      const gate = new QuestionGate(nextQuestion());
+      const slot = gate.labels.indexOf(gate.q.right);
+      const target = pickRight ? slot : (slot + 1) % 3;
+      pipes = [gate];
+      bird.invuln = 0;
+      bird.y = gate.centers[target] - bird.height / 2; bird.velocity = 0;
+      gate.x = bird.x + bird.width / 2 - gate.width / 2 + 2; // середина ворот чуть правее птицы
+      gate.speed = 4;
+      updateLogic(); updateLogic();
+      return { score: bird.score, lives: bird.lives };
+    };
+    const right = pass(true);
+    const wrong = pass(false);
+    // Обычное появление: каждое 4-е препятствие — ворота, над ними плашка с вопросом
+    pipes = []; spawnCount = 3; frameCount = spawnEvery() - 1;
+    updateLogic();
+    const spawned = { gate: pipes.some((x) => x.isGate), banner: document.getElementById('qbanner').textContent };
+    return { right, wrong, spawned, alive: bird.isAlive };
+  });
+  expect(result.right.score).toBe(3);
+  expect(result.right.lives).toBe(3);
+  expect(result.wrong.lives).toBe(2);
+  expect(result.alive).toBe(true);
+  expect(result.spawned.gate).toBe(true);
+  expect(result.spawned.banner).toContain('→');
+  expect(errors).toEqual([]);
+});
