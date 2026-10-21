@@ -152,8 +152,12 @@ const randomSecret = () => {
   return [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
 };
 
-export const roomCode = (len = 4) =>
-  Array.from({ length: len }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join('');
+// Криптостойкий случайный код: по Math.random код следующей комнаты можно было бы предсказать
+export const roomCode = (len = 4) => {
+  const bytes = new Uint32Array(len);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (n) => CODE_CHARS[n % CODE_CHARS.length]).join('');
+};
 
 const peerIdFor = (code, prefix = ROOM_PREFIX) => prefix + String(code).toUpperCase();
 

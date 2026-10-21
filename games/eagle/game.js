@@ -1,0 +1,639 @@
+/* Перенесено из index.html, чтобы страница работала с политикой безопасности (CSP) */
+        // --- ПРОСТРАНСТВО ИМЕН И ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const videoElement = document.getElementById('webcam');
+        
+        let gameMode = 1; // 1 = Одиночная, 2 = Команды
+        let isPaused = false;
+        let animationId;
+        let frameCount = 0;
+        let records = JSON.parse(localStorage.getItem('kgPinchRecords')) || [];
+
+        // --- ВСТРОЕННЫЙ СИНТЕЗАТОР ЗВУКОВ (Web Audio API) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, type, duration, vol=0.1) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type; 
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+        const sfx = {
+            jump: () => playTone(350, 'sine', 0.15, 0.1),
+            score: () => { playTone(800, 'square', 0.1, 0.05); setTimeout(()=>playTone(1200, 'square', 0.1, 0.05), 100); },
+            crash: () => playTone(150, 'sawtooth', 0.4, 0.2),
+            correct: () => { playTone(660, 'triangle', 0.1, 0.08); setTimeout(() => playTone(990, 'triangle', 0.14, 0.08), 90); },
+            shield: () => playTone(520, 'triangle', 0.2, 0.08),
+            power: () => { playTone(880, 'sine', 0.08, 0.07); setTimeout(() => playTone(1320, 'sine', 0.12, 0.07), 80); }
+        };
+
+        // --- РЕЖИМ, УРОВЕНЬ, ВОПРОСЫ ---
+        let learnMode = true;          // «Билим учуусу»: каждое 4-е препятствие — ворота с вопросом
+        let content = 'words';         // 'words' — перевод слов (общий словарь или набор учителя), 'mult' — таблица умножения
+        let level = 1;
+        let spawnCount = 0;
+        const speedNow = () => Math.min(7.2, 4 + (level - 1) * 0.4);
+        const spawnEvery = () => Math.max(66, 100 - (level - 1) * 4);
+        const V = window.BA_VOCAB;
+        const siteLang = () => (window.BALang && BALang.lang) || document.documentElement.lang || 'ky';
+
+        /** Вопрос и три ответа; повторов нет, пока не пройдены остальные (shared/fresh.js) */
+        function nextQuestion() {
+            if (content === 'mult') {
+                const all = [];
+                for (let a = 2; a <= 9; a++) for (let b = 2; b <= 9; b++) all.push([a, b]);
+                const [a, b] = window.BA_FRESH ? BA_FRESH.order('eagle:mult', all, (x) => x.join('x'))[0] : all[Math.floor(Math.random() * all.length)];
+                window.BA_FRESH?.mark('eagle:mult', `${a}x${b}`);
+                const right = a * b;
+                const wrong = new Set();
+                for (const d of [a, b, -a, -b, 1, -1, 10, -10]) { if (wrong.size >= 2) break; const v = right + d; if (v > 0 && v !== right) wrong.add(v); }
+                return { text: `${a} × ${b} = ?`, hint: '', options: [right, ...wrong].map(String), right: String(right) };
+            }
+            // Слова: с кыргызского на язык сайта (на кыргызском сайте — на русский)
+            const to = siteLang() === 'en' ? 'en' : 'ru';
+            const pool = V.words('all').filter((w) => w[to]);
+            const w = V.fresh(null, pool)[0];
+            V.seen(w);
+            const wrong = V.distractors(w, 2, to).map((x) => x[to]);
+            return { text: `${w.ky} → ?`, hint: w.emoji && w.emoji !== w.ky ? w.emoji : '', options: [w[to], ...wrong], right: w[to] };
+        }
+
+        function flash(text, color) {
+            const el = document.getElementById('flashmsg');
+            el.textContent = text; el.style.color = color; el.classList.add('show');
+            clearTimeout(flash.t); flash.t = setTimeout(() => el.classList.remove('show'), 700);
+        }
+        function showBanner(q) {
+            const el = document.getElementById('qbanner');
+            if (!q) { el.classList.add('hidden'); return; }
+            el.innerHTML = '';
+            el.append(document.createTextNode(`${q.hint ? q.hint + '  ' : ''}${q.text}`));
+            const small = document.createElement('small');
+            small.textContent = BALang.t('Туура жооптун дарбазасынан уч!');
+            el.append(small);
+            el.classList.remove('hidden');
+        }
+
+        // --- ГЕНЕРАТОР ГРАФИКИ (Ассеты) ---
+        const assets = { bg: new Image(), birdRed: new Image(), birdBlue: new Image(), pipeNorth: new Image(), pipeSouth: new Image() };
+        let assetsLoaded = 0;
+        
+        function initAssets() {
+            const createImg = (w, h, renderFunc) => {
+                const tmp = document.createElement('canvas'); tmp.width = w; tmp.height = h;
+                renderFunc(tmp.getContext('2d'), w, h); return tmp.toDataURL();
+            };
+
+            // Фон 800x600 (Панорамный)
+            assets.bg.src = createImg(800, 600, (c, w, h) => {
+                const sky = c.createLinearGradient(0, 0, 0, 450);
+                sky.addColorStop(0, '#141a4a'); sky.addColorStop(0.6, '#5b2a6e'); sky.addColorStop(1, '#ff8a5c');
+                c.fillStyle = sky; c.fillRect(0, 0, w, h);
+                
+                // Луна/Солнце
+                c.fillStyle = 'rgba(255, 255, 255, 0.8)'; c.shadowBlur = 30; c.shadowColor = '#fff';
+                c.beginPath(); c.arc(400, 200, 50, 0, Math.PI*2); c.fill(); c.shadowBlur = 0;
+
+                const drawMountain = (color, pts) => {
+                    c.fillStyle = color; c.beginPath(); c.moveTo(pts[0].x, pts[0].y);
+                    for(let i=1; i<pts.length; i++) c.lineTo(pts[i].x, pts[i].y); c.fill();
+                };
+                drawMountain('#2a1f5c', [{x:0, y:450}, {x:150, y:200}, {x:350, y:450}]);
+                drawMountain('#2a1f5c', [{x:250, y:450}, {x:500, y:150}, {x:800, y:450}]);
+                // Снежные шапки Ала-Тоо
+                drawMountain('#f4f1ff', [{x:150, y:200}, {x:122, y:258}, {x:150, y:244}, {x:178, y:258}]);
+                drawMountain('#f4f1ff', [{x:500, y:150}, {x:458, y:220}, {x:500, y:202}, {x:542, y:220}]);
+                drawMountain('#3d2a6e', [{x:-50, y:450}, {x:100, y:300}, {x:250, y:450}]);
+                drawMountain('#3d2a6e', [{x:400, y:450}, {x:600, y:250}, {x:850, y:450}]);
+
+                const ground = c.createLinearGradient(0, 450, 0, 600);
+                ground.addColorStop(0, '#2ecc71'); ground.addColorStop(1, '#27ae60');
+                c.fillStyle = ground; c.fillRect(0, 450, w, 150);
+                
+                // Две Юрты
+                const drawYurt = (x, y) => {
+                    c.fillStyle = '#ecf0f1'; c.beginPath(); c.arc(x, y, 35, Math.PI, 0); c.fill();
+                    c.fillRect(x-35, y, 70, 25);
+                    c.strokeStyle = '#c0392b'; c.lineWidth = 3; c.strokeRect(x-10, y+5, 20, 20);
+                };
+                drawYurt(150, 460); drawYurt(650, 470);
+            });
+
+            // Функция отрисовки птицы
+            const drawBird = (c, w, h, bodyColor, hatColor) => {
+                c.shadowColor = 'rgba(0,0,0,0.5)'; c.shadowBlur = 4; c.shadowOffsetY = 3;
+                c.fillStyle = bodyColor; c.beginPath(); c.ellipse(w/2 + 2, 28, 18, 12, 0, 0, Math.PI*2); c.fill(); // Тело
+                c.fillStyle = '#e67e22'; c.beginPath(); c.moveTo(10, 28); c.quadraticCurveTo(20, 20, 30, 28); c.quadraticCurveTo(20, 38, 10, 28); c.fill(); // Крыло
+                c.fillStyle = '#f39c12'; c.beginPath(); c.moveTo(40, 24); c.quadraticCurveTo(50, 24, 48, 32); c.quadraticCurveTo(42, 28, 40, 28); c.fill(); // Клюв
+                c.fillStyle = '#fff'; c.beginPath(); c.arc(36, 22, 4, 0, Math.PI*2); c.fill(); // Глаз
+                c.fillStyle = '#000'; c.beginPath(); c.arc(37, 22, 1.5, 0, Math.PI*2); c.fill();
+                c.shadowBlur = 0; c.shadowOffsetY = 0;
+                // Ак-Калпак
+                c.fillStyle = hatColor; c.beginPath(); c.moveTo(25, 16); c.quadraticCurveTo(30, 0, 35, 16); c.fill(); c.fillRect(23, 16, 14, 4);
+                c.fillStyle = '#111'; c.fillRect(29, 2, 2, 14); c.fillRect(23, 18, 14, 2);
+            };
+
+            assets.birdRed.src = createImg(50, 45, (c, w, h) => drawBird(c, w, h, '#c0392b', '#ffffff'));
+            assets.birdBlue.src = createImg(50, 45, (c, w, h) => drawBird(c, w, h, '#2980b9', '#ecf0f1'));
+
+            // Трубы (Массивные для разрешения 800x600)
+            const drawPipe = (c, w, h, isTop) => {
+                const grad = c.createLinearGradient(0, 0, w, 0);
+                grad.addColorStop(0, '#591616'); grad.addColorStop(0.5, '#c0392b'); grad.addColorStop(1, '#4a0b0b');
+                c.fillStyle = grad; c.fillRect(0, 0, w, h);
+                c.fillStyle = '#f1c40f'; // Орнамент
+                for(let y = 30; y < h - 30; y += 80) {
+                    c.beginPath(); c.moveTo(w/2, y); c.lineTo(w-15, y+30); c.lineTo(w/2, y+60); c.lineTo(15, y+30); c.fill();
+                }
+                const capH = 30; let capY = isTop ? h - capH : 0;
+                c.fillStyle = '#d35400'; c.fillRect(-5, capY, w+10, capH);
+                c.fillStyle = 'rgba(255,255,255,0.2)'; c.fillRect(-5, capY, w+10, 5);
+            };
+            assets.pipeSouth.src = createImg(80, 500, (c, w, h) => drawPipe(c, w, h, false));
+            assets.pipeNorth.src = createImg(80, 500, (c, w, h) => drawPipe(c, w, h, true));
+
+            Object.values(assets).forEach(img => img.onload = () => {
+                assetsLoaded++;
+                if(assetsLoaded === 5) renderFrame(); // Старт отрисовки фона меню
+            });
+        }
+        initAssets();
+
+        // --- ИГРОВЫЕ КЛАССЫ ---
+        class Background {
+            constructor() { this.x = 0; this.speed = 1.5; }
+            update() { this.x -= this.speed; if (this.x <= -800) this.x = 0; }
+            draw() {
+                if(assets.bg.complete) {
+                    ctx.drawImage(assets.bg, this.x, 0, 800, 600);
+                    ctx.drawImage(assets.bg, this.x + 800, 0, 800, 600);
+                }
+            }
+        }
+
+        class Bird {
+            constructor(type, xOffset) {
+                this.type = type; // 'red' или 'blue'
+                this.img = type === 'red' ? assets.birdRed : assets.birdBlue;
+                this.startX = 80 + xOffset;
+                this.width = 50; this.height = 45;
+                this.reset();
+            }
+            reset() {
+                this.x = this.startX; this.y = 300;
+                this.velocity = 0; this.gravity = 0.5; this.jumpStrength = -8;
+                this.rotation = 0; this.isAlive = true; this.score = 0;
+                this.lives = 3; this.shield = false; this.invuln = 0;
+            }
+            /** Удар: щит его гасит, иначе минус жизнь; потом 1,5 с неуязвимости (птица мигает) */
+            hit() {
+                if (!this.isAlive || this.invuln > 0) return;
+                if (this.shield) { this.shield = false; this.invuln = 60; sfx.shield(); return; }
+                this.lives--; this.invuln = 90; sfx.crash(); updateScoreUI();
+                if (this.lives <= 0) { this.die(); return; }
+                this.velocity = this.jumpStrength * 0.7;
+            }
+            jump() {
+                if(this.isAlive && !isPaused) {
+                    this.velocity = this.jumpStrength;
+                    sfx.jump();
+                }
+            }
+            update() {
+                if (!this.isAlive) return;
+                this.velocity += this.gravity; this.y += this.velocity;
+                this.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, (this.velocity * 0.1)));
+
+                if (this.invuln > 0) this.invuln--;
+                // Земля и небо — тоже удар, птица отскакивает обратно
+                if (this.y + this.height >= 600) { this.y = 600 - this.height - 1; this.hit(); this.velocity = this.jumpStrength; }
+                if (this.y <= 0) { this.y = 1; this.velocity = 2; this.hit(); }
+            }
+            draw() {
+                if (!this.isAlive) return;
+                if (this.invuln > 0 && Math.floor(this.invuln / 6) % 2 === 0) return; // мигает
+                ctx.save();
+                ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                ctx.rotate(this.rotation);
+                ctx.drawImage(this.img, -this.width / 2, -this.height / 2, this.width, this.height);
+                if (this.shield) {
+                    ctx.beginPath(); ctx.arc(0, 0, 34, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(255,181,71,.9)'; ctx.lineWidth = 4; ctx.stroke();
+                }
+                ctx.restore();
+            }
+            die() {
+                if(this.isAlive) { this.isAlive = false; sfx.crash(); checkGameOver(); }
+            }
+        }
+
+        class Pipe {
+            constructor() {
+                this.width = 80;
+                // Уровень растёт — окно уже, полёт быстрее (в 2Р окно шире)
+                this.gap = Math.max(gameMode === 2 ? 170 : 140, (gameMode === 2 ? 220 : 180) - (level - 1) * 6);
+                this.x = 800;
+                this.speed = speedNow(); this.passedBy = { 'red': false, 'blue': false };
+                const minH = 80; const maxH = 600 - this.gap - 80;
+                this.topH = Math.floor(Math.random() * (maxH - minH + 1) + minH);
+            }
+            update() { this.x -= this.speed; }
+            draw() {
+                ctx.drawImage(assets.pipeNorth, 0, 500 - this.topH, this.width, this.topH, this.x, 0, this.width, this.topH);
+                const bottomY = this.topH + this.gap;
+                ctx.drawImage(assets.pipeSouth, 0, 0, this.width, 600 - bottomY, this.x, bottomY, this.width, 600 - bottomY);
+            }
+            collides(bird) {
+                if(!bird.isAlive) return false;
+                const bx = bird.x + 8, by = bird.y + 10, bw = bird.width - 16, bh = bird.height - 18;
+                if (bx < this.x + this.width && bx + bw > this.x) {
+                    if (by < this.topH || by + bh > this.topH + this.gap) return true;
+                }
+                return false;
+            }
+        }
+
+        /**
+         * Ворота с вопросом: стена с тремя проходами, в каждом — ответ.
+         * Через правильный — +3 очка, через неправильный — минус жизнь (и подсказка, какой был верный).
+         */
+        class QuestionGate {
+            constructor(q) {
+                this.q = q; this.isGate = true;
+                this.width = 90; this.x = 800; this.speed = speedNow();
+                this.opening = gameMode === 2 ? 140 : 124;
+                this.centers = [150, 310, 470];
+                const order = q.options.slice().sort(() => Math.random() - 0.5);
+                this.labels = order;
+                this.passedBy = { 'red': false, 'blue': false };
+            }
+            update() { this.x -= this.speed; }
+            slotAt(y) { return this.centers.findIndex((c) => Math.abs(y - c) <= this.opening / 2); }
+            draw() {
+                const half = this.opening / 2;
+                const walls = [[0, this.centers[0] - half]];
+                for (let i = 0; i < 2; i++) walls.push([this.centers[i] + half, this.centers[i + 1] - half]);
+                walls.push([this.centers[2] + half, 600]);
+                walls.forEach(([y0, y1]) => {
+                    const g = ctx.createLinearGradient(this.x, 0, this.x + this.width, 0);
+                    g.addColorStop(0, '#3a0d2e'); g.addColorStop(0.5, '#E0162B'); g.addColorStop(1, '#3a0d2e');
+                    ctx.fillStyle = g; ctx.fillRect(this.x, y0, this.width, y1 - y0);
+                    ctx.fillStyle = '#FFB547'; ctx.fillRect(this.x - 4, y0, this.width + 8, 4); ctx.fillRect(this.x - 4, y1 - 4, this.width + 8, 4);
+                });
+                ctx.save();
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                this.centers.forEach((c, i) => {
+                    const label = this.labels[i];
+                    ctx.font = `800 ${label.length > 9 ? 17 : 22}px Montserrat, Inter, sans-serif`;
+                    const w = Math.min(170, ctx.measureText(label).width + 24);
+                    ctx.fillStyle = this.result && label === this.q.right ? 'rgba(15,165,149,.95)' : 'rgba(11,16,38,.82)';
+                    ctx.beginPath(); ctx.roundRect(this.x + this.width / 2 - w / 2, c - 18, w, 36, 12); ctx.fill();
+                    ctx.fillStyle = '#fff'; ctx.fillText(label, this.x + this.width / 2, c + 1, 160);
+                });
+                ctx.restore();
+            }
+            collides(bird) {
+                if (!bird.isAlive) return false;
+                const bx = bird.x + 8, bw = bird.width - 16;
+                if (!(bx < this.x + this.width && bx + bw > this.x)) return false;
+                const top = bird.y + 10, bottom = bird.y + bird.height - 8;
+                return this.slotAt(top) === -1 || this.slotAt(bottom) === -1 || this.slotAt(top) !== this.slotAt(bottom);
+            }
+        }
+
+        /** Тумар — золотой оберег: щит на один удар */
+        class Tumar {
+            constructor() { this.x = 800; this.y = 140 + Math.random() * 320; this.r = 18; this.speed = speedNow(); this.taken = false; this.isTumar = true; }
+            update() { this.x -= this.speed; }
+            draw() {
+                if (this.taken) return;
+                ctx.save();
+                ctx.translate(this.x, this.y); ctx.rotate(Math.PI / 4);
+                ctx.fillStyle = '#FFB547'; ctx.shadowColor = '#FFB547'; ctx.shadowBlur = 18;
+                ctx.fillRect(-this.r * 0.7, -this.r * 0.7, this.r * 1.4, this.r * 1.4);
+                ctx.shadowBlur = 0; ctx.fillStyle = '#E0162B'; ctx.fillRect(-this.r * 0.3, -this.r * 0.3, this.r * 0.6, this.r * 0.6);
+                ctx.restore();
+            }
+            touches(bird) {
+                if (this.taken || !bird.isAlive) return false;
+                return Math.hypot(bird.x + bird.width / 2 - this.x, bird.y + bird.height / 2 - this.y) < this.r + 22;
+            }
+        }
+
+        // --- ЛОГИКА И СОСТОЯНИЯ ---
+        const bg = new Background();
+        let birds = [];
+        let pipes = [];
+        let tumars = [];
+        let activeMenu = 'menu-main';
+
+        function showScreen(id) {
+            document.querySelectorAll('.ui-layer').forEach(el => el.classList.add('hidden'));
+            if(id) document.getElementById(id).classList.remove('hidden');
+            activeMenu = id;
+            
+            if(id === 'menu-records') updateRecordsTable();
+            if(id === null) document.getElementById('hud').classList.remove('hidden');
+            else document.getElementById('hud').classList.add('hidden');
+        }
+
+        function startGame(mode) {
+            // Инициализация AudioContext с первым кликом пользователя (политика браузеров)
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+
+            gameMode = mode;
+            birds = [];
+            birds.push(new Bird('red', 0));
+            if(gameMode === 2) {
+                birds.push(new Bird('blue', -40)); // Вторая птица летит чуть позади
+                document.getElementById('score-2p-container').classList.remove('hidden');
+            } else {
+                document.getElementById('score-2p-container').classList.add('hidden');
+            }
+            
+            pipes = []; tumars = []; frameCount = 0; spawnCount = 0; level = 1; isPaused = false;
+            showBanner(null);
+            updateScoreUI(); showScreen(null);
+            if(!animationId) animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function pauseGame() {
+            if(activeMenu !== null) return;
+            isPaused = true; showScreen('menu-pause');
+        }
+
+        function resumeGame() {
+            isPaused = false; showScreen(null);
+        }
+
+        function restartGame() { startGame(gameMode); }
+        function quitToMenu() {
+            isPaused = true; showScreen('menu-main'); showBanner(null);
+            if(animationId) { cancelAnimationFrame(animationId); animationId = null; }
+            // Рисуем статический фон
+            ctx.clearRect(0, 0, 800, 600); bg.draw();
+        }
+
+        function checkGameOver() {
+            const anyAlive = birds.some(b => b.isAlive);
+            if (!anyAlive) {
+                isPaused = true; showBanner(null);
+                let finalScoreText = '';
+                let winText = '';
+                let maxScore = 0;
+
+                if (gameMode === 1) {
+                    maxScore = birds[0].score;
+                    finalScoreText = maxScore;
+                    winText = 'Абдан жакшы аракет!';
+                } else {
+                    maxScore = Math.max(birds[0].score, birds[1].score);
+                    finalScoreText = `<span class="text-red">${BALang.t('Күн: {n}', { n: birds[0].score })}</span> | <span class="text-blue">${BALang.t('Асман: {n}', { n: birds[1].score })}</span>`;
+                    if(birds[0].score > birds[1].score) winText = 'Күн командасы жеңди!';
+                    else if(birds[1].score > birds[0].score) winText = 'Асман командасы жеңди!';
+                    else winText = 'Тең чыгуу!';
+                }
+
+                saveRecord(maxScore);
+                
+                document.getElementById('go-winner').innerHTML = winText;
+                document.getElementById('go-score').innerHTML = finalScoreText;
+                setTimeout(() => showScreen('menu-gameover'), 500); // Небольшая задержка перед меню
+            }
+        }
+
+        function updateScoreUI() {
+            document.getElementById('score-1p').innerText = birds[0] ? birds[0].score : 0;
+            if(gameMode === 2) document.getElementById('score-2p').innerText = birds[1] ? birds[1].score : 0;
+            const hearts = (b) => (b ? '❤'.repeat(Math.max(0, b.lives)) + '♡'.repeat(Math.max(0, 3 - b.lives)) : '');
+            document.getElementById('hearts-1p').textContent = hearts(birds[0]);
+            document.getElementById('hearts-2p').textContent = hearts(birds[1]);
+            document.getElementById('hud-level').textContent = BALang.t('{n}-деңгээл', { n: level });
+        }
+
+        function saveRecord(score) {
+            if(score === 0) return;
+            const date = new Date().toLocaleDateString('ky-KG');
+            records.push({score, date, mode: gameMode === 1 ? '1P' : '2P'});
+            records.sort((a,b) => b.score - a.score);
+            records = records.slice(0, 5); // Топ 5
+            localStorage.setItem('kgPinchRecords', JSON.stringify(records));
+        }
+
+        function updateRecordsTable() {
+            const tbody = document.getElementById('records-body');
+            tbody.innerHTML = '';
+            records.forEach((r, i) => {
+                tbody.innerHTML += `<tr><td>#${i+1} ${r.mode}</td><td>${r.score}</td><td>${r.date}</td></tr>`;
+            });
+            if(records.length === 0) tbody.innerHTML = '<tr><td colspan="3" style="color:#bdc3c7">Азырынча рекорддор жок</td></tr>';
+        }
+
+        // --- УПРАВЛЕНИЕ (КЛАВИАТУРА И HUD) ---
+        document.getElementById('btn-pause').addEventListener('click', pauseGame);
+        // Режим и вопросы — кнопки-переключатели в главном меню
+        const pressed = (on, off) => { on.setAttribute('aria-pressed', 'true'); off.setAttribute('aria-pressed', 'false'); };
+        const $id = (id) => document.getElementById(id);
+        $id('mode-learn').addEventListener('click', () => { learnMode = true; pressed($id('mode-learn'), $id('mode-classic')); $id('content-row').style.opacity = 1; });
+        $id('mode-classic').addEventListener('click', () => { learnMode = false; pressed($id('mode-classic'), $id('mode-learn')); $id('content-row').style.opacity = 0.45; });
+        $id('content-words').addEventListener('click', () => { content = 'words'; pressed($id('content-words'), $id('content-mult')); });
+        $id('content-mult').addEventListener('click', () => { content = 'mult'; pressed($id('content-mult'), $id('content-words')); });
+        // Набор учителя по ссылке (#w=…) — на кнопке видно его название
+        if (V && V.teacherSet) $id('content-words-sub').textContent = V.teacherSet.title;
+
+        window.addEventListener('keydown', (e) => {
+            if (activeMenu !== null) return;
+            if (e.code === 'Escape' || e.code === 'KeyP') pauseGame();
+            if (e.code === 'Space' || e.code === 'KeyW') { e.preventDefault(); if(birds[0]) birds[0].jump(); }
+            if (e.code === 'ArrowUp') { e.preventDefault(); if(birds[1] && gameMode === 2) birds[1].jump(); }
+        });
+        
+        // Touch/Mouse для 1P (только для левой стороны экрана, или всего экрана если 1P)
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if(activeMenu !== null) return;
+            for(let i=0; i<e.touches.length; i++) {
+                let tx = e.touches[i].clientX;
+                if(gameMode === 1) { if(birds[0]) birds[0].jump(); }
+                else {
+                    if(tx < window.innerWidth/2) { if(birds[0]) birds[0].jump(); }
+                    else { if(birds[1]) birds[1].jump(); }
+                }
+            }
+        }, {passive: false});
+        canvas.addEventListener('mousedown', (e) => {
+            if(activeMenu !== null) return;
+            if(gameMode === 1 || e.clientX < window.innerWidth/2) { if(birds[0]) birds[0].jump(); }
+            else { if(birds[1]) birds[1].jump(); }
+        });
+
+        // --- ИГРОВОЙ ЦИКЛ ---
+        function updateLogic() {
+            if (isPaused || activeMenu !== null) return;
+            
+            bg.update();
+            birds.forEach(b => b.update());
+
+            frameCount++;
+            if (frameCount % spawnEvery() === 0) {
+                spawnCount++;
+                // Каждое 4-е препятствие в режиме «Билим учуусу» — ворота с вопросом (по одним за раз)
+                if (learnMode && spawnCount % 4 === 0 && !pipes.some((p) => p.isGate)) {
+                    const q = nextQuestion();
+                    pipes.push(new QuestionGate(q)); showBanner(q);
+                } else pipes.push(new Pipe());
+                // Изредка между препятствиями — тумар-щит
+                if (spawnCount % 7 === 5) { const t = new Tumar(); t.x = 800 + (spawnEvery() * speedNow()) / 2; tumars.push(t); }
+            }
+            let scoreChanged = false;
+            for (let i = pipes.length - 1; i >= 0; i--) {
+                const p = pipes[i];
+                p.update();
+                birds.forEach(bird => {
+                    if (p.collides(bird)) bird.hit();
+                    if (p.isGate) {
+                        // Ответ засчитывается, когда птица долетела до середины ворот
+                        if (bird.isAlive && !p.passedBy[bird.type] && p.x + p.width / 2 < bird.x + bird.width / 2) {
+                            p.passedBy[bird.type] = true; p.result = true;
+                            const slot = p.slotAt(bird.y + bird.height / 2);
+                            if (slot >= 0 && p.labels[slot] === p.q.right) {
+                                bird.score += 3; scoreChanged = true; sfx.correct();
+                                flash(BALang.t('Туура! +3'), '#3ee6c4');
+                            } else {
+                                bird.hit();
+                                flash(BALang.t('Туура жооп: {a}', { a: p.q.right }), '#ff8a8a');
+                            }
+                            if (birds.every((b) => !b.isAlive || p.passedBy[b.type])) setTimeout(() => showBanner(null), 600);
+                        }
+                    } else if (bird.isAlive && p.x + p.width < bird.x && !p.passedBy[bird.type]) {
+                        bird.score++; p.passedBy[bird.type] = true; scoreChanged = true;
+                    }
+                });
+                if (p.x + p.width < 0) pipes.splice(i, 1);
+            }
+            for (let i = tumars.length - 1; i >= 0; i--) {
+                const t = tumars[i];
+                t.update();
+                birds.forEach((bird) => { if (t.touches(bird)) { t.taken = true; bird.shield = true; sfx.power(); flash(BALang.t('Тумар: калкан!'), '#FFB547'); } });
+                if (t.x < -30 || t.taken) tumars.splice(i, 1);
+            }
+            // Уровень: каждые 10 очков — быстрее и уже
+            const best = Math.max(...birds.map((b) => b.score));
+            const nextLevel = 1 + Math.floor(best / 10);
+            if (nextLevel > level) { level = nextLevel; flash(BALang.t('{n}-деңгээл!', { n: level }), '#FFB547'); updateScoreUI(); }
+            if(scoreChanged) { sfx.score(); updateScoreUI(); }
+        }
+
+        function renderFrame() {
+            ctx.clearRect(0, 0, 800, 600);
+            bg.draw();
+            if(activeMenu === null || isPaused) {
+                pipes.forEach(p => p.draw());
+                tumars.forEach(t => t.draw());
+                birds.forEach(b => b.draw());
+            }
+
+            // Отрисовка курсоров рук (MediaPipe)
+            handCursors.forEach(cursor => {
+                ctx.beginPath(); ctx.arc(cursor.x, cursor.y, 12, 0, Math.PI * 2);
+                ctx.fillStyle = cursor.color; ctx.fill();
+                ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.stroke();
+                // Крестик внутри для прицела
+                ctx.fillStyle = 'white'; ctx.fillRect(cursor.x-2, cursor.y-6, 4, 12); ctx.fillRect(cursor.x-6, cursor.y-2, 12, 4);
+            });
+        }
+
+        function gameLoop() {
+            updateLogic();
+            renderFrame();
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- MEDIAPIPE (Нейросеть) ---
+        let handCursors = [];
+        let handStates = { 'Left': {canJump: true}, 'Right': {canJump: true} };
+        const statusEl = document.getElementById('cam-status');
+        const statusTextEl = document.getElementById('cam-text');
+
+        function onResults(results) {
+            statusEl.classList.add('cam-ok');
+            statusTextEl.innerText = "ЖИ жигердүү (Оюнга даяр)";
+            setTimeout(()=> { statusEl.style.opacity = '0'; }, 3000);
+
+            handCursors = [];
+
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                for(let i=0; i<results.multiHandLandmarks.length; i++) {
+                    const landmarks = results.multiHandLandmarks[i];
+                    const handedness = results.multiHandedness[i].label; // 'Left' или 'Right'
+                    
+                    const thumb = landmarks[4]; const index = landmarks[8];
+                    
+                    // Координаты на холсте (зеркалируем X)
+                    const hx = (1 - index.x) * 800;
+                    const hy = index.y * 600;
+
+                    const color = handedness === 'Left' ? '#e74c3c' : '#3498db'; // Левая=Красный, Правая=Синий
+                    handCursors.push({x: hx, y: hy, color: color});
+
+                    const dist = Math.hypot(index.x - thumb.x, index.y - thumb.y);
+
+                    if (dist < 0.05) {
+                        if (handStates[handedness].canJump) {
+                            // Если в меню, можно симулировать клик, но лучше пусть кликают мышкой, 
+                            // а жесты использовать только для игры, чтобы не было случайных нажатий.
+                            if (activeMenu === null && !isPaused) {
+                                if(handedness === 'Left' && birds[0]) birds[0].jump();
+                                if(handedness === 'Right' && birds[1] && gameMode === 2) birds[1].jump();
+                            }
+                            handStates[handedness].canJump = false;
+                        }
+                    } else {
+                        handStates[handedness].canJump = true;
+                    }
+                }
+            }
+        }
+
+        const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`});
+        hands.setOptions({
+            maxNumHands: 2, // Теперь отслеживаем ДВЕ руки!
+            modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5
+        });
+        hands.onResults(onResults);
+
+        const camera = new Camera(videoElement, { onFrame: async () => { await hands.send({image: videoElement}); }, width: 640, height: 480 });
+        // Камера недоступна — понятное сообщение; играть можно и клавишами
+        BACamera.start(camera, {
+            withoutCamera: {
+                label: 'Клавиатура менен ойноо',
+                onClick: () => {
+                    statusEl.classList.add('cam-err');
+                    statusTextEl.innerText = "Камера жеткиликсиз (Баскычтарды колдонуңуз: W / Жогору)";
+                }
+            }
+        });
+
+        // Инициальный рендер фона
+        setTimeout(() => { if(!animationId) { ctx.clearRect(0,0,800,600); bg.draw(); } }, 1000);
+
+
+
+// Кнопки страницы: data-on="функция(аргументы)" вместо onclick — так работает политика безопасности (CSP).
+// Аргументы: числа, строки в кавычках и this (сама кнопка).
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-on]');
+  if (!el) return;
+  const m = /^(\w+)\((.*)\)$/.exec(el.dataset.on);
+  if (!m || typeof window[m[1]] !== 'function') return;
+  const args = m[2].trim() === '' ? [] : m[2].split(/\s*,\s*/).map((raw) =>
+    raw === 'this' ? el : /^-?\d+(\.\d+)?$/.test(raw) ? Number(raw) : raw.replace(/^['"]|['"]$/g, ''));
+  window[m[1]](...args);
+});

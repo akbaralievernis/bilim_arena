@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; media-src 'self' data: blob: mediastream:; connect-src 'self' https://udkxmgflbxetfzziftla.supabase.co wss://udkxmgflbxetfzziftla.supabase.co; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
   <title>Ашыкчаны тап — Билим Арена</title>
@@ -44,9 +45,9 @@
               </p>
             </div>
             <div class="themeSwitcher" hidden>
-              <div class="dot midnight active" onclick="setTheme('midnight')" title="Midnight Blue"></div>
-              <div class="dot deepspace" onclick="setTheme('deepspace')" title="Deep Space"></div>
-              <div class="dot auralight" onclick="setTheme('auralight')" title="Aura Light"></div>
+              <div class="dot midnight active" data-on="setTheme('midnight')" title="Midnight Blue"></div>
+              <div class="dot deepspace" data-on="setTheme('deepspace')" title="Deep Space"></div>
+              <div class="dot auralight" data-on="setTheme('auralight')" title="Aura Light"></div>
             </div>
           </div>
           
@@ -228,6 +229,7 @@
 
   <script src="../../shared/fresh.js?v=1"></script>
   <script src="./data.js?v=15"></script>
+  <script src="./actions.js?v=1"></script>
   <script src="./app.js?v=17"></script>
 </body>
 

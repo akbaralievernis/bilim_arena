@@ -216,7 +216,10 @@
     try {
       const bin = atob(m[1].replace(/-/g, '+').replace(/_/g, '/'));
       const data = JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0))));
-      const clean = (v) => String(v == null ? '' : v).replace(/[<>]/g, '').trim().slice(0, 40);
+      // Текст из ссылки попадает в игры, в том числе в разметку: убираем всё, что может стать HTML
+      // (апостроф заменяем типографским — «don’t» остаётся читаемым)
+      const clean = (v) => String(v == null ? '' : v).replace(/'/g, '’').replace(/[<>"`&\\]/g, '')
+        .replace(/[\u0000-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2066-\u2069]/g, '').trim().slice(0, 40);
       const words = (Array.isArray(data.w) ? data.w : []).slice(0, 80)
         .map((r) => (Array.isArray(r) ? r.map(clean) : []))
         .filter((r) => r[0] && (r[1] || r[2]));

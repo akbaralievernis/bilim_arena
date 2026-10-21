@@ -91,6 +91,8 @@ await expectDenied('пустое имя', () => as('S2', true, () => db.query('s
 await expectDenied('без входа (роль anon) вступить нельзя', () => asAnonRole(() => db.query('select * from join_class($1, $2)', [code, 'X'])));
 await expectDenied('в обход функции вступить нельзя', () => as('S2', true, () =>
   db.query('insert into class_members (class_id, user_id, name) values ($1, $2, $3)', [classId, ids.S2, 'Хакер'])));
+await expectDenied('ученик не может сам сменить имя или класс в своей строке', () => as('S1', true, () =>
+  db.query('update class_members set name = $1 where user_id = $2', ['Учитель', ids.S1])));
 await expectOk('ученик видит свой класс', () => as('S1', true, () => db.query('select * from classes')), rows(1));
 await expectDenied('ученик не видит одноклассников', () => as('S1', true, () =>
   db.query('select * from class_members where user_id <> $1', [ids.S1])));

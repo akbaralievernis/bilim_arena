@@ -158,8 +158,9 @@ drop policy if exists members_update on public.class_members;
 drop policy if exists members_delete on public.class_members;
 create policy members_select on public.class_members for select to authenticated
   using (user_id = auth.uid() or public.is_class_teacher(class_id));
-create policy members_update on public.class_members for update to authenticated
-  using (user_id = auth.uid()) with check (user_id = auth.uid());
+-- Изменять строку участника нельзя никому: вступление и имя — только через join_class()
+-- (иначе ученик мог бы сам перейти в чужой класс или взять чужое имя)
+revoke update on public.class_members from authenticated, anon;
 create policy members_delete on public.class_members for delete to authenticated
   using (user_id = auth.uid() or public.is_class_teacher(class_id));
 
