@@ -43,25 +43,52 @@
   // Язык — общий для сайта (shared/lang.js); строки без таблицы I18N — через tr()
   const tr = (s, v) => (window.BALang ? window.BALang.t(s, v) : s);
 
-  /* ========= Тексты раундов на трёх языках ========= */
-  const PRESETS = {
-    ky: {
-      text_easy: "Мышык уктап жатат. Биз үйгө бара жатабыз. Ит катуу үрүп жатат. Асман абдан ачык. Апам нан жапты.",
-      text_medium: "Бүгүн биз кунт коюп көңүл бурууну жана эс тутумду машыктырабыз. Ылдамдык маанилүү бирок тактык андан да маанилүүрөөк. Көңүл топтоп ишенимдүү аракет кыл.",
-      text_expert: "Интегралдык эсептөө математикалык анализдин маанилүү бөлүгү болуп саналат. Заманбап тиркемелерди иштеп чыгуу архитектураны кылдат пландаштырууну талап кылат."
-    },
-    ru: {
-      text_easy: "Кошка спит на диване. Мы идём домой. Собака громко лает. Небо сегодня ясное. Мама испекла хлеб.",
-      text_medium: "Сегодня мы тренируем внимание и память. Скорость важна, но точность ещё важнее. Сосредоточься и действуй уверенно.",
-      text_expert: "Интегральное исчисление является важной частью математического анализа. Разработка современных приложений требует тщательного планирования архитектуры."
-    },
-    en: {
-      text_easy: "The cat is sleeping. We are going home. The dog is barking loudly. The sky is very clear. Mom baked fresh bread.",
-      text_medium: "Today we train attention and memory. Speed matters but accuracy matters even more. Stay focused and act with confidence.",
-      text_expert: "Integral calculus is an important part of mathematical analysis. Building modern applications requires careful planning of the architecture."
+  /* ========= Тексты раундов: банк предложений (bank.js), без повторов ========= */
+  const ROUNDS_PER_GAME = 8;
+  /** Сколько «лишних» слов-ловушек среди карточек: на уровнях 3–4 нужно не только собрать, но и отбросить */
+  const DECOYS_BY_LEVEL = [0, 0, 0, 1, 2];
+  const bankFor = (lang) => (window.SENTENCE_BANK && (window.SENTENCE_BANK[lang] || window.SENTENCE_BANK.ky)) || [[], [], [], []];
+  const freshKey = (lang, level) => `sentence:${lang}:${level}`;
+
+  /** n предложений уровня: сначала те, которых на этом устройстве ещё не было (shared/fresh.js) */
+  function freshSentences(level, n) {
+    const lang = getLang();
+    const list = bankFor(lang)[level - 1] || [];
+    const ordered = window.BA_FRESH ? window.BA_FRESH.order(freshKey(lang, level), list, (x) => x) : shuffle(list.slice(), Math.random);
+    return ordered.slice(0, n);
+  }
+
+  /** Готовый набор: «level1…level4» или «progressive» — уровень растёт от раунда к раунду */
+  function presetText(key) {
+    const level = Number(String(key).replace('level', ''));
+    if (level >= 1 && level <= 4) return freshSentences(level, ROUNDS_PER_GAME).join(' ');
+    return [1, 2, 3, 4].flatMap((l) => freshSentences(l, ROUNDS_PER_GAME / 4)).join(' ');
+  }
+
+  /** Уровень предложения: из банка — его уровень, своё — по числу слов */
+  function levelOf(sentence) {
+    const bank = bankFor(getLang());
+    const found = bank.findIndex((list) => list.includes(sentence));
+    if (found >= 0) return found + 1;
+    const n = tokenize(sentence).length;
+    return n >= 10 ? 4 : n >= 7 ? 3 : n >= 5 ? 2 : 1;
+  }
+
+  /** Слова-ловушки: из других предложений банка, которых нет в этом предложении */
+  function decoysFor(words, count) {
+    if (!count) return [];
+    const have = new Set(words.map((w) => w.toLowerCase()));
+    const pool = bankFor(getLang()).flat().flatMap((s) => tokenize(s)).filter((w) => w.length > 2 && !have.has(w.toLowerCase()));
+    const out = [];
+    for (const w of shuffle([...new Set(pool)], Math.random)) {
+      if (out.length >= count) break;
+      out.push(w);
     }
-  };
-  const presetText = (key) => (PRESETS[getLang()] || PRESETS.ky)[key] || PRESETS.ky[key];
+    return out;
+  }
+
+  /** Очки за предложение: длиннее — дороже (раньше любое предложение стоило 1000) */
+  const basePoints = (words) => clamp(500 + words * 100, 800, 2000);
 
   /* ========= ИСПРАВЛЕННЫЙ I18N ========= */
   const I18N = {
@@ -187,12 +214,39 @@
   }
 
   const Game = {
-    config: { baseFlashMs: 800, globalSeconds: 60, penaltyOn3Wrong: 150, comboEnabled: true, comboEvery: 3, comboAdd: 0.1, comboMax: 2.0, hiddenMode: false, hideMs: 2000, soloMode: false, mode: "text" },
+    config: { baseFlashMs: 800, globalSeconds: 90, penaltyOn3Wrong: 150, comboEnabled: true, comboEvery: 3, comboAdd: 0.1, comboMax: 2.0, hiddenMode: false, hideMs: 2000, soloMode: false, mode: "text", decoys: true },
     sentences: [], mathRounds: [], seedBase: 123456789, running: false, globalEndAt: 0, globalTickId: 0, globalFrozen: false, frozenRemainingMs: 0, paused: false, pausedAt: 0,
     teams: { A: mkTeamState("A"), B: mkTeamState("B") }
   };
 
   function isMathMode() { return Game.config.mode === "math"; }
+
+  /** Предложение из банка показано — в следующих играх оно придёт позже остальных */
+  function markShown(sentence) {
+    if (!window.BA_FRESH) return;
+    const bank = bankFor(getLang());
+    const level = bank.findIndex((list) => list.includes(sentence)) + 1;
+    if (level) window.BA_FRESH.mark(freshKey(getLang(), level), sentence);
+  }
+
+  /* ========= Вариант учителя по ссылке: текст в адресе после «#», на сервер не уходит ========= */
+  const b64url = {
+    enc: (str) => btoa(String.fromCharCode(...new TextEncoder().encode(str))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""),
+    dec: (s) => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0)))
+  };
+  function shareUrl(text) {
+    const url = new URL(location.href);
+    url.hash = "s=" + b64url.enc(JSON.stringify({ t: text.slice(0, 4000), d: Game.config.decoys ? 1 : 0, sec: Game.config.globalSeconds }));
+    return url.href;
+  }
+  function readShared() {
+    const m = /(?:^#|&)s=([A-Za-z0-9_-]+)/.exec(location.hash);
+    if (!m) return null;
+    try {
+      const data = JSON.parse(b64url.dec(m[1]));
+      return typeof data?.t === "string" && data.t.trim() ? data : null;
+    } catch { return null; }
+  }
   function totalRounds() { return isMathMode() ? Game.mathRounds.length : Game.sentences.length; }
   function getRoundAt(i) { return isMathMode() ? Game.mathRounds[i] : Game.sentences[i]; }
 
@@ -408,7 +462,10 @@
     } else {
       t.words = tokenize(String(round));
       t.placed = new Array(t.words.length).fill(null);
-      setNote(k, tr('Раунд {n}: Сөздөрдү ирети менен бас.', { n: t.idx + 1 }));
+      t.level = levelOf(String(round));
+      t.perSentencePoints = basePoints(t.words.length); // подсказка снижает только этот раунд
+      setNote(k, tr('Раунд {n}: Сөздөрдү ирети менен бас.', { n: t.idx + 1 }) + ' · ' + tr('{n}-деңгээл', { n: t.level }));
+      markShown(String(round));
     }
     runFlash(k, t.words);
   }
@@ -432,7 +489,9 @@
     const t = Game.teams[k]; t.phase = "scramble";
     buildSlots(k, t.words);
     const rand = mulberry32((Game.seedBase ^ (t.idx + 1)) >>> 0);
-    buildTiles(k, shuffle(t.words.slice(), rand));
+    const decoys = Game.config.decoys ? decoysFor(t.words, DECOYS_BY_LEVEL[t.level] || 0) : [];
+    buildTiles(k, shuffle([...t.words, ...decoys], rand));
+    if (decoys.length) setNote(k, tr('Абайла: {n} артык сөз бар!', { n: decoys.length }));
     attachClickMode(k);
     showHintButton(k, true);
   }
@@ -535,6 +594,7 @@
     if(t.placed.every(v => v !== null)){
       stopTeamTimers(k);
       showHintButton(k, false);
+      zFor(k).tiles.innerHTML = ""; // оставшиеся слова-ловушки
       
       t.phase = "done"; // БЛОКИРУЕМ ЛИШНИЕ КЛИКИ
       t.pendingFinish = true; // если в эти 50 мс нажмут «Тыным» — раунд закончится после паузы
@@ -550,8 +610,13 @@
   // Моментальный переход или конец игры
   function finishSentence(k){
     const t = Game.teams[k];
-    t.score += Math.floor(t.perSentencePoints * t.comboMultiplier); 
+    // Быстро собрал — до +50 %: по 2,5 с на слово считаются «нормой»
+    const elapsed = now() - t.sentenceStartAt - Game.config.baseFlashMs * t.words.length;
+    const speedBonus = isMathMode() ? 0 : Math.max(0, 1 - elapsed / (t.words.length * 2500)) * 0.5;
+    const gained = Math.floor(t.perSentencePoints * t.comboMultiplier * (1 + speedBonus));
+    t.score += gained;
     setScore(k);
+    if (speedBonus > 0.05) setNote(k, tr('Тез! +{n} упай', { n: gained }));
     Sound.roundWin(); 
     t.idx++;
     
@@ -625,7 +690,7 @@
     if (!Game.running) return;
     for (const k of Game.config.soloMode ? ["A"] : ["A", "B"]) {
       const t = Game.teams[k];
-      if (t.idx < totalRounds()) { t.perSentencePoints = 1000; t.wrongStreak = 0; startSentence(k); }
+      if (t.idx < totalRounds()) { t.wrongStreak = 0; startSentence(k); }
     }
   }
 
@@ -678,6 +743,7 @@
       langSelect: $("#langSelect"), themeBtn: $("#themeBtn"), modeSelect: $("#modeSelect"), subtitle: $("#subtitle"),
       endOverlay: $("#endOverlay"), closeEndBtn: $("#closeEndBtn"), replayBtn: $("#replayBtn"), hardResetBtn: $("#hardResetBtn"),
       finalA: $("#finalA"), finalB: $("#finalB"), winnerText: $("#winnerText"), endCard: $(".endCard"),
+      decoyBtn: $("#decoyBtn"), shareBtn: $("#shareBtn"), shareBox: $("#shareBox"), shareUrl: $("#shareUrl"), shareMsg: $("#shareMsg"), shareQr: $("#shareQr"), sharedNote: $("#sharedNote"),
       teamA: {
         flash: $("#flashA"), slots: $("#slotsA"), tiles: $("#tilesA"), score: $("#scoreA"), round: $("#roundA"), combo: $("#comboA"),
         hintBtn: $("#hintA"), note: $("#noteA"), mathArea: $("#mathAreaA"), mathOptions: $("#mathOptionsA")
@@ -695,8 +761,31 @@
     UI.timeRange.addEventListener("input", () => { Game.config.globalSeconds = Number(UI.timeRange.value); UI.timeVal.textContent = UI.timeRange.value; });
 
     UI.presetSelect.addEventListener("change", () => { if (UI.presetSelect.value !== "custom") UI.textInput.value = presetText(UI.presetSelect.value); });
-    // По умолчанию — готовый простой набор: «Ырастоо» сразу даёт раунды
-    if (!UI.textInput.value.trim()) { UI.presetSelect.value = "text_easy"; UI.textInput.value = presetText("text_easy"); }
+    // Вариант учителя по ссылке — его текст; иначе готовый набор «по нарастающей»
+    const shared = readShared();
+    if (shared) {
+      UI.presetSelect.value = "custom";
+      UI.textInput.value = shared.t;
+      Game.config.decoys = !!shared.d;
+      if (shared.sec >= 20 && shared.sec <= 240) { Game.config.globalSeconds = shared.sec; UI.timeRange.value = String(shared.sec); }
+      UI.sharedNote?.classList.remove("hidden");
+    } else if (!UI.textInput.value.trim()) { UI.presetSelect.value = "progressive"; UI.textInput.value = presetText("progressive"); }
+    UI.timeRange.value = String(Game.config.globalSeconds); UI.timeVal.textContent = String(Game.config.globalSeconds);
+
+    // Поделиться вариантом: ссылка + QR (ученики или другой класс открывают ту же игру)
+    UI.shareBtn?.addEventListener("click", async () => {
+      const text = UI.textInput.value.trim();
+      if (!text) { UI.textInput.focus(); return; }
+      const url = shareUrl(text);
+      UI.shareBox.classList.remove("hidden");
+      UI.shareUrl.value = url;
+      try { await navigator.clipboard.writeText(url); UI.shareMsg.textContent = tr("Шилтеме көчүрүлдү."); }
+      catch { UI.shareMsg.textContent = tr("Шилтемени көчүрүп алыңыз:"); UI.shareUrl.select(); }
+      if (window.qrcode) {
+        const qr = window.qrcode(0, "M"); qr.addData(url); qr.make();
+        UI.shareQr.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+      }
+    });
     UI.penaltyRange.addEventListener("input", () => { Game.config.penaltyOn3Wrong = Number(UI.penaltyRange.value); UI.penaltyVal.textContent = UI.penaltyRange.value; });
 
     // Переключатели: подпись «Күйүк / Өчүк» и класс .on
@@ -707,8 +796,9 @@
       if (!Game.config.comboEnabled) { resetCombo("A"); resetCombo("B"); }
     });
     UI.hiddenBtn.addEventListener("click", () => { Game.config.hiddenMode = !Game.config.hiddenMode; toggle(UI.hiddenBtn, Game.config.hiddenMode); });
+    UI.decoyBtn?.addEventListener("click", () => { Game.config.decoys = !Game.config.decoys; toggle(UI.decoyBtn, Game.config.decoys); });
     UI.soundBtn.addEventListener("click", () => { Sound.enabled = !Sound.enabled; toggle(UI.soundBtn, Sound.enabled); });
-    [[UI.soloBtn, Game.config.soloMode], [UI.comboBtn, Game.config.comboEnabled], [UI.hiddenBtn, Game.config.hiddenMode], [UI.soundBtn, Sound.enabled]]
+    [[UI.soloBtn, Game.config.soloMode], [UI.comboBtn, Game.config.comboEnabled], [UI.hiddenBtn, Game.config.hiddenMode], [UI.soundBtn, Sound.enabled], [UI.decoyBtn, Game.config.decoys]].filter(([btn]) => btn)
       .forEach(([btn, on]) => toggle(btn, on));
 
     UI.teamA.hintBtn.addEventListener("click", () => useHint("A"));
@@ -727,7 +817,15 @@
     UI.openSetupBtn.addEventListener("click", () => showOverlay(UI.setupOverlay));
     UI.closeSetupBtn.addEventListener("click", () => hideOverlay(UI.setupOverlay));
     UI.closeEndBtn.addEventListener("click", () => hideOverlay(UI.endOverlay));
-    UI.replayBtn.addEventListener("click", () => { hideOverlay(UI.endOverlay); startGame(); });
+    // «Кайра ойноо» с готовым набором — новые предложения, а не те же самые
+    UI.replayBtn.addEventListener("click", () => {
+      hideOverlay(UI.endOverlay);
+      if (!isMathMode() && UI.presetSelect.value !== "custom") {
+        UI.textInput.value = presetText(UI.presetSelect.value);
+        Game.sentences = splitIntoSentences(UI.textInput.value).filter((x) => tokenize(x).length >= 2);
+      }
+      startGame();
+    });
 
     UI.themeBtn.addEventListener("click", () => {
       const next = getTheme() === "dark" ? "light" : "dark";

@@ -79,3 +79,39 @@ test('focus duel: resetting the match right after an answer does not start a rou
   // Раньше через 1,4 с матч сам начинался заново (раунд 1)
   await expect(page.locator('#roundNum')).toHaveText('0');
 });
+
+test('sentence: level 4 has trap words, the next game brings new sentences, a teacher link opens the same text', async ({ page, browser }) => {
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.addInitScript(() => localStorage.setItem('BA2_lang', '"ru"'));
+  await page.goto('/games/sentence/index.html');
+  await page.locator('#presetSelect').selectOption('level4');
+  const first = await page.locator('#textInput').inputValue();
+  await page.locator('#applyBtn').click();
+  await page.locator('#startBtn').click();
+  await expect(page.locator('#tilesA .tile').first()).toBeVisible({ timeout: 30_000 });
+  // Карточек больше, чем мест: две — ловушки
+  expect(await page.locator('#tilesA .tile').count()).toBe((await page.locator('#slotsA .slot').count()) + 2);
+  await expect(page.locator('#noteA')).toContainText('лишн');
+
+  // Новая партия — другие предложения (показанные уходят в конец очереди)
+  await page.reload();
+  await page.locator('#presetSelect').selectOption('level4');
+  const second = await page.locator('#textInput').inputValue();
+  const firstSentence = first.split(/(?<=[.!?])\s+/)[0];
+  expect(second.split(/(?<=[.!?])\s+/)[0]).not.toBe(firstSentence);
+
+  // Свой текст учителя → ссылка → на другом устройстве та же игра
+  await page.locator('#presetSelect').selectOption('custom');
+  await page.locator('#textInput').fill('Мы любим наш город. Завтра будет контрольная работа.');
+  await page.locator('#shareBtn').click();
+  await expect(page.locator('#shareQr svg')).toBeVisible();
+  const url = await page.locator('#shareUrl').inputValue();
+  const other = await browser.newContext();
+  const phone = await other.newPage();
+  await phone.goto(url);
+  await expect(phone.locator('#textInput')).toHaveValue('Мы любим наш город. Завтра будет контрольная работа.');
+  await expect(phone.locator('#sharedNote')).toBeVisible();
+  await other.close();
+  expect(errors).toEqual([]);
+});
