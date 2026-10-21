@@ -76,7 +76,8 @@
     </div>
   </div>
 
-  <script src="../../shared/vocab.js?v=15"></script>
+  <script src="../../shared/fresh.js?v=1"></script>
+  <script src="../../shared/vocab.js?v=16"></script>
   <script src="../../shared/progress.js?v=15"></script>
   <script src="../../shared/game-shell.js?v=15"></script>
   <script>
@@ -98,8 +99,9 @@
       // Кеминде 3 тамгалуу сөздөр, ушул сессияда кайталанбайт
       let pool = V.words(cat).filter((w) => w.ky.replace(/[\s-]/g, '').length >= 3 && !game.used.has(w.id));
       if (!pool.length) { game.used.clear(); pool = V.words(cat).filter((w) => w.ky.replace(/[\s-]/g, '').length >= 3); }
-      const w = pool[Math.floor(Math.random() * pool.length)];
+      const w = V.fresh(null, pool)[0]; // невиданное во всех играх — раньше
       game.used.add(w.id);
+      V.seen(w);
       return w;
     }
 

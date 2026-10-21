@@ -254,13 +254,18 @@
     return out.slice(0, count);
   }
 
+  /** id встроенного раунда для памяти показанного: его элементы на кыргызском */
+  const roundId = (r) => (r && r.ky && r.ky.items ? r.ky.items.join('|') : JSON.stringify(r));
+
   function buildDeck(mode, testId) {
     State.custom = testId !== BUILTIN;
     if (State.custom) {
       const pool = customRounds(testId);
       return mode === 'single' ? shuffle(pool).slice(0, 10) : takeRounds(pool, State.roundsMax);
     }
-    const getItems = (cat, count) => shuffle([...(DATA[cat] || [])]).slice(0, count);
+    // Встроенные раунды: сначала те, которых на этом устройстве ещё не было (shared/fresh.js)
+    const freshOf = (list) => (window.BA_FRESH ? window.BA_FRESH.order('odd', list, roundId) : shuffle(list));
+    const getItems = (cat, count) => freshOf([...(DATA[cat] || [])]).slice(0, count);
     if (mode === 'single') {
       if (State.difficulty === 'progressive') {
         return [...getItems('easy', 3), ...getItems('medium', 4), ...getItems('hard', 3)];
@@ -268,8 +273,8 @@
       return getItems(State.difficulty, 10);
     }
     // Команды: каждый раунд — случайный уровень, без повторов, пока хватает раундов
-    const all = [...DATA.easy, ...DATA.medium, ...DATA.hard];
-    return takeRounds(all, State.roundsMax);
+    const all = freshOf([...DATA.easy, ...DATA.medium, ...DATA.hard]);
+    return [...all, ...takeRounds(all, Math.max(0, State.roundsMax - all.length))].slice(0, State.roundsMax);
   }
 
   function itemCount(items) {
@@ -296,6 +301,7 @@
     }
 
     State.current = State.deck[State.roundNow - 1];
+    if (!State.custom) window.BA_FRESH?.mark('odd', roundId(State.current));
     $("roundNow").textContent = State.roundNow;
     $("roundMax").textContent = State.roundsMax;
 

@@ -56,7 +56,7 @@ const CORE = [
   './data/questions/social-9-state.js',
   './data/questions/world-history-5-ancient.js',
   // Прежние игры — продолжают работать офлайн
-  './shared/game.css', './shared/vocab.js', './shared/sw-register.js', './shared/camera.js',
+  './shared/game.css', './shared/fresh.js', './shared/vocab.js', './shared/sw-register.js', './shared/camera.js',
   './shared/progress.js', './shared/game-shell.js',
   './games/flashcards/index.html', './games/word-match/index.html',
   './games/wordle/index.html', './games/word-rain/index.html',

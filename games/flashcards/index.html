@@ -106,7 +106,8 @@
     </div>
   </div>
 
-  <script src="../../shared/vocab.js?v=15"></script>
+  <script src="../../shared/fresh.js?v=1"></script>
+  <script src="../../shared/vocab.js?v=16"></script>
   <script src="../../shared/progress.js?v=15"></script>
   <script src="../../shared/game-shell.js?v=15"></script>
   <script>
@@ -139,7 +140,7 @@
     function buildDeck() {
       const stats = BA.allWordStats();
       const now = Date.now();
-      const ws = V.shuffle(V.words(cat));
+      const ws = V.fresh(cat); // невиданные во всех играх — раньше
       const due = ws.filter((w) => stats[w.id] && stats[w.id].due <= now && stats[w.id].box < 5);
       const fresh = ws.filter((w) => !stats[w.id]);
       const rest = ws.filter((w) => !due.includes(w) && !fresh.includes(w))
@@ -162,6 +163,7 @@
 
     function show() {
       const w = st.deck[st.i];
+      V.seen(w);
       const card = $('card');
       card.classList.remove('flipped');
       const stat = BA.wordStats(w.id);

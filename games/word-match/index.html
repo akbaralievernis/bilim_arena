@@ -71,7 +71,8 @@
     </div>
   </div>
 
-  <script src="../../shared/vocab.js?v=15"></script>
+  <script src="../../shared/fresh.js?v=1"></script>
+  <script src="../../shared/vocab.js?v=16"></script>
   <script src="../../shared/progress.js?v=15"></script>
   <script src="../../shared/game-shell.js?v=15"></script>
   <script>
@@ -108,7 +109,7 @@
       // Бир эле котормосу бар сөздөрдү кайталабайбыз
       // (бир карточка эки жупка туура келбеши үчүн)
       const seenFrom = new Set(), seenTo = new Set();
-      const words = V.shuffle(pool).filter((w) => {
+      const words = V.fresh(null, pool).filter((w) => {
         if (seenFrom.has(w[from]) || seenTo.has(w[to])) return false;
         seenFrom.add(w[from]); seenTo.add(w[to]); return true;
       }).slice(0, n);
@@ -118,6 +119,7 @@
         { id: w.id, html: faceHTML(w, to), word: w }
       ]));
 
+      V.seen(words);
       st = { cards, open: [], done: 0, total: words.length, moves: 0, secs: 0, lock: false, words, misses: {} };
       const board = $('board');
       board.style.setProperty('--cols', window.innerWidth < 560 ? 4 : (n >= 10 ? 5 : 4));

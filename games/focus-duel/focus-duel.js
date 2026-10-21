@@ -245,7 +245,10 @@
 
   /** Вопросы не повторяются, пока не закончится весь уровень */
   function nextQuestion() {
-    if (!State.deck.length) State.deck = shuffle(getActivePool());
+    // Сначала вопросы, которых на этом устройстве ещё не было (shared/fresh.js); pop() — с конца
+    if (!State.deck.length) {
+      State.deck = window.BA_FRESH ? window.BA_FRESH.order('focus', getActivePool(), (q) => q.id || q.main).reverse() : shuffle(getActivePool());
+    }
     return State.deck.pop();
   }
 
@@ -258,6 +261,7 @@
       return;
     }
     State.activeQ = q;
+    window.BA_FRESH?.mark('focus', q.id || q.main);
     State.locked = false;
     UI.badgeInfo.textContent = State.mode === "duel" ? T("Команда {team} жооп берет", { team: State.turn }) : T("Жооп бериңиз");
     UI.status.textContent = "";
