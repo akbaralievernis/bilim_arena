@@ -103,3 +103,21 @@ test('heartbeat is answered without breaking the connection', async () => {
   assert.equal((await c.next('PONG')).type, 'PONG');
   c.close();
 });
+
+// Лимит соединений с одного адреса. Нужен сервер с маленьким лимитом:
+//   npx wrangler dev --port 8788 --var MAX_PER_IP:3
+//   SIGNAL_LIMIT_URL=http://127.0.0.1:8788 npm test
+test('one address cannot take more than MAX_PER_IP places; a reconnect still works', { skip: !process.env.SIGNAL_LIMIT_URL }, async () => {
+  const base = process.env.SIGNAL_LIMIT_URL.replace(/^http/, 'ws');
+  const open = (id, token) => {
+    const ws = new WebSocket(`${base}/peerjs?key=bilimarena&id=${id}&token=${token}&version=1.5.5`, { headers: { Origin: ORIGIN } });
+    return new Promise((resolve) => ws.addEventListener('message', (e) => resolve({ ws, type: JSON.parse(e.data).type, msg: JSON.parse(e.data).payload?.msg })));
+  };
+  const first = await open(uid('lim'), 'tokA');
+  const rest = [await open(uid('lim'), 't'), await open(uid('lim'), 't')];
+  assert.deepEqual([first, ...rest].map((r) => r.type), ['OPEN', 'OPEN', 'OPEN']);
+  const fourth = await open(uid('lim'), 't');
+  assert.equal(fourth.type, 'ERROR');
+  assert.match(fourth.msg, /Too many connections/);
+  [first, ...rest].forEach((r) => r.ws.close());
+});

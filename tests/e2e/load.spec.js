@@ -15,7 +15,7 @@ test(`${N} phones join at once`, async ({ browser }, info) => {
   const board = await boardCtx.newPage();
   await board.goto(`/board.html?subject=math&topic=math-5-numbers&signal=${SIG}`);
   await board.getByRole('button', { name: 'Сабакты баштоо' }).first().click();
-  await expect(board.locator('#roomCode')).toHaveText(/^[A-Z0-9]{4}$/, { timeout: 30_000 });
+  await expect(board.locator('#roomCode')).toHaveText(/^[A-Z0-9]{5}$/, { timeout: 30_000 });
   const code = await board.locator('#roomCode').textContent();
 
   // Все телефоны в одном браузере (так легче компьютеру), у каждого своё хранилище

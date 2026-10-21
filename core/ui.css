@@ -439,6 +439,9 @@ button.option:not([disabled]):hover { border-color: var(--primary); }
   animation: pop 0.3s var(--ease);
 }
 .player-pill.answered { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 8%, var(--surface)); }
+/* Ученик выходил из вкладки во время игры: учитель видит счётчик */
+.player-pill.left-tab { border-color: var(--warn, #E8A200); }
+.player-pill .leave-badge { margin-left: 6px; padding: 1px 7px; border-radius: 999px; font-size: .8em; font-weight: 800; background: #FFF4DC; color: #8A5A00; }
 @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: none; opacity: 1; } }
 
 /* ─── Модальные окна ──────────────────────────────────────────────────────── */

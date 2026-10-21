@@ -11,7 +11,7 @@
   <title>Оюнга кирүү — Билим Арена</title>
   <link rel="icon" href="./assets/brand/favicon-64.png" type="image/png" />
   <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
-  <link rel="stylesheet" href="./core/ui.css?v=23" />
+  <link rel="stylesheet" href="./core/ui.css?v=24" />
   <link rel="stylesheet" href="./core/board.css?v=15" />
 </head>
 
@@ -39,7 +39,7 @@
     <div>
       <label class="label" for="codeInput" data-i18n="join_code">Бөлмөнүн коду</label>
       <input class="input" id="codeInput" inputmode="latin" autocapitalize="characters"
-             maxlength="6" placeholder="ABCD" aria-describedby="codeHint"
+             maxlength="6" placeholder="ABCDE" aria-describedby="codeHint"
              style="text-align:center;letter-spacing:.3em;font-size:1.6rem;font-weight:800" />
       <p class="small muted" id="codeHint" data-i18n="play_code_hint" style="margin:6px 0 0"></p>
     </div>
@@ -71,7 +71,16 @@
     <a href="./privacy.html" data-i18n="legal_privacy">Купуялык</a>
     <a href="./terms.html" data-i18n="legal_terms">Колдонуу шарттары</a>
   </nav>
+  <!-- Предупреждение: ученик вышел из вкладки во время игры -->
+  <div class="modal hidden" id="leaveWarn" role="alertdialog" aria-modal="true" aria-labelledby="leaveWarnTitle" aria-describedby="leaveWarnText">
+    <div class="card pad-lg stack" style="text-align:center">
+      <div class="big-icon" aria-hidden="true">⚠️</div>
+      <h2 id="leaveWarnTitle" data-i18n="focus_warn_title">Не выходите из игры</h2>
+      <p id="leaveWarnText"></p>
+      <button class="btn primary big block" type="button" id="leaveWarnOk" data-i18n="focus_warn_ok">Понятно</button>
+    </div>
+  </div>
 <div id="toasts"></div>
-  <script type="module" src="./play.js?v=19"></script>
+  <script type="module" src="./play.js?v=21"></script>
 </body>
 </html>
