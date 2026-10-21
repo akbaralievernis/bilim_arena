@@ -235,6 +235,11 @@ async function connect(code, name) {
           $('#playerName').textContent = conn.assignedName;
           toast(t('join_renamed', { name: conn.assignedName, requested: String(msg.requested || '').slice(0, 24) }), { icon: '👥', ms: 8000 });
         }
+        if (msg.type === 'closed') {
+          // Учитель закрыл вход в урок — не переподключаемся бесконечно
+          toast(t('join_closed'), { icon: '🔒', ms: 8000 });
+          setTimeout(() => conn.room?.close?.(), 0);
+        }
         if (msg.type === 'sync-assignments') syncWithTeacher(msg);
         if (msg.type === 'result' && msg.topic && msg.skill) {
           // Доска сообщила результат ответа — сохраняем его в прогрессе ученика

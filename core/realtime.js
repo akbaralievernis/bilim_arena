@@ -153,7 +153,8 @@ const randomSecret = () => {
 };
 
 // Криптостойкий случайный код: по Math.random код следующей комнаты можно было бы предсказать
-export const roomCode = (len = 4) => {
+// 5 символов — ≈33 млн кодов (было 4, ≈1 млн): живую комнату не подобрать перебором
+export const roomCode = (len = 5) => {
   const bytes = new Uint32Array(len);
   crypto.getRandomValues(bytes);
   return Array.from(bytes, (n) => CODE_CHARS[n % CODE_CHARS.length]).join('');
@@ -201,6 +202,7 @@ export async function createRoom({ onJoin, onLeave, onMessage, prefix = ROOM_PRE
   const secrets = new Map(); // playerId -> секрет телефона, занявшего это место
 
   let closed = false;
+  let locked = false; // учитель закрыл вход: новые телефоны не пускаем, свои переподключаются
   let regs = [];
 
   // Комната регистрируется сразу на всех серверах знакомства (свой + общий).
@@ -378,6 +380,8 @@ export async function createRoom({ onJoin, onLeave, onMessage, prefix = ROOM_PRE
         // Место уже занято другим телефоном — без его секрета не пускаем
         if (secrets.has(id) && secrets.get(id) !== secret) { try { conn.close(); } catch { /* закрыт */ } return; }
         if (!players.has(id) && players.size >= MAX_PLAYERS) { try { conn.close(); } catch { /* закрыт */ } return; }
+        // Вход закрыт: пускаем только телефоны, которые уже были в уроке (по их секрету)
+        if (locked && secrets.get(id) !== secret) { safeSend(conn, { type: 'closed' }); try { conn.close(); } catch { /* закрыт */ } return; }
         // Одно соединение — один игрок: сменить имя игрока на чужое нельзя
         if (conn._playerId && conn._playerId !== id) return;
         secrets.set(id, secret);
@@ -415,6 +419,9 @@ export async function createRoom({ onJoin, onLeave, onMessage, prefix = ROOM_PRE
     server,
     get playerCount() { return players.size; },
     players: () => [...players.values()],
+    get locked() { return locked; },
+    /** Закрыть / открыть вход новым телефонам */
+    lock(value = true) { locked = !!value; },
     online: (id) => !!conns.get(id)?.open,
 
     /** playerId === null → всем ученикам */

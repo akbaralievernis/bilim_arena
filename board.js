@@ -343,6 +343,16 @@ async function openRoom() {
   watchRoom();
   const url = joinUrl(state.room.code, state.room.server);
   $('#roomCode').textContent = state.room.code;
+  renderLock();
+  if (!$('#lockBtn').dataset.bound) {
+    $('#lockBtn').dataset.bound = '1';
+    $('#lockBtn').addEventListener('click', () => {
+      if (!state.room) return;
+      state.room.lock(!state.room.locked);
+      renderLock();
+      if (state.room.locked) toast(t('board_locked_hint'), { icon: '🔒' });
+    });
+  }
   $('#joinUrlText').textContent = url.replace(/^https?:\/\//, '');
   const ok = await renderQR($('#qrBox'), url, 260);
   if (!ok) $('#joinHint').textContent = t('board_or_enter');
@@ -373,6 +383,18 @@ function renderPlayers() {
       answered ? icon('check', { size: 16, label: t('game_answered') }) : null, p.name);
   }));
   $('#startGameBtn').disabled = list.length === 0;
+  renderLock();
+}
+
+/** «Закрыть вход»: когда класс собрался, посторонний с кодом уже не войдёт */
+function renderLock() {
+  const btn = $('#lockBtn');
+  if (!btn) return;
+  const locked = !!state.room?.locked;
+  btn.classList.toggle('hidden', !state.room);
+  btn.setAttribute('aria-pressed', String(locked));
+  btn.replaceChildren(icon(locked ? 'unlock' : 'lock', { size: 18 }), el('span', {}, t(locked ? 'board_unlock' : 'board_lock')));
+  btn.title = locked ? t('board_locked_hint') : '';
 }
 
 /** Список учеников перерисовывается один раз за кадр, даже если вошли сразу 30 */

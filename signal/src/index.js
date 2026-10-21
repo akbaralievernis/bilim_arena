@@ -16,6 +16,9 @@ const ID = /^[A-Za-z0-9_-]{1,64}$/;
 const TOKEN = /^[A-Za-z0-9]{1,64}$/;
 const MAX_MESSAGE = 32 * 1024;       // SDP с кандидатами — несколько КБ
 const MAX_SOCKETS = 5000;            // защита от наплыва чужих клиентов
+// С одного адреса: школа за одним NAT — это несколько классов (~400 телефонов хватит),
+// а один скрипт больше не может занять все 5000 мест
+const MAX_PER_IP = 400;               // можно изменить переменной MAX_PER_IP
 const RATE_WINDOW_MS = 10_000;
 const RATE_LIMIT = 200;              // сообщений за 10 с на одно соединение
 const FORWARD = new Set(['OFFER', 'ANSWER', 'CANDIDATE', 'LEAVE', 'EXPIRE']);
@@ -101,6 +104,11 @@ export class SignalHub {
     if (url.searchParams.get('key') !== key) return reject('INVALID-KEY', 'Invalid key provided');
     if (!ID.test(id) || !TOKEN.test(token)) return reject('ERROR', 'Invalid id or token');
     if (this.ctx.getWebSockets().length >= MAX_SOCKETS) return reject('ERROR', 'Server is busy');
+    // Адрес клиента от Cloudflare; метка соединения — по ней считаем без пробуждения объекта
+    const ipTag = 'ip:' + (request.headers.get('CF-Connecting-IP') || 'local').slice(0, 64);
+    const perIp = Number(this.env.MAX_PER_IP) || MAX_PER_IP;
+    const reconnect = this.ctx.getWebSockets(id).some((ws) => ws.deserializeAttachment()?.token === token);
+    if (!reconnect && this.ctx.getWebSockets(ipTag).length >= perIp) return reject('ERROR', 'Too many connections from this address');
 
     // Тот же id: тот же токен — это переподключение (старое соединение закрываем),
     // другой токен — id занят (например, код комнаты уже у другого класса)
@@ -110,7 +118,7 @@ export class SignalHub {
       try { ws.close(1000, 'Reconnected'); } catch { /* уже закрыт */ }
     }
 
-    this.ctx.acceptWebSocket(server, [id]);
+    this.ctx.acceptWebSocket(server, [id, ipTag]);
     server.serializeAttachment({ id, token });
     server.send(JSON.stringify({ type: 'OPEN' }));
     return new Response(null, { status: 101, webSocket: client });

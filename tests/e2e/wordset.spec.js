@@ -59,7 +59,9 @@ test('teacher words: a crafted link cannot inject markup or script into the game
   // Путь с кнопкой озвучки действительно проверен: кнопки есть, текст в data-t целый
   expect(await page.locator('#bTr .say').count()).toBeGreaterThan(0);
   const said = await page.locator('#bTr .say').evaluateAll((els) => els.map((e) => e.dataset.t));
-  expect(said.some((t) => t.includes('onpointerover=alert(1)'))).toBe(true);
+  // Колода перемешана: первой может быть любая карточка — у обеих в озвучке «злой» текст, уже безопасный
+  expect(said.some((t) => t.includes('onpointerover=alert(1)') || t.includes('img src=x onerror=alert(2)'))).toBe(true);
+  for (const t of said) expect(t).not.toMatch(/[<>"]/);
   // Поддельные голоса теста браузер не может озвучить — эта ошибка к проверке не относится
   expect(errors.filter((e) => !/SpeechSynthesis/.test(e))).toEqual([]);
 });

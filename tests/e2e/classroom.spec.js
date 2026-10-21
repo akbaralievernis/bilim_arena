@@ -28,7 +28,7 @@ test('board + 3 phones: join, play a stage, lesson appears in reports', async ({
   await board.getByRole('button', { name: 'Сабакты баштоо' }).first().click();
 
   const codeEl = board.locator('#roomCode');
-  await expect(codeEl).toHaveText(/^[A-Z0-9]{4}$/, { timeout: 30_000 });
+  await expect(codeEl).toHaveText(/^[A-Z0-9]{5}$/, { timeout: 30_000 });
   const code = await codeEl.textContent();
   const joinLink = await board.locator('#joinUrlText').textContent();
   expect(joinLink).toContain('signal=' + SIG);
@@ -89,7 +89,7 @@ test('code typed on a Cyrillic keyboard joins; the board warns while it is offli
   await board.goto('/board.html?subject=math&topic=math-5-numbers&signal=' + SIG);
   await board.getByRole('button', { name: 'Начать урок' }).first().click();
   const codeEl = board.locator('#roomCode');
-  await expect(codeEl).toHaveText(/^[A-Z0-9]{4}$/, { timeout: 30_000 });
+  await expect(codeEl).toHaveText(/^[A-Z0-9]{5}$/, { timeout: 30_000 });
   const code = await codeEl.textContent();
   const LAT = { A: 'А', B: 'В', E: 'Е', K: 'К', M: 'М', H: 'Н', P: 'Р', C: 'С', T: 'Т', Y: 'У', X: 'Х' };
   const cyrillic = [...code].map((c) => LAT[c] || c).join('').toLowerCase();
@@ -129,7 +129,7 @@ test('two phones with the same name get different names, so their answers do not
   await board.goto('/board.html?subject=math&topic=math-5-numbers&signal=' + SIG);
   await board.getByRole('button', { name: 'Начать урок' }).first().click();
   const codeEl = board.locator('#roomCode');
-  await expect(codeEl).toHaveText(/^[A-Z0-9]{4}$/, { timeout: 30_000 });
+  await expect(codeEl).toHaveText(/^[A-Z0-9]{5}$/, { timeout: 30_000 });
   const code = await codeEl.textContent();
 
   const join = async (name) => {
@@ -159,4 +159,44 @@ test('two phones with the same name get different names, so their answers do not
   await expect(board.locator('#playerCount')).toHaveText('2');
 
   await a.ctx.close(); await b.ctx.close(); await boardCtx.close();
+});
+
+test('teacher closes joining: a new phone is turned away, an old one still reconnects', async ({ browser }) => {
+  const boardCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await boardCtx.addInitScript(() => localStorage.setItem('BA2_lang', '"ru"'));
+  const board = await boardCtx.newPage();
+  await board.goto('/board.html?subject=math&topic=math-5-numbers&signal=' + SIG);
+  await board.locator('#startLessonBtn, button').filter({ hasText: /Начать урок|Сабакты баштоо/ }).first().click();
+  const codeEl = board.locator('#roomCode');
+  await expect(codeEl).toHaveText(/^[A-Z0-9]{5}$/, { timeout: 30_000 });
+  const code = await codeEl.textContent();
+
+  const join = async (name) => {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 800 }, isMobile: true, hasTouch: true });
+    await ctx.addInitScript(() => localStorage.setItem('BA2_lang', '"ru"'));
+    const page = await ctx.newPage();
+    await page.goto(`/play.html?room=${code}&signal=${SIG}`);
+    await page.locator('#nameInput').fill(name);
+    await page.locator('#joinBtn').click();
+    return { ctx, page };
+  };
+  const first = await join('Айбек');
+  await expect(first.page.locator('#gameScreen')).toBeVisible({ timeout: 30_000 });
+  await expect(board.locator('#playerCount')).toHaveText('1', { timeout: 30_000 });
+
+  await board.locator('#lockBtn').click();
+  await expect(board.locator('#lockBtn')).toHaveAttribute('aria-pressed', 'true');
+
+  const late = await join('Посторонний');
+  await expect(late.page.locator('#toasts')).toContainText('закрыл вход', { timeout: 30_000 });
+  await board.waitForTimeout(1500);
+  await expect(board.locator('#playerCount')).toHaveText('1');
+
+  // Свой телефон перезагрузился — его пускают (тот же секрет)
+  await first.page.reload(); // ссылка с кодом и сохранённое имя — телефон входит сам
+  await expect(first.page.locator('#gameScreen')).toBeVisible({ timeout: 30_000 });
+
+  await board.locator('#lockBtn').click();
+  await expect(board.locator('#lockBtn')).toHaveAttribute('aria-pressed', 'false');
+  await late.ctx.close(); await first.ctx.close(); await boardCtx.close();
 });

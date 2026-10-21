@@ -56,7 +56,7 @@ for (const [id, query] of GAMES) {
     watch(board, 'board');
     await board.goto(`/board.html?${query}&signal=${SIG}`);
     await board.locator('#startLessonBtn').click();
-    await expect(board.locator('#roomCode')).toHaveText(/^[A-Z0-9]{4}$/, { timeout: 30_000 });
+    await expect(board.locator('#roomCode')).toHaveText(/^[A-Z0-9]{5}$/, { timeout: 30_000 });
     const code = await board.locator('#roomCode').textContent();
 
     const phones = [];
@@ -105,7 +105,7 @@ test('investigation: a half-filled accusation is not reset when another student 
   const board = await boardCtx.newPage();
   await board.goto(`/board.html?case=case-001-museum&signal=${SIG}`);
   await board.locator('#startLessonBtn').click();
-  await expect(board.locator('#roomCode')).toHaveText(/^[A-Z0-9]{4}$/, { timeout: 30_000 });
+  await expect(board.locator('#roomCode')).toHaveText(/^[A-Z0-9]{5}$/, { timeout: 30_000 });
   const code = await board.locator('#roomCode').textContent();
   const phones = [];
   for (const name of ['Айбек', 'Нурай']) {
@@ -161,7 +161,7 @@ test('a whole 30-minute lesson: every stage in order, then the lesson summary', 
   const stages = await board.locator('#planPreview li').count();
   expect(stages).toBeGreaterThan(1);
   await board.locator('#startLessonBtn').click();
-  await expect(board.locator('#roomCode')).toHaveText(/^[A-Z0-9]{4}$/, { timeout: 30_000 });
+  await expect(board.locator('#roomCode')).toHaveText(/^[A-Z0-9]{5}$/, { timeout: 30_000 });
   const code = await board.locator('#roomCode').textContent();
   const phones = [];
   for (const name of ['Айбек', 'Нурай', 'Бекзат']) {

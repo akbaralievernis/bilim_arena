@@ -200,15 +200,15 @@ test('board: no server answers → a clear error, no endless waiting', async () 
 
 test('the code is taken on the public server by another class: the room lives on the own server', async () => {
   const orig = crypto.getRandomValues;
-  crypto.getRandomValues = (arr) => arr.fill(0); // код всегда «2222»
-  const other = new FakePeer('bilimarena-room-2222', {});  // чужой класс на общем сервере
+  crypto.getRandomValues = (arr) => arr.fill(0); // код всегда «22222»
+  const other = new FakePeer('bilimarena-room-22222', {});  // чужой класс на общем сервере
   await wait(5);
   try {
     const { room, joined } = await lesson();
     await wait(30);
-    assert.equal(room.code, '2222');
+    assert.equal(room.code, '22222');
     assert.deepEqual(room.servers, ['own']);
-    const p = await phone('2222', 'Айбек');
+    const p = await phone('22222', 'Айбек');
     await wait(10);
     assert.deepEqual(joined, ['Айбек']);
     p.close(); room.close();

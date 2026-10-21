@@ -29,7 +29,7 @@ test('host + 3 players: Cyrillic code works, the game starts with roles', async 
   await host.page.goto(PAGE);
   await host.page.getByPlaceholder(/имя|Атыңыз|name/i).fill('Ведущий');
   await host.page.getByRole('button', { name: /Создать|түзүү|Create/i }).click();
-  const codeEl = host.page.locator('span', { hasText: /^[A-Z0-9]{4}$/ }).first();
+  const codeEl = host.page.locator('span', { hasText: /^[A-Z0-9]{5}$/ }).first();
   await expect(codeEl).toBeVisible({ timeout: 40_000 });
   const code = (await codeEl.textContent()).trim();
 
@@ -74,7 +74,7 @@ test('a whole game from the first night to the final screen, without page errors
   await host.page.goto(PAGE);
   await host.page.getByPlaceholder(/Атыңыз/).fill('Мугалим');
   await host.page.getByRole('button', { name: /түзүү/ }).click();
-  const codeEl = host.page.locator('span', { hasText: /^[A-Z0-9]{4}$/ }).first();
+  const codeEl = host.page.locator('span', { hasText: /^[A-Z0-9]{5}$/ }).first();
   await expect(codeEl).toBeVisible({ timeout: 40_000 });
   const code = (await codeEl.textContent()).trim();
   const players = [];
