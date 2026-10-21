@@ -13,51 +13,76 @@
   <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
   <link rel="stylesheet" href="./core/ui.css?v=23" />
   <link rel="stylesheet" href="./home.css?v=20" />
+  <link rel="stylesheet" href="./race.css?v=1" />
 </head>
 
 <body>
   <a class="skip-link" href="#main" data-i18n="skip_to_content">Мазмунга өтүү</a>
   <div id="header"></div>
 
-  <main id="main" class="page home">
-    <section class="hero wrap" aria-labelledby="raceTitle">
-      <div class="hero-card">
+  <main id="main" class="page home race-page">
+    <!-- Сахна: түнкү фон, жандуу карта жана упайлар тактасы -->
+    <section class="hero-x race-hero" aria-labelledby="raceTitle">
+      <div class="hx-bg" aria-hidden="true">
+        <span class="hx-blob b1"></span><span class="hx-blob b2"></span><span class="hx-blob b3"></span>
+        <div class="hx-grid"></div>
+      </div>
+      <div class="wrap hx-inner">
         <div class="hero-text">
-          <p class="hero-kicker" data-i18n="race_kicker">Командалык жарыш</p>
-          <h1 id="raceTitle">Bilim Arena Race</h1>
+          <p class="hx-kicker"><span class="hx-dot" aria-hidden="true"></span><span data-i18n="race_kicker">Командалык жарыш</span></p>
+          <h1 id="raceTitle">Bilim Arena <span class="hx-grad">Race</span></h1>
           <p class="hero-sub" data-i18n="race_intro"></p>
           <ul class="race-features" id="raceFeatures"></ul>
+          <div class="hero-actions">
+            <a class="btn primary big" href="#raceJoin" id="raceJump"></a>
+            <a class="btn big hx-ghost" id="raceCreateTop"></a>
+          </div>
         </div>
-        <div class="race-art" id="raceArt" aria-hidden="true"></div>
+        <div class="race-stage" id="raceArt" aria-hidden="true"></div>
       </div>
     </section>
 
-    <section class="wrap section two-col" aria-label="Bilim Arena Race">
-      <form class="card" id="raceJoin" novalidate>
-        <h2 data-i18n="race_student_title">Мен окуучумун</h2>
-        <p class="muted" style="margin:0" data-i18n="race_student_text"></p>
+    <!-- Кирүү: окуучу жана мугалим -->
+    <section class="wrap race-entry" aria-label="Bilim Arena Race">
+      <form class="card race-card race-student" id="raceJoin" novalidate>
+        <div class="race-card-head">
+          <span class="race-card-ic" id="raceStudentIc"></span>
+          <div>
+            <h2 data-i18n="race_student_title">Мен окуучумун</h2>
+            <p class="muted" data-i18n="race_student_text"></p>
+          </div>
+        </div>
         <div>
           <label class="label" for="raceCode" data-i18n="race_code_label">Жарыштын коду</label>
-          <input class="input race-code-input" id="raceCode" maxlength="7" inputmode="text" autocapitalize="characters"
-                 autocomplete="off" spellcheck="false" placeholder="A7K9Q2" aria-describedby="raceCodeError" />
-          <p class="small" id="raceCodeError" role="alert" style="color:var(--bad);min-height:1.2em;margin:6px 0 0"></p>
+          <div class="code-cells" id="raceCells">
+            <input class="race-code-input" id="raceCode" maxlength="7" inputmode="text" autocapitalize="characters"
+                   autocomplete="off" spellcheck="false" aria-describedby="raceCodeError" />
+          </div>
+          <p class="small race-error" id="raceCodeError" role="alert"></p>
         </div>
+        <p class="race-tip" id="raceTip"></p>
         <button class="btn primary big block" type="submit" id="raceJoinBtn"></button>
       </form>
 
-      <div class="card">
-        <h2 data-i18n="race_teacher_title">Мен мугалиммин</h2>
-        <p class="muted" style="margin:0" data-i18n="race_teacher_text"></p>
+      <div class="card race-card race-teacher">
+        <div class="race-card-head">
+          <span class="race-card-ic" id="raceTeacherIc"></span>
+          <div>
+            <h2 data-i18n="race_teacher_title">Мен мугалиммин</h2>
+            <p class="muted" data-i18n="race_teacher_text"></p>
+          </div>
+        </div>
+        <ol class="race-steps" id="raceSteps"></ol>
         <div class="hero-actions">
           <a class="btn primary big" id="raceCreate"></a>
           <a class="btn big" id="raceStatus"></a>
         </div>
-        <p class="small muted" style="margin:0" id="raceExternal"></p>
+        <p class="small muted race-ext" id="raceExternal"></p>
       </div>
     </section>
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./race.js?v=15"></script>
+  <script type="module" src="./race.js?v=16"></script>
 </body>
 </html>
