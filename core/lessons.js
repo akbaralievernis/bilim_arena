@@ -108,6 +108,21 @@ export async function deleteLesson(id) {
   await store.set(KEYS.lessons, list.filter((l) => l.id !== id));
 }
 
+/** Ответы проверки по темам: «тема::навык» → тема; навык без темы — тема задания */
+function checkParts(bySkill, fallbackTopic) {
+  const parts = new Map();
+  Object.entries(bySkill || {}).forEach(([k, v]) => {
+    const topic = k.includes('::') ? splitSkillKey(k).topic : fallbackTopic;
+    const total = Number(v?.total) || 0;
+    if (!topic || !total) return;
+    const p = parts.get(topic) || { ok: 0, total: 0 };
+    p.ok += Number(v?.ok) || 0;
+    p.total += total;
+    parts.set(topic, p);
+  });
+  return parts;
+}
+
 /** Навыки ниже порога — самые слабые первыми */
 export function weakFrom(bySkill, limit = 5) {
   return Object.entries(bySkill || {})
@@ -207,14 +222,21 @@ export async function studentReport(key) {
     row.answered += v.total;
     row.correct += v.ok;
   });
+  // Проверка по нескольким темам засчитывается каждой теме своей частью (по навыкам), как в
+  // отчёте цикла; без навыков (старые записи) — целиком теме проверки
+  const addChecks = (at, bySkill, fallbackTopic, correct, total) => {
+    const parts = checkParts(bySkill, fallbackTopic);
+    if (parts.size) parts.forEach((p, topic) => topicOf(topic).checks.push({ at, correct: p.ok, total: p.total }));
+    else if (fallbackTopic) topicOf(fallbackTopic).checks.push({ at, correct, total });
+  };
   (await readLessons()).filter((l) => l.mode === 'paper-check' && l.topic && l.students?.[key]).forEach((l) => {
     const st = l.students[key];
-    topicOf(l.topic).checks.push({ at: l.at, correct: st.correct, total: st.answered });
+    addChecks(l.at, st.bySkill, l.topic, st.correct, st.answered);
   });
   (await allSubmissions()).filter((s) => studentKey(s.studentName) === key).forEach((s) => {
     const a = assignments.get(s.assignmentId);
     if (!a?.check || !a.topic) return;
-    topicOf(a.topic).checks.push(...(s.history || []).map((h) => ({ at: h.at, correct: h.correct, total: h.total })));
+    (s.history || []).forEach((h) => addChecks(h.at, h.bySkill, a.topic, h.correct, h.total));
   });
   const topicRows = [...byTopic.values()].map((row) => {
     row.checks.sort((a, b) => a.at - b.at);

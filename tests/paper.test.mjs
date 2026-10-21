@@ -142,3 +142,24 @@ test('multi-topic test: refs only when needed, questions in order, report per to
   assert.equal(rows['chemistry-8-basics'].answered, 1);
   assert.equal(rows['chemistry-8-basics'].correct, 0);
 });
+
+// Аудит 21.10 (P1): итоговая проверка по нескольким темам засчитывается каждой теме своей частью,
+// а не целиком главной теме (раньше 6/6 по дробям и 0/4 по числам давали дробям 60 %)
+test('a multi-topic check counts toward each topic with its own part', async () => {
+  const { saveAssignment, saveSubmission } = await import('../core/assignments.js');
+  const log = [];
+  for (let i = 0; i < 6; i++) log.push({ playerId: 'p', playerName: 'Бакыт', topic: 'math-6-fractions', skill: 'compare', correct: true, questionId: `f${i}` });
+  for (let i = 0; i < 5; i++) log.push({ playerId: 'p', playerName: 'Бакыт', topic: 'math-5-numbers', skill: 'add-sub', correct: false, questionId: `m${i}` });
+  await recordStage({ subject: 'math', topic: 'math-6-fractions', mode: 'paper-check', gameId: 'paper', log, players: [] });
+  let rows = Object.fromEntries((await studentReport('бакыт')).topicRows.map((x) => [x.topic, x]));
+  assert.deepEqual(rows['math-6-fractions'].checks.map((c) => [c.correct, c.total]), [[6, 6]]);
+  assert.deepEqual(rows['math-5-numbers'].checks.map((c) => [c.correct, c.total]), [[0, 5]]);
+
+  // Домашняя «Проверка» по двум темам — так же, по навыкам попытки
+  const a = await saveAssignment({ title: 'Аралаш', topic: 'math-6-fractions', check: true, count: 10, dueAt: Date.now() + 1e9 });
+  await saveSubmission({ assignmentId: a.id, studentId: 's', studentName: 'Бакыт', correct: 5, total: 10,
+    skillStats: { 'math-6-fractions::compare': { ok: 5, total: 5 }, 'math-5-numbers::add-sub': { ok: 0, total: 5 } } });
+  rows = Object.fromEntries((await studentReport('бакыт')).topicRows.map((x) => [x.topic, x]));
+  assert.deepEqual(rows['math-6-fractions'].checks.map((c) => [c.correct, c.total]), [[6, 6], [5, 5]]);
+  assert.deepEqual(rows['math-5-numbers'].checks.map((c) => [c.correct, c.total]), [[0, 5], [0, 5]]);
+});
