@@ -251,17 +251,23 @@ create policy client_errors_insert on public.client_errors for insert to anon, a
   with check (true);
 -- Политики чтения нет: через API журнал не читается никем
 
--- Защита от потока: не больше 300 отчётов за 10 минут на весь сайт;
--- записи старше 30 дней удаляются
+-- Защита от потока: не больше 300 отчётов за 10 минут на весь сайт и не больше 20 000 всего;
+-- записи старше 30 дней удаляются. Время записи ставит база: присланное браузером время
+-- позволяло обойти лимит («старые» записи) или заблокировать журнал навсегда (аудит 21.10).
 create or replace function public.client_errors_guard()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
+  new.created_at := now();
   if (select count(*) from public.client_errors where created_at > now() - interval '10 minutes') >= 300 then
     raise exception 'too many error reports' using errcode = 'P0001';
   end if;
   delete from public.client_errors where created_at < now() - interval '30 days';
+  if (select count(*) from public.client_errors) >= 20000 then
+    raise exception 'too many error reports' using errcode = 'P0001';
+  end if;
   return new;
 end $$;
+revoke all on function public.client_errors_guard() from public, anon, authenticated;
 drop trigger if exists client_errors_guard on public.client_errors;
 create trigger client_errors_guard before insert on public.client_errors
   for each row execute function public.client_errors_guard();

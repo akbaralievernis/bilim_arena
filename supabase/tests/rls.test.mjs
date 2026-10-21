@@ -192,6 +192,15 @@ await expectDenied('журнал не читается без входа', () =>
 await expectDenied('журнал не читает даже учитель', () => as('T1', false, () => db.query('select * from client_errors')));
 await expectDenied('стереть журнал нельзя', () => asAnonRole(() => db.query('delete from client_errors')));
 await expectDenied('слишком длинное сообщение отклоняется', () => asAnonRole(() => report('x'.repeat(600))));
+// Аудит 21.10 (P1): время записи задавал браузер — «старые» записи не попадали в лимит,
+// а записи «из будущего» навсегда блокировали журнал
+await expectDenied('пачка «старых» записей не обходит лимит', () => asAnonRole(() => db.query(
+  `insert into client_errors (created_at, page, message) select now() - interval '20 days', '/p', 'x' from generate_series(1, 400)`)));
+await expectOk('время записи ставит база, а не браузер', async () => {
+  await asAnonRole(() => db.query(`insert into client_errors (created_at, page, message) values ('2099-01-01', '/p', 'future')`));
+  await db.exec('reset role');
+  return db.query(`select created_at < now() + interval '1 minute' as ok from client_errors where message = 'future'`);
+}, (r) => r.rows[0]?.ok === true);
 await expectOk('после 300 отчётов за 10 минут новые отклоняются', () => asAnonRole(async () => {
   for (let i = 0; i < 300; i++) { try { await report(); } catch { /* сработала защита */ } }
   try { await report(); return false; } catch (e) { return /too many/.test(e.message); }
