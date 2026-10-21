@@ -122,6 +122,23 @@ await expectDenied('посторонний не сдаёт в чужой кла�
 await expectOk('учитель видит результат', () => as('T1', false, () => db.query('select data from submissions')), (r) => r.rows[0]?.data?.best === 90);
 await expectDenied('чужой учитель не видит результат', () => as('T2', false, () => db.query('select * from submissions')));
 
+// Аудит 21.10 (P1): RLS проверяла строку, но не содержимое — ученик мог вписать в data чужие
+// studentId/studentName и попасть в отчёт одноклассника; повторный вход позволял взять чужое имя
+console.log('Подделка результатов и имени');
+await expectOk('одноклассник с тем же именем получает номер, а не чужое имя', () => as('S2', true, () =>
+  db.query('select * from join_class($1, $2)', [code, 'айбек'])), (r) => r.rows[0]?.member_name === 'айбек 2');
+await expectOk('повторный вход не даёт взять имя одноклассника', () => as('S2', true, () =>
+  db.query('select * from join_class($1, $2)', [code, 'Айбек'])), (r) => r.rows[0]?.member_name !== 'Айбек');
+await expectOk('свой повторный вход сохраняет своё имя', () => as('S1', true, () =>
+  db.query('select * from join_class($1, $2)', [code, 'Айбек'])), (r) => r.rows[0]?.member_name === 'Айбек');
+await expectOk('ученик пишет в data чужие studentId и имя…', () => as('S1', true, () =>
+  db.query(`update submissions set data = jsonb_build_object('assignmentId', 'a_x', 'studentId', $1::text, 'studentName', 'айбек 2', 'best', 100)
+            where student_id = $2`, [ids.S2, ids.S1])), () => true);
+await expectOk('…но в базе остаются его собственные id и имя', () => as('T1', false, () =>
+  db.query('select data from submissions where student_id = $1', [ids.S1])),
+  (r) => r.rows[0]?.data?.studentId === ids.S1 && r.rows[0]?.data?.studentName === 'Айбек' && r.rows[0]?.data?.assignmentId === 'a_1');
+
+
 console.log('Личные данные');
 await expectOk('ученик сохраняет прогресс', () => as('S1', true, () =>
   db.query(`insert into user_data (key, value, updated_ms) values ('progress', '{"xp":10}', 1),

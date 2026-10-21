@@ -195,8 +195,9 @@ export async function studentJoin({ code, name }) {
   const cls = data?.[0];
   if (!cls) throw new Error('class_not_found');
 
+  // Имя уже занято одноклассником — база дала номер («Айбек 2»); в отчётах учитель видит именно его
   await saveProfile({
-    id: user.id, role: 'student', name, classId: cls.class_id, className: cls.class_name,
+    id: user.id, role: 'student', name: cls.member_name || name, classId: cls.class_id, className: cls.class_name,
     ...(cls.grade ? { grade: cls.grade } : {})
   });
   store.onWrite = onLocalWrite;
