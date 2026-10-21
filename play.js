@@ -197,6 +197,58 @@ function sendAnswer(value) {
   if (navigator.vibrate && navigator.userActivation?.hasBeenActive) navigator.vibrate(20);
 }
 
+// ─── Выход из вкладки во время игры ───────────────────────────────────────────
+// Запретить переход в другую вкладку браузер не даёт — но уход виден: ученик получает
+// предупреждение, доска — сообщение; после LEAVE_LIMIT выходов доска удаляет ученика.
+const LEAVE_LIMIT = 3;
+const IN_GAME = new Set(['answer', 'accuse', 'sent', 'reveal']);
+const guard = { leaves: 0, hiddenAt: 0, code: null };
+// Счёт выходов переживает перезагрузку страницы (иначе перезагрузка обнуляла бы его)
+const leaveKey = () => 'BA2_leaves_' + (guard.code || '');
+function loadLeaves(code) {
+  guard.code = code;
+  try { guard.leaves = Math.max(0, parseInt(localStorage.getItem(leaveKey()), 10) || 0); } catch { guard.leaves = 0; }
+}
+
+function reportLeave() {
+  conn.room?.send({ type: 'focus', leaves: guard.leaves });
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (!conn.room || !IN_GAME.has(conn.spec?.screen)) { guard.hiddenAt = 0; return; }
+  if (document.hidden) {
+    guard.hiddenAt = Date.now();
+    guard.leaves += 1;
+    try { localStorage.setItem(leaveKey(), String(guard.leaves)); } catch { /* приватный режим */ }
+    reportLeave(); // пока соединение живо; при возврате отправим ещё раз
+    return;
+  }
+  if (!guard.hiddenAt) return;
+  guard.hiddenAt = 0;
+  reportLeave();
+  if (guard.leaves < LEAVE_LIMIT) showLeaveWarning();
+});
+
+function showLeaveWarning() {
+  const box = $('#leaveWarn');
+  if (!box) return;
+  $('#leaveWarnText').textContent = t('focus_warn_phone', { n: guard.leaves, max: LEAVE_LIMIT });
+  box.classList.remove('hidden');
+  $('#leaveWarnOk').focus();
+}
+
+function showKicked() {
+  $('#leaveWarn')?.classList.add('hidden');
+  $('#statusBox').replaceChildren(
+    el('div', { class: 'big-icon' }, icon('lock', { size: 44 })),
+    el('h2', {}, t('focus_kicked_phone'))
+  );
+  $('#optionsBox').replaceChildren();
+  $('#optionsBox').classList.add('hidden');
+  $('#inputBox').classList.add('hidden');
+  $('#connDot').classList.add('off');
+}
+
 // ─── Синхронизация домашних заданий через урок ────────────────────────────────
 
 async function syncWithTeacher(payload) {
@@ -235,6 +287,11 @@ async function connect(code, name) {
           $('#playerName').textContent = conn.assignedName;
           toast(t('join_renamed', { name: conn.assignedName, requested: String(msg.requested || '').slice(0, 24) }), { icon: '👥', ms: 8000 });
         }
+        if (msg.type === 'kicked') {
+          // Доска удалила ученика (вышел из вкладки слишком много раз)
+          showKicked();
+          setTimeout(() => conn.room?.close?.(), 0);
+        }
         if (msg.type === 'closed') {
           // Учитель закрыл вход в урок — не переподключаемся бесконечно
           toast(t('join_closed'), { icon: '🔒', ms: 8000 });
@@ -260,6 +317,7 @@ async function connect(code, name) {
     await store.set('play_player_id', conn.room.playerId);
     await store.set('play_player_secret', conn.room.secret);
     await store.set('play_last_room', code);
+    loadLeaves(code);
     await quickJoinProfile(name);
 
     $('#connDot').classList.remove('off');
@@ -312,6 +370,7 @@ async function connect(code, name) {
   };
 
   $('#joinBtn').addEventListener('click', tryJoin);
+  $('#leaveWarnOk').addEventListener('click', () => $('#leaveWarn').classList.add('hidden'));
   // Кнопка оживает, только когда страница готова: на медленном телефоне
   // нажатие до загрузки скриптов иначе просто терялось бы
   $('#joinBtn').disabled = false;

@@ -200,3 +200,54 @@ test('teacher closes joining: a new phone is turned away, an old one still recon
   await expect(board.locator('#lockBtn')).toHaveAttribute('aria-pressed', 'false');
   await late.ctx.close(); await first.ctx.close(); await boardCtx.close();
 });
+
+test('leaving the tab during a game: warning, the teacher sees it, removed after 3 times', async ({ browser }) => {
+  const boardCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await boardCtx.addInitScript(() => localStorage.setItem('BA2_lang', '"ru"'));
+  const board = await boardCtx.newPage();
+  await board.goto('/board.html?subject=math&topic=math-5-numbers&signal=' + SIG);
+  await board.locator('button').filter({ hasText: /Начать урок|Сабакты баштоо/ }).first().click();
+  await expect(board.locator('#roomCode')).toHaveText(/^[A-Z0-9]{5}$/, { timeout: 30_000 });
+  const code = await board.locator('#roomCode').textContent();
+
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 800 }, isMobile: true, hasTouch: true });
+  await ctx.addInitScript(() => localStorage.setItem('BA2_lang', '"ru"'));
+  const phone = await ctx.newPage();
+  await phone.goto(`/play.html?room=${code}&signal=${SIG}`);
+  await phone.locator('#nameInput').fill('Айбек');
+  await phone.locator('#joinBtn').click();
+  await expect(phone.locator('#gameScreen')).toBeVisible({ timeout: 30_000 });
+  await expect(board.locator('#playerCount')).toHaveText('1', { timeout: 30_000 });
+
+  // Вне игры (ожидание) выход не считается
+  const leaveAndReturn = () => phone.evaluate(async () => {
+    const set = (v) => Object.defineProperty(document, 'hidden', { configurable: true, get: () => v });
+    set(true); document.dispatchEvent(new Event('visibilitychange'));
+    await new Promise((r) => setTimeout(r, 300));
+    set(false); document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await leaveAndReturn();
+  await expect(phone.locator('#leaveWarn')).toBeHidden();
+
+  await board.getByRole('button', { name: /Начать игру|Оюнду баштоо/ }).click();
+  await expect(phone.locator('#optionsBox:not(.hidden)')).toBeVisible({ timeout: 30_000 });
+
+  await leaveAndReturn();
+  await expect(phone.locator('#leaveWarn')).toBeVisible();
+  await expect(phone.locator('#leaveWarnText')).toContainText('1 из 3');
+  await expect(board.locator('.leave-badge')).toHaveText('⚠ 1', { timeout: 10_000 });
+  await phone.locator('#leaveWarnOk').click();
+
+  await leaveAndReturn();
+  await expect(board.locator('.leave-badge')).toHaveText('⚠ 2', { timeout: 10_000 });
+  await phone.locator('#leaveWarnOk').click();
+
+  await leaveAndReturn();
+  await expect(phone.locator('#statusBox')).toContainText('удалены из игры', { timeout: 10_000 });
+  await expect(board.locator('#toasts')).toContainText('удалён', { timeout: 10_000 });
+
+  // Перезагрузка не возвращает в урок
+  await phone.reload();
+  await expect(phone.locator('#statusBox')).toContainText('удалены из игры', { timeout: 30_000 });
+  await ctx.close(); await boardCtx.close();
+});

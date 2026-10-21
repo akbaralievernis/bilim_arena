@@ -378,7 +378,11 @@ export async function createRoom({ onJoin, onLeave, onMessage, prefix = ROOM_PRE
       if (msg.type === 'join') {
         const secret = typeof msg.secret === 'string' ? msg.secret.slice(0, 64) : '';
         // Место уже занято другим телефоном — без его секрета не пускаем
-        if (secrets.has(id) && secrets.get(id) !== secret) { try { conn.close(); } catch { /* закрыт */ } return; }
+        if (secrets.has(id) && secrets.get(id) !== secret) {
+          // Удалённый учителем телефон узнаёт об этом и не переподключается бесконечно
+          if (String(secrets.get(id)).startsWith('kicked:')) safeSend(conn, { type: 'kicked' });
+          try { conn.close(); } catch { /* закрыт */ } return;
+        }
         if (!players.has(id) && players.size >= MAX_PLAYERS) { try { conn.close(); } catch { /* закрыт */ } return; }
         // Вход закрыт: пускаем только телефоны, которые уже были в уроке (по их секрету)
         if (locked && secrets.get(id) !== secret) { safeSend(conn, { type: 'closed' }); try { conn.close(); } catch { /* закрыт */ } return; }
@@ -420,6 +424,15 @@ export async function createRoom({ onJoin, onLeave, onMessage, prefix = ROOM_PRE
     get playerCount() { return players.size; },
     players: () => [...players.values()],
     get locked() { return locked; },
+    /** Удалить ученика из урока: соединение закрывается, войти снова с этого телефона нельзя */
+    kick(playerId) {
+      const c = conns.get(playerId);
+      if (c) { safeSend(c, { type: 'kicked' }); setTimeout(() => { try { c.close(); } catch { /* закрыт */ } }, 300); }
+      secrets.set(playerId, 'kicked:' + randomSecret()); // прежний секрет больше не подходит
+      conns.delete(playerId);
+      players.delete(playerId);
+      onLeave?.(playerId);
+    },
     /** Закрыть / открыть вход новым телефонам */
     lock(value = true) { locked = !!value; },
     online: (id) => !!conns.get(id)?.open,

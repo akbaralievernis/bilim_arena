@@ -310,6 +310,9 @@ async function openRoom() {
           return;
         }
 
+        // Ученик вышел из вкладки во время игры: учитель видит, после LEAVE_LIMIT — удаляем
+        if (msg.type === 'focus') { onFocusLeave(playerId, msg); return; }
+
         if (!state.game) return;
 
         // Обвинение из телефона: подозреваемый + доказательства
@@ -379,11 +382,32 @@ function renderPlayers() {
   $('#playersList').replaceChildren(...list.map((p) => {
     const inGame = state.game?.players.get(p.id);
     const answered = state.game?.answers.has(p.id);
-    return el('div', { class: `player-pill ${answered ? 'answered' : ''} ${inGame?.team ? 'team-' + inGame.team.toLowerCase() : ''}` },
-      answered ? icon('check', { size: 16, label: t('game_answered') }) : null, p.name);
+    const leaves = state.focus?.get(p.id) || 0;
+    return el('div', { class: `player-pill ${answered ? 'answered' : ''} ${inGame?.team ? 'team-' + inGame.team.toLowerCase() : ''} ${leaves ? 'left-tab' : ''}` },
+      answered ? icon('check', { size: 16, label: t('game_answered') }) : null, p.name,
+      leaves ? el('span', { class: 'leave-badge', title: t('focus_badge_title', { n: leaves, max: LEAVE_LIMIT }) }, `⚠ ${leaves}`) : null);
   }));
   $('#startGameBtn').disabled = list.length === 0;
   renderLock();
+}
+
+/** Выходы из вкладки во время игры: playerId → сколько раз */
+const LEAVE_LIMIT = 3;
+function onFocusLeave(playerId, msg) {
+  if (!state.game) return;
+  const leaves = Math.min(LEAVE_LIMIT, Math.max(0, Math.floor(Number(msg.leaves) || 0)));
+  const focus = state.focus || (state.focus = new Map());
+  if (leaves <= (focus.get(playerId) || 0)) return; // повтор того же выхода
+  focus.set(playerId, leaves);
+  const name = state.players.get(playerId)?.name || '?';
+  if (leaves >= LEAVE_LIMIT) {
+    state.room?.kick(playerId);
+    state.players.delete(playerId);
+    toast(t('focus_kicked_board', { name }), { icon: '🚫', ms: 8000 });
+  } else {
+    toast(t('focus_left_board', { name, n: leaves, max: LEAVE_LIMIT }), { icon: '⚠️', ms: 6000 });
+  }
+  renderPlayersSoon();
 }
 
 /** «Закрыть вход»: когда класс собрался, посторонний с кодом уже не войдёт */
