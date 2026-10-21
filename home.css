@@ -242,7 +242,7 @@
 
 /* ─── Прогресс и профиль ──────────────────────────────────────────────────── */
 .section-title { margin: 0 0 12px; }
-.stat-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); }
+.stat-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); }
 .stat-card { display: flex; align-items: center; gap: 12px; padding: 16px; flex-wrap: wrap; }
 .stat-icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; flex: none; background: var(--primary-soft); color: var(--primary); }
 .stat-card.teal .stat-icon { background: var(--secondary-soft); color: var(--secondary-ink); }

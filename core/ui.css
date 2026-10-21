@@ -145,6 +145,7 @@ p { margin: 0 0 0.8em; }
 .center { text-align: center; }
 .grid { display: grid; gap: var(--gap); }
 .grid.auto { grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+.grid.fit { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
 .grid.two { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
 .hidden, [hidden] { display: none !important; }
 .spacer { flex: 1; }
@@ -624,7 +625,7 @@ button.option:not([disabled]):hover { border-color: var(--primary); }
 .page-head p { margin: 0; max-width: 68ch; }
 
 .section { margin-top: clamp(28px, 5vw, 44px); }
-.section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.section-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 14px; }
 .section-head h2 { margin: 0; }
 .section-link { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; text-decoration: none; color: var(--primary-ink); min-height: 44px; white-space: nowrap; flex: none; }
 .section-link:hover { text-decoration: underline; }
@@ -916,7 +917,7 @@ button.option:not([disabled]):hover { border-color: var(--primary); }
 .legal-section p { margin: 0 0 8px; line-height: 1.6; }
 .legal-list { margin: 0 0 8px; padding-left: 1.3em; display: grid; gap: 6px; line-height: 1.55; }
 .legal-links { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: center; margin-top: 12px; }
-.legal-links a { color: inherit; opacity: 0.75; font-size: 0.875rem; }
+.legal-links a { color: var(--text-soft); font-size: 0.875rem; min-height: 44px; display: inline-flex; align-items: center; }
 
 /* ─── Путь по теме (practice.html) ─────────────────────────────────────────── */
 .path-steps { list-style: none; padding: 0; margin: 0; }
@@ -1116,3 +1117,5 @@ body.board-mode .prompt-image { max-height: 46vh; }
   .skeleton::after, .spinner, .btn[aria-busy='true']::after { animation-duration: 2.4s !important; }
 }
 
+/* Флажки — крупнее: в них попадают пальцем */
+:where(input[type='checkbox'], input[type='radio']) { width: 24px; height: 24px; accent-color: var(--primary); vertical-align: middle; }

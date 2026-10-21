@@ -3,7 +3,7 @@
  * Данные: журнал уроков с доски (core/lessons.js) и домашние задания.
  */
 
-import { bootstrap, mountHeader, el, $, toast } from './core/ui.js';
+import { bootstrap, mountHeader, el, $, toast, emptyState } from './core/ui.js';
 import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
 import { getTopic, getSubject, skillTitle, SUBJECTS, TOPICS, findQuestion } from './core/curriculum.js';
@@ -81,7 +81,7 @@ async function renderLessons() {
   const lessons = await lessonHistory();
   show('lessonsScreen');
   if (!lessons.length) {
-    $('#lessonList').replaceChildren(el('div', { class: 'card center muted' }, t('rep_lessons_empty')));
+    $('#lessonList').replaceChildren(emptyState({ icon: 'board', text: t('rep_lessons_empty'), action: { href: './board.html', icon: 'board', label: t('home_board_btn') } }));
     return;
   }
   $('#lessonList').replaceChildren(...lessons.map((l) => {

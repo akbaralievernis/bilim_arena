@@ -802,9 +802,7 @@ textarea:focus {
 input[type="range"] {
   width: 100%;
   accent-color: var(--primary);
-  height: 6px;
-  border-radius: 3px;
-  background: var(--ui-line);
+  height: 28px; /* область нажатия; полоса рисуется браузером */
   margin-bottom: 10px;
 }
 

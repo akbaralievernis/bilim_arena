@@ -26,6 +26,7 @@
     @keyframes flip { 0% { transform: rotateX(0); } 50% { transform: rotateX(90deg); } 100% { transform: rotateX(0); } }
     .kb { display: flex; flex-direction: column; gap: 6px; user-select: none; }
     .kbRow { display: flex; gap: 4px; justify-content: center; }
+    @media (max-width: 360px) { .kbRow { gap: 2px; } .key { min-width: 0; padding: 0; } .gWrap { padding-left: 8px; padding-right: 8px; } }
     .key {
       flex: 1; max-width: 42px; height: 52px; border-radius: 8px; border: 0;
       background: var(--card-strong); font-weight: 800; font-size: 1rem; text-transform: uppercase;

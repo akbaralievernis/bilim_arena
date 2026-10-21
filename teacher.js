@@ -131,11 +131,11 @@ async function renderClasses() {
           await store.set(KEYS.classes, state.classes);
           renderClasses();
         }
-      }, `${t('role_student')}`),
+      }, icon('plus', { size: 18 }), el('span', {}, t('role_student'))),
       el('a', {
         class: 'btn primary',
         href: `./board.html?subject=${state.subject}&topic=${state.topic}&duration=${state.duration}&class=${c.id}`
-      }, `▶️ ${t('lesson_start')}`)
+      }, icon('play', { size: 18 }), el('span', {}, t('lesson_start')))
     )
   ));
 

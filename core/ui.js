@@ -55,6 +55,17 @@ export function toast(message, { icon: mark = '', ms = 2600 } = {}) {
   }, ms);
 }
 
+/**
+ * Пустое состояние: значок, что произошло и следующее действие.
+ * Один вид на всех страницах (стили — .empty-state в core/ui.css).
+ */
+export function emptyState({ icon: name = 'inbox', text, action = null }) {
+  return el('div', { class: 'card empty-state' },
+    el('span', { class: 'empty-icon', 'aria-hidden': 'true' }, icon(name, { size: 30 })),
+    el('p', {}, text),
+    action ? el('a', { class: 'btn primary', href: action.href }, action.icon ? icon(action.icon, { size: 18 }) : null, el('span', {}, action.label)) : null);
+}
+
 // ─── Тема оформления ──────────────────────────────────────────────────────────
 // Платформа использует один светлый интерфейс. Функции оставлены для совместимости.
 
