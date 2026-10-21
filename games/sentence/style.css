@@ -1048,3 +1048,69 @@ body.mode-math .slots {
 
 /* Платформа: скрытые элементы (переключатель темы) */
 [hidden] { display: none !important; }
+
+/* ═══ Bilim Arena 2.0: оформление в стиле сайта ════════════════════════════════
+   Команда A — красная (акцент сайта), команда B — бирюзовая; шапка — «ночная»
+   сцена, как на главной; карточки слов — белые, с мягкой тенью. */
+:root {
+  --cyan: #E0162B;
+  --cyan-glow: rgba(224, 22, 43, 0.35);
+  --magenta: #0FA595;
+  --magenta-glow: rgba(15, 165, 149, 0.35);
+  --grad-night: linear-gradient(135deg, #0B1026 0%, #1B1446 55%, #3A0D2E 100%);
+  --grad-red: linear-gradient(120deg, #E0162B 0%, #FF3D57 45%, #FF7A59 100%);
+  --grad-teal: linear-gradient(120deg, #0FA595 0%, #2F74E0 100%);
+}
+body, body.light {
+  --bg-gradient:
+    radial-gradient(900px 500px at 0% 0%, rgba(224, 22, 43, 0.08), transparent 60%),
+    radial-gradient(900px 500px at 100% 100%, rgba(15, 165, 149, 0.09), transparent 60%),
+    #F5F6FB;
+  --text-main: #202B46;
+  --text-muted: #5D6577;
+}
+.topbar {
+  background: var(--grad-night);
+  color: #fff;
+  border-bottom: 0;
+  box-shadow: 0 14px 36px -18px rgba(11, 16, 38, 0.7);
+}
+.topbar .subtitle, .topbar .timerLabel, .topbar .timerUnit { color: rgba(255, 255, 255, 0.72); }
+.topbar #brandTitle { font-family: var(--font-title); letter-spacing: 0.02em; background: linear-gradient(90deg, #fff, #FFC9CF); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.topbar .timer { color: #fff; text-shadow: 0 0 22px rgba(255, 122, 89, 0.55); }
+.topbar .tbtn, .topbar .btn:not(.primary) { background: rgba(255, 255, 255, 0.1); color: #fff; border-color: rgba(255, 255, 255, 0.18); }
+.btn.primary { background: var(--grad-red); border: 0; box-shadow: 0 12px 28px -10px rgba(224, 22, 43, 0.65); }
+.team { background: #fff; border: 1px solid rgba(32, 43, 70, 0.07); box-shadow: 0 2px 6px rgba(16, 24, 40, 0.05), 0 28px 56px -24px rgba(32, 43, 70, 0.28); border-top-width: 6px; }
+.teamA { border-top-color: transparent; border-image: var(--grad-red) 1; border-image-slice: 1 0 0 0; }
+.teamB { border-top-color: transparent; border-image: var(--grad-teal) 1; border-image-slice: 1 0 0 0; }
+.teamA .flashWord, .teamB .flashWord { font-family: var(--font-title); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; }
+.teamA .flashWord { background-image: var(--grad-red); }
+.teamB .flashWord { background-image: var(--grad-teal); }
+.tile, .mathBtn {
+  background: #fff;
+  border: 1px solid rgba(32, 43, 70, 0.1);
+  border-bottom: 4px solid rgba(32, 43, 70, 0.16);
+  box-shadow: 0 6px 16px -8px rgba(32, 43, 70, 0.35);
+  font-size: 1.15rem;
+}
+.teamA .tile:hover { border-color: #E0162B; box-shadow: 0 12px 24px -10px rgba(224, 22, 43, 0.5); }
+.teamB .tile:hover { border-color: #0FA595; box-shadow: 0 12px 24px -10px rgba(15, 165, 149, 0.5); }
+.slot { border-radius: 14px; border: 2px dashed rgba(32, 43, 70, 0.16); background: rgba(32, 43, 70, 0.03); }
+.teamA .slot.filled.correct { background: var(--grad-red); color: #fff; border-color: transparent; box-shadow: 0 8px 18px -10px rgba(224, 22, 43, 0.7); }
+.teamB .slot.filled.correct { background: var(--grad-teal); color: #fff; border-color: transparent; box-shadow: 0 8px 18px -10px rgba(15, 165, 149, 0.7); }
+.vsFill.a { background: var(--grad-red); }
+.vsFill.b { background: var(--grad-teal); }
+.vsCenterTag { background: var(--grad-night); color: #fff; }
+
+/* Поделиться вариантом учителя */
+.shareRow { margin-top: 10px; }
+.shareBox { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 14px; align-items: center; margin-top: 12px; padding: 12px; border-radius: 16px; background: rgba(32, 43, 70, 0.04); }
+.shareBox.hidden, .sharedNote.hidden { display: none; }
+.shareQr { width: 132px; height: 132px; background: #fff; border-radius: 10px; padding: 4px; }
+.shareQr svg { width: 100%; height: 100%; display: block; }
+.shareInfo input { width: 100%; font-size: 0.8rem; }
+.sharedNote { margin: 8px 0 0; padding: 8px 12px; border-radius: 12px; background: #E3F7F4; color: #0B7A6D; font-weight: 700; font-size: 0.9rem; }
+@media (max-width: 560px) { .shareBox { grid-template-columns: 1fr; } .shareQr { margin: 0 auto; } }
+.topbar .timerBox { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: none; }
+@media (min-width: 561px) { .shareBox { grid-template-columns: 200px minmax(0, 1fr); } }
+.shareQr { width: 200px; height: 200px; }

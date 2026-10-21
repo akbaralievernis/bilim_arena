@@ -79,3 +79,78 @@ test('focus duel: resetting the match right after an answer does not start a rou
   // Раньше через 1,4 с матч сам начинался заново (раунд 1)
   await expect(page.locator('#roundNum')).toHaveText('0');
 });
+
+test('sentence: level 4 has trap words, the next game brings new sentences, a teacher link opens the same text', async ({ page, browser }) => {
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.addInitScript(() => localStorage.setItem('BA2_lang', '"ru"'));
+  await page.goto('/games/sentence/index.html');
+  await page.locator('#presetSelect').selectOption('level4');
+  const first = await page.locator('#textInput').inputValue();
+  await page.locator('#applyBtn').click();
+  await page.locator('#startBtn').click();
+  await expect(page.locator('#tilesA .tile').first()).toBeVisible({ timeout: 30_000 });
+  // Карточек больше, чем мест: две — ловушки
+  expect(await page.locator('#tilesA .tile').count()).toBe((await page.locator('#slotsA .slot').count()) + 2);
+  await expect(page.locator('#noteA')).toContainText('лишн');
+
+  // Новая партия — другие предложения (показанные уходят в конец очереди)
+  await page.reload();
+  await page.locator('#presetSelect').selectOption('level4');
+  const second = await page.locator('#textInput').inputValue();
+  const firstSentence = first.split(/(?<=[.!?])\s+/)[0];
+  expect(second.split(/(?<=[.!?])\s+/)[0]).not.toBe(firstSentence);
+
+  // Свой текст учителя → ссылка → на другом устройстве та же игра
+  await page.locator('#presetSelect').selectOption('custom');
+  await page.locator('#textInput').fill('Мы любим наш город. Завтра будет контрольная работа.');
+  await page.locator('#shareBtn').click();
+  await expect(page.locator('#shareQr svg')).toBeVisible();
+  const url = await page.locator('#shareUrl').inputValue();
+  const other = await browser.newContext();
+  const phone = await other.newPage();
+  await phone.goto(url);
+  await expect(phone.locator('#textInput')).toHaveValue('Мы любим наш город. Завтра будет контрольная работа.');
+  await expect(phone.locator('#sharedNote')).toBeVisible();
+  await other.close();
+  expect(errors).toEqual([]);
+});
+
+test('eagle: question gates — right answer +3, wrong answer costs a life, not the whole game', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.route('**/cdn.jsdelivr.net/**', (r) => r.abort()); // камеры в тесте нет — играем с клавиатуры
+  await page.addInitScript(() => localStorage.setItem('BA2_lang', '"ru"'));
+  await page.goto('/games/eagle/index.html');
+  await page.evaluate(() => document.getElementById('ba-camera-error')?.remove());
+  const result = await page.evaluate(async () => {
+    startGame(1);
+    const bird = birds[0];
+    const pass = (pickRight) => {
+      const gate = new QuestionGate(nextQuestion());
+      const slot = gate.labels.indexOf(gate.q.right);
+      const target = pickRight ? slot : (slot + 1) % 3;
+      pipes = [gate];
+      bird.invuln = 0;
+      bird.y = gate.centers[target] - bird.height / 2; bird.velocity = 0;
+      gate.x = bird.x + bird.width / 2 - gate.width / 2 + 2; // середина ворот чуть правее птицы
+      gate.speed = 4;
+      updateLogic(); updateLogic();
+      return { score: bird.score, lives: bird.lives };
+    };
+    const right = pass(true);
+    const wrong = pass(false);
+    // Обычное появление: каждое 4-е препятствие — ворота, над ними плашка с вопросом
+    pipes = []; spawnCount = 3; frameCount = spawnEvery() - 1;
+    updateLogic();
+    const spawned = { gate: pipes.some((x) => x.isGate), banner: document.getElementById('qbanner').textContent };
+    return { right, wrong, spawned, alive: bird.isAlive };
+  });
+  expect(result.right.score).toBe(3);
+  expect(result.right.lives).toBe(3);
+  expect(result.wrong.lives).toBe(2);
+  expect(result.alive).toBe(true);
+  expect(result.spawned.gate).toBe(true);
+  expect(result.spawned.banner).toContain('→');
+  expect(errors).toEqual([]);
+});

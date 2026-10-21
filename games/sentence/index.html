@@ -10,9 +10,9 @@
 
   <link rel="stylesheet" href="../../assets/fonts/fonts.css">
 
-  <link rel="stylesheet" href="style.css?v=18">
+  <link rel="stylesheet" href="style.css?v=19">
   <script src="../../shared/lang.js?v=16"></script>
-  <script src="./i18n.js?v=16"></script>
+  <script src="./i18n.js?v=17"></script>
   <script src="../../shared/sw-register.js?v=15"></script>
 </head>
 
@@ -159,14 +159,29 @@
             <div class="field">
               <label for="presetSelect" id="presetLabel">Раунддардын тексттери</label>
               <select id="presetSelect" class="select">
+                <option value="progressive">Акырындап татаалдашат (1→4-деңгээл)</option>
+                <option value="level1">1-деңгээл: 3–4 сөз</option>
+                <option value="level2">2-деңгээл: 5–7 сөз</option>
+                <option value="level3">3-деңгээл: узун сүйлөм + 1 артык сөз</option>
+                <option value="level4">4-деңгээл: татаал сүйлөм + 2 артык сөз</option>
                 <option value="custom" data-i18n="presetCustom">Өз текстиңиз (төмөнгө жазыңыз)</option>
-                <option value="text_easy">Жөнөкөй деңгээл</option>
-                <option value="text_medium">Орто деңгээл</option>
-                <option value="text_expert">Татаал деңгээл</option>
               </select>
+              <p class="muted settingHint" id="presetHint">Ар бир оюн жаңы сүйлөмдөр менен башталат: бул түзмөктө көрүлгөндөр кийинчерээк гана кайталанат.</p>
+              <p class="sharedNote hidden" id="sharedNote">Мугалимдин варианты шилтеме аркылуу ачылды.</p>
 
               <label for="textInput" id="textLabel" style="margin-top: 15px;">Сиздин текстиңиз</label>
               <textarea id="textInput" translate="no" placeholder="Текстти бул жерге жазыңыз..."></textarea>
+              <div class="shareRow">
+                <button class="btn small" id="shareBtn" type="button">Вариантты бөлүшүү (шилтеме + QR)</button>
+              </div>
+              <div class="shareBox hidden" id="shareBox">
+                <div class="shareQr" id="shareQr" aria-hidden="true"></div>
+                <div class="shareInfo">
+                  <p class="small" id="shareMsg" role="status"></p>
+                  <input class="select" id="shareUrl" readonly aria-label="Шилтеме" />
+                  <p class="muted settingHint">Шилтемени ачкан ар бир түзмөктө ушул эле сүйлөмдөр менен оюн башталат. Текст шилтеменин ичинде — серверге жөнөтүлбөйт.</p>
+                </div>
+              </div>
 
               <div class="splitRow" style="margin-top: 20px;">
                 <button class="btn small" id="freezeBtn" type="button">Убакытты токтотуу</button>
@@ -233,6 +248,10 @@
                   <button class="toggle on" id="comboBtn" type="button">Күйүк</button>
                 </div>
                 <div class="row">
+                  <div class="labelBig">Артык сөздөр (тузак)<small class="muted settingHint">3–4-деңгээлде карточкалардын арасында сүйлөмгө кирбеген сөз болот</small></div>
+                  <button class="toggle on" id="decoyBtn" type="button">Күйүк</button>
+                </div>
+                <div class="row">
                   <div class="labelBig">Жашыруун режим<small class="muted settingHint">Коюлган сөздөр 2 секунддан кийин жашырылат</small></div>
                   <button class="toggle" id="hiddenBtn" type="button">Өчүк</button>
                 </div>
@@ -274,7 +293,10 @@
       </div>
     </div>
   </div>
-  <script src="app.js?v=16"></script>
+  <script src="../../shared/fresh.js?v=1"></script>
+  <script src="../../vendor/qrcode-generator-1.4.4.js" integrity="sha384-8FWZA6BGMXhsfO+BLtrJK0We6gg5o1JyO8xQm6peWDEUs17ACA5ziE/NIAkl9z2k"></script>
+  <script src="./bank.js?v=1"></script>
+  <script src="app.js?v=17"></script>
 </body>
 
 </html>
