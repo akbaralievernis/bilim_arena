@@ -205,6 +205,45 @@
     });
   });
 
+  /**
+   * Набор учителя по ссылке: «…/index.html#w=…» (wordset.html). В адресе после «#» —
+   * { n: название, w: [[кыргызча, орусча, англисче, эмодзи?], …] }; на сервер не уходит.
+   * Тогда все тил оюндары берут только эти сөздөр.
+   */
+  const TEACHER = (function readTeacherSet() {
+    const m = /(?:^#|&)w=([A-Za-z0-9_-]+)/.exec(location.hash || '');
+    if (!m) return null;
+    try {
+      const bin = atob(m[1].replace(/-/g, '+').replace(/_/g, '/'));
+      const data = JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0))));
+      const clean = (v) => String(v == null ? '' : v).replace(/[<>]/g, '').trim().slice(0, 40);
+      const words = (Array.isArray(data.w) ? data.w : []).slice(0, 80)
+        .map((r) => (Array.isArray(r) ? r.map(clean) : []))
+        .filter((r) => r[0] && (r[1] || r[2]));
+      return words.length >= 2 ? { title: clean(data.n) || 'Мугалимдин сөздөрү', words } : null;
+    } catch (e) { return null; }
+  })();
+  if (TEACHER) {
+    ALL.length = 0;
+    Object.keys(CATEGORIES).forEach((k) => delete CATEGORIES[k]);
+    CATEGORIES.custom = { key: 'custom', title: TEACHER.title, icon: '📝', count: TEACHER.words.length };
+    TEACHER.words.forEach(([ky, ru, en, emoji], i) => {
+      // Без эмодзи — показываем само слово, чтобы пары «эмодзи → слово» оставались различимыми
+      ALL.push({ id: `t_${ky}_${i}`, cat: 'custom', emoji: emoji || ky, ky, ru: ru || en, en: en || ru });
+    });
+    // Плашка на странице игры: видно, что идёт вариант учителя
+    const badge = () => {
+      if (document.getElementById('baTeacherSet')) return;
+      const b = document.createElement('div');
+      b.id = 'baTeacherSet';
+      b.setAttribute('role', 'status');
+      b.textContent = '📝 ' + TEACHER.title + ' · ' + TEACHER.words.length;
+      b.style.cssText = 'position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:60;padding:8px 14px;border-radius:999px;background:#202B46;color:#fff;font:700 14px/1.2 Inter,system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:90vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+      document.body.appendChild(b);
+    };
+    if (document.body) badge(); else document.addEventListener('DOMContentLoaded', badge);
+  }
+
   const shuffle = (arr) => {
     const a = arr.slice();
     for (let i = a.length - 1; i > 0; i--) {
@@ -219,8 +258,11 @@
     CATEGORIES,
     ALL,
     shuffle,
-    /** cat: категориянын ачкычы же 'all' */
+    /** Мугалимдин топтому ачылганбы (шилтеме #w=…) */
+    teacherSet: TEACHER ? { title: TEACHER.title, count: TEACHER.words.length } : null,
+    /** cat: категориянын ачкычы же 'all'. Мугалимдин топтому болсо — дайыма ошол сөздөр */
     words(cat) {
+      if (TEACHER) return ALL.slice();
       return !cat || cat === 'all' ? ALL.slice() : ALL.filter((w) => w.cat === cat);
     },
     /** Кокус n сөз (кайталанбайт) — алгач көрүлбөгөндөр (бардык оюндарда) */

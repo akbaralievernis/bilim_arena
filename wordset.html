@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ky" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <!-- Безопасность: скрипты только с сайта и проверенного CDN, соединения только с базой и сервером знакомства -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://udkxmgflbxetfzziftla.supabase.co wss://udkxmgflbxetfzziftla.supabase.co https://bilimarena-signal.bilimarena-signal.workers.dev wss://bilimarena-signal.bilimarena-signal.workers.dev https://0.peerjs.com wss://0.peerjs.com; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F7F8FC" />
+  <meta name="description" content="Билим Арена — мугалимдин өз сөздөрү менен тил оюндары: шилтеме жана QR." />
+  <title>Өз сөздөрүм — Билим Арена</title>
+  <link rel="icon" href="./assets/brand/favicon-64.png" type="image/png" />
+  <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
+  <link rel="stylesheet" href="./core/ui.css?v=23" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main" data-i18n="skip_to_content">Мазмунга өтүү</a>
+  <div id="header"></div>
+
+  <main id="main" class="wrap stack" style="padding-top:20px;padding-bottom:40px">
+    <h1 data-i18n="ws_title">Оюндар үчүн өз сөздөрүм</h1>
+    <p class="muted" data-i18n="ws_intro">Сабактын сөздөрүн жазыңыз — тил оюндары ошол сөздөр менен ачылат. Окуучуларга шилтеме же QR берсеңиз болот. Сөздөр шилтеменин ичинде: серверге жөнөтүлбөйт, аккаунт керек эмес.</p>
+
+    <section class="card stack" aria-labelledby="wsFormTitle">
+      <h2 id="wsFormTitle" style="margin:0" data-i18n="ws_form">Сөздөр</h2>
+      <label class="label" for="wsName" data-i18n="ws_name">Топтомдун аталышы</label>
+      <input class="input" id="wsName" maxlength="40" data-i18n-attr="placeholder:ws_name_ph" placeholder="Мисалы: 5-класс, Жаныбарлар" />
+      <label class="label" for="wsWords" data-i18n="ws_words">Ар бир сапка бир сөз: кыргызча — орусча — англисче (орусча же англисче — бирөө жетиштүү)</label>
+      <textarea class="input" id="wsWords" rows="10" spellcheck="false" placeholder="алма — яблоко — apple&#10;китеп — книга — book&#10;мектеп — школа — school"></textarea>
+      <p class="small" id="wsStatus" role="status"></p>
+      <div class="row" style="gap:8px">
+        <button class="btn primary" id="wsMake" type="button" data-i18n="ws_make">Шилтемелерди түзүү</button>
+        <button class="btn ghost" id="wsSave" type="button" data-i18n="ws_save">Бул түзмөктө сактоо</button>
+      </div>
+    </section>
+
+    <section class="card stack hidden" id="wsLinks" aria-labelledby="wsLinksTitle">
+      <h2 id="wsLinksTitle" style="margin:0" data-i18n="ws_links">Оюндар</h2>
+      <p class="small muted" data-i18n="ws_links_hint">Оюнду басыңыз — QR чоңоет. Окуучулар телефон менен сканерлеп же шилтеме аркылуу ачышат.</p>
+      <div class="grid auto" id="wsGames"></div>
+      <div class="ws-qr-box hidden" id="wsQrBox">
+        <div class="ws-qr" id="wsQr" aria-hidden="true"></div>
+        <div class="stack" style="gap:8px;min-width:0">
+          <b id="wsQrTitle"></b>
+          <input class="input" id="wsUrl" readonly aria-label="URL" />
+          <div class="row" style="gap:8px">
+            <button class="btn soft" id="wsCopy" type="button" data-i18n="ws_copy">Шилтемени көчүрүү</button>
+            <a class="btn ghost" id="wsOpen" target="_blank" rel="noopener" data-i18n="ws_open">Ачуу</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stack hidden" id="wsSaved" aria-labelledby="wsSavedTitle">
+      <h2 id="wsSavedTitle" style="margin:0" data-i18n="ws_saved">Сакталган топтомдор</h2>
+      <div class="stack" id="wsSavedList" style="gap:8px"></div>
+    </section>
+  </main>
+
+  <div id="toasts"></div>
+  <script src="./vendor/qrcode-generator-1.4.4.js" integrity="sha384-8FWZA6BGMXhsfO+BLtrJK0We6gg5o1JyO8xQm6peWDEUs17ACA5ziE/NIAkl9z2k"></script>
+  <script type="module" src="./wordset.js?v=1"></script>
+</body>
+</html>

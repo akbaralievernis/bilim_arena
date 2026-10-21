@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 const PAGES = ['index', 'games', 'practice', 'progress', 'profile', 'tasks', 'speak', 'account', 'race', 'teacher',
-  'homework', 'questions', 'reports', 'board', 'play', 'privacy', 'terms', 'tests', 'scan', 'report', 'print'];
+  'homework', 'questions', 'reports', 'board', 'play', 'privacy', 'terms', 'tests', 'scan', 'report', 'print', 'wordset'];
 
 /** Только серьёзные и критические нарушения — их нужно исправлять обязательно */
 async function audit(page, where) {

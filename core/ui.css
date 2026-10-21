@@ -1210,3 +1210,10 @@ h1, h2, h3, .title { letter-spacing: -0.025em; }
 @keyframes wave-path { to { transform: translateX(-720px); } }
 .cat-card .cat-body { flex: 0 0 auto; }
 @media (min-width: 1024px) { .filter-head .drawer-close { display: none; } }
+
+/* Свои слова учителя (wordset.html) */
+.ws-game { text-align: left; display: grid; gap: 4px; padding: 16px; cursor: pointer; font: inherit; color: inherit; }
+.ws-qr-box { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 18px; align-items: center; }
+.ws-qr { width: 220px; height: 220px; padding: 6px; border-radius: 14px; background: #fff; border: 1px solid var(--line); }
+.ws-qr svg { width: 100%; height: 100%; display: block; }
+@media (max-width: 600px) { .ws-qr-box { grid-template-columns: 1fr; } .ws-qr { margin: 0 auto; } }
