@@ -294,7 +294,17 @@ async function openRoom() {
       onMessage: (playerId, msg) => {
         // Результаты домашки с телефона ученика попадают в аналитику учителя
         if (msg.type === 'sync-submissions') {
-          mergeSubmissions(msg.submissions).then((n) => {
+          // Один телефон — один ученик: все результаты в сообщении от одного studentId, и этот
+          // studentId в уроке уже не может прислать другой телефон (подделать чужие результаты нельзя)
+          const subs = Array.isArray(msg.submissions) ? msg.submissions.slice(0, 200) : [];
+          const ids = new Set(subs.map((sub) => sub?.studentId));
+          const [sid] = ids;
+          if (ids.size !== 1 || typeof sid !== 'string' || sid.length > 64) return;
+          const owners = state.submissionOwners || (state.submissionOwners = new Map());
+          const mine = owners.get(playerId);
+          if ((mine && mine !== sid) || [...owners].some(([pid, s]) => s === sid && pid !== playerId)) return;
+          owners.set(playerId, sid);
+          mergeSubmissions(subs).then((n) => {
             if (n) toast(t('sync_received', { n }), { icon: '📥' });
           });
           return;

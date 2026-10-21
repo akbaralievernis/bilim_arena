@@ -22,7 +22,12 @@ const blank = () => ({
 
 let cached = null;
 
-const newId = () => `u_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+// Случайная часть — криптостойкая: по id ученика нельзя угадать id одноклассника
+const newId = () => {
+  const bytes = new Uint8Array(6);
+  crypto.getRandomValues(bytes);
+  return `u_${Date.now()}_${Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')}`;
+};
 
 export async function getProfile() {
   if (cached) return cached;

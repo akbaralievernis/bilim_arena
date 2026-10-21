@@ -199,8 +199,8 @@ test('board: no server answers → a clear error, no endless waiting', async () 
 });
 
 test('the code is taken on the public server by another class: the room lives on the own server', async () => {
-  const orig = Math.random;
-  Math.random = () => 0; // код всегда «2222»
+  const orig = crypto.getRandomValues;
+  crypto.getRandomValues = (arr) => arr.fill(0); // код всегда «2222»
   const other = new FakePeer('bilimarena-room-2222', {});  // чужой класс на общем сервере
   await wait(5);
   try {
@@ -212,7 +212,7 @@ test('the code is taken on the public server by another class: the room lives on
     await wait(10);
     assert.deepEqual(joined, ['Айбек']);
     p.close(); room.close();
-  } finally { Math.random = orig; other.destroy(); }
+  } finally { crypto.getRandomValues = orig; other.destroy(); }
 });
 
 test('reconnect that hangs is replaced by a fresh registration with the same token', async () => {
