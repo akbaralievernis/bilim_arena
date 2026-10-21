@@ -52,6 +52,12 @@ export class LocalStore {
     return true;
   }
 
+  /** Строка как она лежит в хранилище — чтобы заметить запись из другой вкладки */
+  async raw(key) {
+    if (!this.available) return null;
+    try { return localStorage.getItem(this.prefix + key); } catch { return null; }
+  }
+
   async remove(key) {
     if (!this.available) return;
     try { localStorage.removeItem(this.prefix + key); } catch { /* недоступно */ }
