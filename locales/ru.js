@@ -35,6 +35,10 @@ export default {
   nav_games: 'Игры',
   nav_results: 'Результаты',
   nav_builder: 'Конструктор',
+  nav_tests: 'Тесты',
+  paper_entry_title: 'Бумажный тест',
+  paper_entry_desc: 'Распечатать варианты с бланком ответов',
+  scan_entry_desc: 'Проверить бланки камерой телефона',
   nav_materials: 'Материалы',
 
   role_student: 'Ученик',

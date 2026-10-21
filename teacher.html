@@ -11,7 +11,7 @@
   <title>Мугалимдин панели — Билим Арена</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
-  <link rel="stylesheet" href="./core/ui.css?v=21" />
+  <link rel="stylesheet" href="./core/ui.css?v=22" />
   <link rel="stylesheet" href="./home.css?v=20" />
   <link rel="stylesheet" href="./reports.css?v=4" />
 </head>
@@ -63,6 +63,17 @@
         <h2 data-i18n="qb_title">Менин суроолорум</h2>
         <p class="muted" data-i18n="qb_create">Суроо түзүү</p>
       </a>
+      <!-- Бумажный режим: распечатать тест с бланком ответов и проверить бланки камерой телефона -->
+      <a class="entry card" href="./tests.html">
+        <div class="entry-icon" aria-hidden="true" data-icon="quiz"></div>
+        <h2 data-i18n="paper_entry_title">Кагаз тест</h2>
+        <p class="muted" data-i18n="paper_entry_desc">Варианттарды жооп бланкы менен басып чыгаруу</p>
+      </a>
+      <a class="entry card" href="./scan.html">
+        <div class="entry-icon" aria-hidden="true" data-icon="camera"></div>
+        <h2 data-i18n="omr_title">Бланктарды сканерлөө</h2>
+        <p class="muted" data-i18n="scan_entry_desc">Бланкты телефондун камерасы менен текшерүү</p>
+      </a>
       <a class="entry card" href="./race.html" id="raceEntry">
         <div class="entry-icon" aria-hidden="true" data-icon="flag"></div>
         <h2>Bilim Arena Race</h2>
@@ -104,6 +115,6 @@
   </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./teacher.js?v=18"></script>
+  <script type="module" src="./teacher.js?v=19"></script>
 </body>
 </html>

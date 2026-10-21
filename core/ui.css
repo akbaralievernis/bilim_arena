@@ -351,6 +351,10 @@ button.chip:not([disabled]):hover { border-color: var(--line-strong); }
   .topbar .nav a { min-width: 44px; justify-content: center; }
   .teacher-link { width: 44px; padding: 0; justify-content: center; }
 }
+/* Подписи не помещаются (зависит от языка и числа разделов) — значки без подписей; класс ставит core/ui.js.
+   Подпись остаётся во всплывающей подсказке и для экранного диктора */
+.topbar.nav-compact .nav .nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.topbar.nav-compact .nav a { min-width: 44px; justify-content: center; }
 @media (max-width: 1023px) {
   /* Подписи скрыты только визуально — ссылки сохраняют имя для экранного диктора */
   .topbar .nav .nav-label, .teacher-link span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

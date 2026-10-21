@@ -38,6 +38,10 @@ export default {
   nav_games: 'Оюндар',
   nav_results: 'Жыйынтыктар',
   nav_builder: 'Конструктор',
+  nav_tests: 'Тесттер',
+  paper_entry_title: 'Кагаз тест',
+  paper_entry_desc: 'Варианттарды жооп бланкы менен басып чыгаруу',
+  scan_entry_desc: 'Бланкты телефондун камерасы менен текшерүү',
   nav_materials: 'Материалдар',
 
   // Ролдор

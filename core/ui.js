@@ -106,13 +106,15 @@ const STUDENT_NAV = [
 const SECTION = {
   'practice.html': 'games.html', 'speak.html': 'games.html',
   'account.html': 'profile.html',
-  'tests.html': 'questions.html', 'print.html': 'questions.html', 'scan.html': 'questions.html'
+  'print.html': 'tests.html', 'scan.html': 'tests.html'
 };
 
 const TEACHER_NAV = [
   { href: 'teacher.html', key: 'nav_dashboard', icon: 'teacher' },
   { href: 'homework.html', key: 'nav_assignments', tab: 'tab_tasks', icon: 'tasks' },
   { href: 'questions.html', key: 'nav_builder', tab: 'tab_questions', icon: 'pen' },
+  // Тесты учителя: печать вариантов с бланком и сканер бланков (раньше — только через «Конструктор»)
+  { href: 'tests.html', key: 'nav_tests', icon: 'quiz', noTab: true },
   { href: 'board.html', key: 'board_mode', tab: 'tab_board', icon: 'board' },
   { href: 'reports.html', key: 'nav_reports', icon: 'progress', noTab: true },
   { href: 'index.html', key: 'nav_student_view', tab: 'tab_student', icon: 'home' }
@@ -214,7 +216,19 @@ export function mountHeader(target, { role = 'student', active = '' } = {}) {
   document.body.classList.add('has-tabbar');
   document.body.classList.toggle('teacher-mode', teacher);
   watchScroll(header);
+  fitNav(header, nav);
   return header;
+}
+
+/** Меню с подписями не помещается в шапку — показываем только значки (на любом языке и любой ширине) */
+function fitNav(header, nav) {
+  const fit = () => {
+    header.classList.remove('nav-compact');
+    if (nav.scrollWidth > nav.clientWidth + 1) header.classList.add('nav-compact');
+  };
+  fit();
+  if ('ResizeObserver' in window) new ResizeObserver(() => requestAnimationFrame(fit)).observe(header);
+  document.fonts?.ready.then(fit).catch(() => {});
 }
 
 /**

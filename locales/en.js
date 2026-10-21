@@ -35,6 +35,10 @@ export default {
   nav_games: 'Games',
   nav_results: 'Results',
   nav_builder: 'Builder',
+  nav_tests: 'Tests',
+  paper_entry_title: 'Paper test',
+  paper_entry_desc: 'Print versions with an answer sheet',
+  scan_entry_desc: 'Check answer sheets with a phone camera',
   nav_materials: 'Materials',
 
   role_student: 'Student',
