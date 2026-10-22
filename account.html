@@ -61,6 +61,7 @@
         </label>
         <button class="btn primary big block" type="submit" id="teacherSubmit" data-i18n="acc_sign_in">Кирүү</button>
         <button class="btn ghost block" type="button" id="toggleSignUp" data-i18n="acc_no_account">Аккаунт жокпу? Катталуу</button>
+        <button class="btn ghost small block" type="button" id="forgotBtn" data-i18n="acc_forgot">Сырсөздү унуттуңузбу?</button>
       </form>
     </section>
 
@@ -77,7 +78,17 @@
       <div class="row">
         <button class="btn primary" type="button" id="syncBtn" data-i18n="acc_sync_now">Азыр синхрондоо</button>
         <button class="btn ghost" type="button" id="signOutBtn" data-i18n="acc_sign_out">Чыгуу</button>
+        <a class="btn ghost hidden" id="adminLink" href="./admin.html" data-i18n="adm_title">Админ-панель</a>
       </div>
+
+      <!-- Возврат по ссылке «Сбросить пароль» из письма -->
+      <form class="stack hidden" id="newPasswordForm">
+        <div class="label" data-i18n="acc_new_password">Жаңы сырсөз</div>
+        <div class="row">
+          <input class="input" id="newPassword" type="password" minlength="8" autocomplete="new-password" required style="max-width:260px" />
+          <button class="btn primary" type="submit" data-i18n="acc_save_password">Сактоо</button>
+        </div>
+      </form>
 
       <form class="stack hidden" id="joinMoreForm" autocomplete="off">
         <div class="label" data-i18n="acc_join_other">Башка класска кирүү</div>
@@ -96,6 +107,6 @@
 </main>
 
   <div id="toasts"></div>
-  <script type="module" src="./account.js?v=16"></script>
+  <script type="module" src="./account.js?v=17"></script>
 </body>
 </html>

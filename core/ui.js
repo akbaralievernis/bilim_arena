@@ -295,7 +295,7 @@ function watchOnline() {
 }
 
 /** Был ли вход в облако на этом устройстве (сессия Supabase) или это возврат по ссылке из письма */
-function cloudNeeded() {
+export function cloudNeeded() {
   if (/[#&?](access_token|refresh_token|code|token_hash|error_description)=/.test(location.href)) return true;
   try { return Object.keys(localStorage).some((k) => /^sb-.+-auth-token$/.test(k)); } catch { return true; }
 }
@@ -304,6 +304,9 @@ function cloudNeeded() {
 export async function bootstrap() {
   // Журнал сбоев (core/errors.js) — подгружается отдельно и ничего не задерживает
   import('./errors.js').then((m) => m.startErrorReporting()).catch(() => {});
+  // Отметка захода (раз в день, без личных данных) и свежий общий банк вопросов — в фоне
+  import('./stats.js').then((m) => m.recordVisit()).catch(() => {});
+  import('./publicbank.js').then((m) => m.refreshPublicBank()).catch(() => {});
   await initTheme();
   await initI18n();
   document.body.classList.remove('boot');

@@ -1,0 +1,47 @@
+/* Bilim Arena — админ-панель: числа, схемы по дням, полосы, заявки */
+
+.adm-h { margin: 0; font-size: 1.05rem; }
+
+.adm-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.adm-kpi { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; }
+.adm-kpi b { font-size: 1.6rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text); }
+
+/* Столбики по дням */
+.adm-days { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.adm-cols { display: flex; align-items: flex-end; gap: 2px; height: 160px; border-bottom: 1px solid var(--line); }
+.adm-col { flex: 1 1 0; min-width: 0; height: 100%; display: flex; align-items: flex-end; border-radius: 4px 4px 0 0; outline-offset: 2px; }
+.adm-col span { display: block; width: 100%; background: var(--primary); border-radius: 4px 4px 0 0; }
+.adm-col:hover span, .adm-col:focus-visible span { background: var(--primary-hover); }
+.adm-days-axis { display: flex; justify-content: space-between; }
+
+/* Горизонтальные полосы */
+.adm-bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.adm-bars li { display: grid; grid-template-columns: minmax(90px, 34%) 1fr auto; grid-template-areas: 'label track value' '. note note'; align-items: center; gap: 2px 10px; }
+.adm-bar-label { grid-area: label; font-weight: 600; overflow-wrap: anywhere; }
+.adm-bar-track { grid-area: track; height: 12px; border-radius: 6px; background: var(--line); overflow: hidden; }
+.adm-bar-track span { display: block; height: 100%; background: var(--primary); border-radius: 0 4px 4px 0; }
+.adm-bar-value { grid-area: value; font-variant-numeric: tabular-nums; }
+.adm-bar-note { grid-area: note; }
+
+/* Таблица трудных вопросов */
+.adm-table-wrap { overflow-x: auto; }
+.adm-table { width: 100%; border-collapse: collapse; font-size: .9375rem; }
+.adm-table th, .adm-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.adm-table th { color: var(--text-soft); font-weight: 600; }
+.adm-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Заявки и общий банк */
+.adm-sub.off { opacity: .55; }
+.adm-q-prompt { margin: 0; font-weight: 600; }
+.adm-q-img { max-width: min(100%, 320px); border-radius: var(--radius-sm); }
+.adm-q-options { margin: 0; padding-left: 22px; }
+.adm-q-options li.ok { color: var(--ok-ink); font-weight: 700; }
+.adm-json { font-family: ui-monospace, monospace; font-size: .8125rem; min-height: 180px; }
+.adm-st-approved { color: var(--ok-ink); }
+.adm-st-rejected { color: var(--bad-ink); }
+
+@media (max-width: 560px) {
+  .adm-kpi b { font-size: 1.3rem; }
+  .adm-cols { height: 120px; gap: 1px; }
+  .adm-bars li { grid-template-columns: 1fr auto; grid-template-areas: 'label value' 'track track' 'note note'; }
+}

@@ -2,7 +2,7 @@
 import { test, expect } from '@playwright/test';
 
 const PAGES = ['index', 'games', 'practice', 'progress', 'profile', 'tasks', 'speak', 'account', 'race',
-  'teacher', 'homework', 'questions', 'reports', 'board', 'play', 'privacy', 'terms', 'tests', 'scan', 'report', 'wordset'];
+  'teacher', 'homework', 'questions', 'reports', 'board', 'play', 'privacy', 'terms', 'tests', 'scan', 'report', 'wordset', 'admin'];
 const GAMES = ['games/flashcards/index.html', 'games/word-match/index.html', 'games/wordle/index.html', 'games/word-rain/index.html',
   'games/balloons/index.html', 'games/sentence/index.html', 'games/odd-one-out/index.html', 'games/focus-duel/index.html',
   'games/citadel/index.html', 'games/mafia/index.html'];
