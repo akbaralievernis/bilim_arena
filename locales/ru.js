@@ -145,6 +145,7 @@ export default {
   hw_top_mistake: 'Самая частая ошибка',
   hw_no_assignments: 'Пока нет заданий',
   hw_delete_confirm: 'Удалить задание?',
+  hw_check_too_short: 'В режиме «Проверка» нужно не меньше {n} вопросов — иначе проверка не засчитается в освоение темы.',
   hw_saved: 'Задание сохранено',
   hw_result_saved: 'Результат сохранён',
   difficulty_1: 'Лёгкий',

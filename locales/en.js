@@ -145,6 +145,7 @@ export default {
   hw_top_mistake: 'Most common mistake',
   hw_no_assignments: 'No assignments yet',
   hw_delete_confirm: 'Delete this assignment?',
+  hw_check_too_short: 'A check needs at least {n} questions, otherwise it does not count toward topic mastery.',
   hw_saved: 'Assignment saved',
   hw_result_saved: 'Result saved',
   difficulty_1: 'Easy',
