@@ -46,3 +46,8 @@ test('practice only: no baseline, no latest, status from practice; short checks 
   assert.equal(j.status, 'insufficient');
   assert.equal(j.checks, 0);
 });
+
+test('a broken check list does not break the topic journey (audit 21.10)', async () => {
+  const j = topicJourney({ topics: {}, checks: { 'math-6-fractions': {} }, path: {} }, 'math-6-fractions');
+  assert.equal(j.checks, 0);
+});

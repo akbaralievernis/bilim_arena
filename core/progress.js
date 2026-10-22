@@ -235,7 +235,8 @@ export async function topicStatus(topicId, settings = null) {
  */
 export function topicJourney(d, topic, bankIds = [], settings = MASTERY_DEFAULTS) {
   const pct = (ok, total) => (total ? Math.round((ok / total) * 100) : null);
-  const checks = (d.checks?.[topic] || []).filter((c) => c.total >= CHECK_MIN).sort((a, b) => a.at - b.at);
+  const list = d.checks?.[topic];
+  const checks = (Array.isArray(list) ? list : []).filter((c) => c && c.total >= CHECK_MIN).sort((a, b) => a.at - b.at);
   const path = d.path?.[topic] || {};
   const diagTotals = Object.values(path.diag || {}).reduce((acc, s) => ({ ok: acc.ok + (Number(s.ok) || 0), total: acc.total + (Number(s.total) || 0) }), { ok: 0, total: 0 });
   const baseline = diagTotals.total

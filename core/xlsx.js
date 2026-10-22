@@ -99,13 +99,19 @@ export const sheetName = (s, i) => (String(s || `Sheet${i + 1}`).replace(/[[\]:*
 
 function sheetXml(rows) {
   const widths = [];
-  rows.forEach((r) => r.forEach((v, c) => { widths[c] = Math.max(widths[c] || 6, Math.min(60, String(v ?? '').length + 2)); }));
+  rows.forEach((r) => r.forEach((v, c) => { widths[c] = Math.max(widths[c] || 6, Math.min(60, (v?.date ? 10 : String(v ?? '').length) + 2)); }));
   const body = rows.map((r, ri) => `<row r="${ri + 1}">${r.map((v, ci) => {
     if (v === null || v === undefined || v === '') return '';
     const ref = `${colName(ci)}${ri + 1}`;
     const style = ri === 0 ? ' s="1"' : '';
     // Формулы не пишем: текст, начинающийся с «=», остаётся текстом (защита от подстановки формул)
     if (typeof v === 'number' && Number.isFinite(v)) return `<c r="${ref}"${style}><v>${v}</v></c>`;
+    // Дата: серийный номер Excel (дни от 30.12.1899) со встроенным форматом даты — сортируется
+    if (v && typeof v === 'object' && Number.isFinite(v.date)) {
+      const d = new Date(v.date);
+      const serial = Math.round((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - Date.UTC(1899, 11, 30)) / 86400000);
+      return `<c r="${ref}" s="2"><v>${serial}</v></c>`;
+    }
     return `<c r="${ref}" t="inlineStr"${style}><is><t xml:space="preserve">${xml(v)}</t></is></c>`;
   }).join('')}</row>`).join('');
   const cols = widths.length ? `<cols>${widths.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join('')}</cols>` : '';
@@ -149,7 +155,8 @@ export function buildXlsx(sheets) {
       + '<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>'
       + '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
       + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-      + '<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs>'
+      + '<cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+      + '<xf numFmtId="14" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs>'
       + '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'
       + '</styleSheet>'],
     ...sheets.map((s, i) => [`xl/worksheets/sheet${i + 1}.xml`, sheetXml(s.rows)])
