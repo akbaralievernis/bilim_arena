@@ -13,6 +13,8 @@ import { SUPABASE } from './core/config.js';
 
 let cloud = null;
 let signUpMode = false;
+// Пришли по ссылке «Сбросить пароль» из письма (account.html?reset=1#…type=recovery)
+let recovery = new URLSearchParams(location.search).get('reset') === '1';
 
 const show = (id) => ['localScreen', 'signedOutScreen', 'signedInScreen']
   .forEach((s) => $('#' + s).classList.toggle('hidden', s !== id));
@@ -45,6 +47,7 @@ async function render() {
   if (!user) {
     show('signedOutScreen');
     $('#teacherNameField').classList.toggle('hidden', !signUpMode);
+    $('#forgotBtn').classList.toggle('hidden', signUpMode);
     $('#teacherSubmit').textContent = t(signUpMode ? 'acc_sign_up' : 'acc_sign_in');
     $('#toggleSignUp').textContent = t(signUpMode ? 'acc_have_account' : 'acc_no_account');
     $('#passwordInput').autocomplete = signUpMode ? 'new-password' : 'current-password';
@@ -59,7 +62,13 @@ async function render() {
     ? `${t('role_student')}${p.className ? ' · ' + p.className : ''}`
     : `${t('role_teacher')} · ${user.email || ''}`;
   $('#joinMoreForm').classList.toggle('hidden', !student);
+  $('#newPasswordForm').classList.toggle('hidden', student || !recovery);
   renderStatus(cloud.cloudStatus());
+  // Ссылка на админ-панель — только администратору (права всё равно проверяет база)
+  if (!student) {
+    import('./core/admin.js').then((m) => m.isAdmin())
+      .then((yes) => $('#adminLink').classList.toggle('hidden', !yes)).catch(() => {});
+  }
 }
 
 async function renderStatus(s) {
@@ -110,6 +119,28 @@ async function renderStatus(s) {
       $('#passwordInput').value = '';
       toast(t('acc_welcome'), { icon: '✅' });
       await render();
+    });
+  });
+
+  $('#forgotBtn').addEventListener('click', (e) => busy(e.currentTarget, async () => {
+    const email = $('#emailInput').value.trim();
+    if (!$('#emailInput').checkValidity() || !email) {
+      $('#emailInput').focus();
+      return toast(t('acc_forgot_email'), { icon: '📧' });
+    }
+    await cloud.requestPasswordReset(email);
+    toast(t('acc_reset_sent'), { icon: '📧', ms: 8000 });
+  }));
+
+  $('#newPasswordForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    busy(e.submitter || $('#newPasswordForm button'), async () => {
+      await cloud.updatePassword($('#newPassword').value);
+      $('#newPassword').value = '';
+      history.replaceState(null, '', location.pathname);
+      recovery = false;
+      $('#newPasswordForm').classList.add('hidden');
+      toast(t('acc_password_saved'), { icon: '✅' });
     });
   });
 

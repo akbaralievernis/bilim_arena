@@ -201,6 +201,20 @@ async function afterTeacherLogin(name) {
   await syncAll();
 }
 
+/** «Забыли пароль?»: письмо со ссылкой на account.html?reset=1 (адрес должен быть в Redirect URLs Supabase) */
+export async function requestPasswordReset(email) {
+  const c = await getClient();
+  const { error } = await c.auth.resetPasswordForEmail(email, { redirectTo: new URL('./account.html?reset=1', location.href).href });
+  if (error) throw error;
+}
+
+/** Новый пароль после перехода по ссылке из письма (сессия уже открыта ссылкой) */
+export async function updatePassword(password) {
+  const c = await getClient();
+  const { error } = await c.auth.updateUser({ password });
+  if (error) throw error;
+}
+
 /** Ученик: анонимный вход + вступление в класс по коду. Почта не нужна. */
 export async function studentJoin({ code, name }) {
   const c = await getClient();

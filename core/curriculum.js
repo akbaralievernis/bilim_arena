@@ -10,6 +10,7 @@
 
 import { pick } from './i18n.js';
 import { engineQuestions as teacherQuestions, engineQuestionsByIds } from './questions.js';
+import { publicQuestions, publicQuestionsByIds } from './publicbank.js';
 import { flaggedRefs } from './review.js';
 
 /** Предметы платформы. `bank` — есть ли уже банк вопросов. */
@@ -237,6 +238,12 @@ export const TOPICS = [
 
 // ─── Выборки ──────────────────────────────────────────────────────────────────
 
+/**
+ * Сколько вопросов в файловом банке — с округлением вниз до десятков, для главной («340+»).
+ * Число честное: tests/bank.test.mjs проверяет, что оно равно настоящему числу, округлённому вниз до десятков.
+ */
+export const BANK_QUESTIONS_FLOOR = 340;
+
 export const getSubject = (id) => SUBJECTS.find((s) => s.id === id);
 export const getTopic = (id) => TOPICS.find((t) => t.id === id);
 
@@ -311,8 +318,10 @@ export async function getQuestions({ topic, count = 10, skills, difficulty, type
   if (ids?.length) {
     const bank = await loadBank(topic);
     const fromBank = bank.filter((q) => ids.includes(q.id));
-    const fromTeacher = await engineQuestionsByIds(ids.filter((id) => !fromBank.some((q) => q.id === id)));
-    return [...fromBank, ...fromTeacher];
+    const rest = ids.filter((id) => !fromBank.some((q) => q.id === id));
+    const fromTeacher = await engineQuestionsByIds(rest);
+    const fromPublic = await publicQuestionsByIds(rest);
+    return [...fromBank, ...fromTeacher, ...fromPublic];
   }
 
   // Вопросы предмета + вопросы, созданные учителем в конструкторе.
@@ -320,7 +329,9 @@ export async function getQuestions({ topic, count = 10, skills, difficulty, type
   const flagged = await flaggedRefs();
   const bank = (await loadBank(topic)).filter((q) => !flagged.has(`${topic}::${q.id}`));
   const custom = includeCustom ? await teacherQuestions({ topic }) : [];
-  const pool = filter ? [...bank, ...custom].filter(filter) : [...bank, ...custom];
+  // Общий банк: вопросы учителей, одобренные администратором (core/publicbank.js)
+  const shared = (await publicQuestions({ topic })).filter((q) => !flagged.has(`${topic}::${q.id}`));
+  const pool = filter ? [...bank, ...shared, ...custom].filter(filter) : [...bank, ...shared, ...custom];
 
   let list = pool;
   if (skills?.length) list = list.filter((q) => skills.includes(q.skill));
@@ -384,5 +395,7 @@ export async function findQuestion(topicId, questionId) {
   const fromBank = bank.find((q) => q.id === questionId);
   if (fromBank) return fromBank;
   const [custom] = await engineQuestionsByIds([questionId]);
-  return custom || null;
+  if (custom) return custom;
+  const [shared] = await publicQuestionsByIds([questionId]);
+  return shared || null;
 }

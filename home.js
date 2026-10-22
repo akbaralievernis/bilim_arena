@@ -13,7 +13,7 @@ import { icon } from './core/icons.js';
 import { cover, avatar } from './core/art.js';
 import { getProgress, history, migrateLegacy } from './core/progress.js';
 import { getProfile } from './core/profile.js';
-import { getTopic, getSubject, TOPICS } from './core/curriculum.js';
+import { getTopic, getSubject, TOPICS, BANK_QUESTIONS_FLOOR } from './core/curriculum.js';
 import { gameCard, categoryCard, sortGames, metaLine, artImage } from './core/catalog.js';
 import { waveBand, countUp, parallax, particles, tilt } from './core/fx.js';
 import { GAMES, CATEGORIES, getGame, getCategory } from './data/games.js';
@@ -32,13 +32,23 @@ function renderHero(profile) {
     h1.replaceChildren(document.createTextNode(words.join(' ') + ' '), el('span', { class: 'hx-grad' }, tail));
   }
 
-  // Сандар: оюндар, темалар, тилдер
-  const stats = [[GAMES.length, t('home_stat_games'), 'games'], [TOPICS.length, t('home_stat_topics'), 'book'], [3, t('home_stat_langs'), 'language']];
-  $('#heroStats').replaceChildren(...stats.map(([n, label, ic]) => {
-    const b = el('b', {}, String(n));
-    countUp(b, n);
+  // Сандар: оюндар, темалар, суроолор, тилдер — баары чыныгы (суроолор ондукка чейин ылдый тегеректелген)
+  const stat = ([n, label, ic, suffix = '']) => {
+    const b = el('b', {}, `${n}${suffix}`);
+    countUp(b, n, { suffix });
     return el('li', {}, el('span', { class: 'hx-stat-ic' }, icon(ic, { size: 18 })), el('span', {}, b, el('small', {}, label)));
-  }));
+  };
+  const stats = [[GAMES.length, t('home_stat_games'), 'games'], [TOPICS.length, t('home_stat_topics'), 'book'],
+    [BANK_QUESTIONS_FLOOR, t('home_stat_questions'), 'quiz', '+'], [3, t('home_stat_langs'), 'language']];
+  const items = stats.map(stat);
+  $('#heroStats').replaceChildren(...items);
+  // Облактан: жалпы банктын суроолору жана ойнолгон оюндар (500дөн ашканда гана — нөл көрсөтүлбөйт)
+  import('./core/stats.js').then((m) => m.publicCounters()).then((c) => {
+    if (!c) return;
+    const total = Math.floor((BANK_QUESTIONS_FLOOR + c.questions) / 10) * 10;
+    if (total > BANK_QUESTIONS_FLOOR) items[2].replaceWith(items[2] = stat([total, t('home_stat_questions'), 'quiz', '+']));
+    if (c.plays >= 500) $('#heroStats').append(stat([c.plays, t('home_stat_plays'), 'trophy']));
+  }).catch(() => {});
 
   // Сахна: үч оюндун сүрөтү калкып турат + белгилер
   const pickIds = ['race', 'investigation', 'wordle'];

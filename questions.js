@@ -6,7 +6,7 @@
  * curriculum.getQuestions(). Никакой вопрос не зашит в код игры.
  */
 
-import { bootstrap, mountHeader, el, $, toast } from './core/ui.js';
+import { bootstrap, mountHeader, el, $, toast, cloudNeeded } from './core/ui.js';
 import { icon } from './core/icons.js';
 import { t, pick, getLang } from './core/i18n.js';
 import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, skillTitle, GRADES, loadBank } from './core/curriculum.js';
@@ -24,7 +24,7 @@ import { allReviews, setReview, reviewCounts, answerText as bankAnswer } from '.
 /** Пары, которые учитель отметил как «разные вопросы» */
 const DUP_REVIEWED = 'dup_reviewed';
 
-const state = { editing: null, selected: new Set(), list: [], draft: {}, parsed: [], imported: null };
+const state = { editing: null, selected: new Set(), list: [], draft: {}, parsed: [], imported: null, shared: new Map() };
 const screens = ['listScreen', 'formScreen', 'importScreen', 'readyScreen', 'dupScreen', 'reviewScreen'];
 const show = (id) => {
   screens.forEach((s) => $('#' + s).classList.toggle('hidden', s !== id));
@@ -89,6 +89,7 @@ async function renderList() {
   const rows = state.list.map((q) => {
     const meta = typeMeta(q.type);
     const selected = state.selected.has(q.id);
+    const shared = state.shared.get(q.id);
     return el('div', { class: `q-row ${selected ? 'sel' : ''}` },
       el('input', {
         type: 'checkbox', 'aria-label': textOf(q.question, lang),
@@ -101,9 +102,16 @@ async function renderList() {
       el('span', { class: 'q-text' },
         el('b', {}, textOf(q.question, lang)),
         el('span', { class: 'small muted' },
-          `${q.image ? '📷 · ' : ''}${pick(meta.title, lang)} · ${skillTitle(q.topic, q.skill, lang)} · ${t('difficulty_' + (q.difficulty || 1))} · ${q.xp || 10} XP`)
+          `${q.image ? '📷 · ' : ''}${pick(meta.title, lang)} · ${skillTitle(q.topic, q.skill, lang)} · ${t('difficulty_' + (q.difficulty || 1))} · ${q.xp || 10} XP`),
+        shared ? el('span', { class: `chip small share-${shared.status}`, title: shared.note || '' },
+          t('qb_share_' + shared.status) + (shared.note ? ` · ${shared.note}` : '')) : ''
       ),
       el('button', { class: 'btn ghost', type: 'button', 'aria-label': t('edit'), onclick: () => openForm(q.id) }, icon('pen')),
+      el('button', {
+        class: 'btn ghost', type: 'button', 'aria-label': t('qb_share'), title: t('qb_share'),
+        ...(shared && shared.status !== 'rejected' ? { disabled: 'disabled' } : {}),
+        onclick: (e) => shareQuestion(q, e.currentTarget)
+      }, icon('globe')),
       el('button', {
         class: 'btn ghost', type: 'button', 'aria-label': t('qb_duplicate'),
         onclick: async () => { await duplicateQuestion(q.id); toast(t('qb_duplicate'), { icon: '📋' }); renderList(); }
@@ -123,6 +131,48 @@ async function renderList() {
 
   $('#questionList').replaceChildren(...(rows.length ? rows : [el('div', { class: 'card center muted' }, t('qb_empty'))]));
   show('listScreen');
+}
+
+// ─── Общий банк: учитель предлагает вопрос, администратор решает (core/admin.js) ──
+
+const SHARE_ERRORS = {
+  not_teacher: 'qb_share_login', no_topic: 'qb_share_no_topic', already_sent: 'qb_share_already', too_many: 'qb_share_too_many'
+};
+
+async function shareQuestion(q, btn) {
+  if (!confirm(t('qb_share_confirm'))) return;
+  btn.disabled = true;
+  try {
+    const admin = await import('./core/admin.js');
+    try {
+      await admin.submitToBank(q);
+    } catch (e) {
+      const key = SHARE_ERRORS[e?.message] || (admin.notMigrated(e) ? 'qb_share_unavailable' : 'acc_err_network');
+      toast(t(key), { icon: '⚠️', ms: 6000 });
+      if (e?.message === 'already_sent') state.shared.set(q.id, { status: 'pending' });
+      else return;
+    }
+    if (!state.shared.has(q.id) || state.shared.get(q.id).status === 'rejected') {
+      state.shared.set(q.id, { status: 'pending' });
+      toast(t('qb_share_sent'), { icon: '🌍', ms: 5000 });
+    }
+    renderList();
+  } catch (e) {
+    console.warn('[questions] share', e);
+    toast(t('acc_err_network'), { icon: '⚠️' });
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/** Решения по моим заявкам — только если на устройстве есть вход в облако */
+async function loadShared() {
+  if (!cloudNeeded()) return;
+  try {
+    const admin = await import('./core/admin.js');
+    state.shared = await admin.mySubmissions();
+    if (state.shared.size && !$('#listScreen').classList.contains('hidden')) renderList();
+  } catch { /* облако недоступно или таблиц ещё нет — кнопка всё равно работает */ }
 }
 
 // ─── Конструктор ──────────────────────────────────────────────────────────────
@@ -689,6 +739,7 @@ function renderReadyFilters() {
 
   renderFilters();
   await renderList();
+  loadShared();
 
   ['filterSubject', 'filterGrade', 'filterTopic', 'filterSkill', 'filterDifficulty', 'filterType'].forEach((id) => {
     $('#' + id).addEventListener('change', () => {
