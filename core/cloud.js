@@ -55,7 +55,9 @@ const OPTIONAL_KEYS = ['tests', 'cycles', 'dup_reviewed', 'qreview'];
 let unsupported = new Set();
 /** Всё, что относится к пользователю на этом устройстве (очищается при смене аккаунта) */
 const LOCAL_USER_KEYS = [KEYS.profile, KEYS.progress, KEYS.errors, KEYS.history, 'questions', KEYS.lessons,
-  KEYS.assignments, 'submissions', KEYS.classes, 'tests', 'cycles', 'dup_reviewed', 'qreview', 'class_practice', 'hw_runs', 'class_flags'];
+  KEYS.assignments, 'submissions', KEYS.classes, 'tests', 'cycles', 'dup_reviewed', 'qreview', 'class_practice', 'hw_runs', 'class_flags',
+  // место ученика в уроке на доске: иначе следующий ученик на этом телефоне занял бы его
+  'play_player_id', 'play_player_secret', 'play_last_room'];
 
 const META = 'sync_meta';     // { key: время последнего изменения на устройстве }
 const OWNER = 'sync_owner';   // чьи данные сейчас на устройстве
@@ -126,17 +128,29 @@ function setStatus(state, error = null) {
  * Первый вход — локальный прогресс переносится в аккаунт.
  * Вход другим аккаунтом (общий компьютер в классе) — чужие данные убираются.
  */
-async function adoptDevice() {
+async function adoptDevice({ name = null } = {}) {
   const owner = await store.get(OWNER, null);
-  if (owner && owner !== user.id) {
-    for (const key of LOCAL_USER_KEYS) await store.remove(key);
+  // Без владельца, но под другим именем (на общем компьютере играл другой ученик без входа) —
+  // это не его данные: раньше весь чужой прогресс уходил в новый аккаунт (аудит 21.10)
+  const localName = (await getProfile()).name;
+  const norm = (x) => String(x || '').trim().toLowerCase();
+  const someoneElse = !owner && name && localName && norm(localName) !== norm(name);
+  if ((owner && owner !== user.id) || someoneElse) {
+    await clearDeviceUser();
     await store.remove(META);
     await store.remove(SEEN);
     await store.remove(KNOWN);
-    invalidateProfile();
-    invalidateProgress();
   }
   await store.set(OWNER, user.id, { silent: true });
+}
+
+/** Данные пользователя на устройстве: ключи аккаунта, место в уроке на доске, счётчики выходов, прогресс игр */
+async function clearDeviceUser() {
+  for (const key of LOCAL_USER_KEYS) await store.remove(key);
+  for (const key of await store.keys()) if (key.startsWith('leaves_')) await store.remove(key);
+  try { localStorage.removeItem('BA_PROGRESS_V1'); } catch { /* недоступно */ } // XP отдельных игр (shared/progress.js)
+  invalidateProfile();
+  invalidateProgress();
 }
 
 // ─── Вход ─────────────────────────────────────────────────────────────────────
@@ -189,7 +203,7 @@ export async function studentJoin({ code, name }) {
   }
   user = u;
   role = 'student';
-  await adoptDevice();
+  await adoptDevice({ name });
 
   const { data, error } = await c.rpc('join_class', { code: String(code).trim(), display_name: String(name).trim() });
   if (error) throw error;
@@ -223,10 +237,8 @@ export async function signOut({ force = false } = {}) {
   if (!force && pending.size) throw new Error('unsynced');
   store.onWrite = null;
   await c.auth.signOut();
-  for (const key of LOCAL_USER_KEYS) await store.remove(key);
+  await clearDeviceUser();
   for (const key of [META, SEEN, OWNER, LAST, KNOWN]) await store.remove(key);
-  invalidateProfile();
-  invalidateProgress();
   user = null;
   role = null;
   setStatus('idle');

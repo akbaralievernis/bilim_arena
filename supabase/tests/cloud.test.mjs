@@ -232,17 +232,34 @@ await S.store.store.set('sync_meta', meta, { silent: true });
 S.progress.invalidateProgress();
 const gameXp = (await S.progress.getProgress()).xp;
 
+// ── 5г. Общий компьютер: чужой прогресс не переходит в новый аккаунт ──────────────
+// (аудит 21.10, P2) На устройстве играл Кид1 без входа; входит Кид2 — раньше весь прогресс
+// Кид1 уходил в аккаунт Кид2
+console.log('Общий компьютер');
+const K = await device('K1');
+await K.profile.saveProfile({ name: 'Кид1', role: 'student' });
+await K.progress.recordAnswer({ topic: 'math-6-fractions', skill: 'compare', correct: true, questionId: 'f05', gameId: 'practice' });
+await K.store.store.set('play_player_id', 'p_kid1', { silent: true });
+await K.cloud.studentJoin({ code: cls.code, name: 'Кид2' });
+const kid2 = K.cloud.cloudStatus().user.id;
+const kidRow = (await db.query(`select value from user_data where user_id = $1 and key = 'progress'`, [kid2])).rows[0];
+check('прогресс Кид1 не ушёл в аккаунт Кид2', !kidRow || !(kidRow.value?.xp > 0), JSON.stringify(kidRow?.value?.xp));
+check('место Кид1 в уроке на доске не досталось Кид2', (await K.store.store.get('play_player_id', null)) === null);
+
 // ── 6. Выход ученика убирает его данные с устройства ─────────────────────────
 console.log('Выход ученика (S1)');
 S = await device('S1');
+await S.store.store.set('play_player_id', 'p_s1', { silent: true });
+await S.store.store.set('leaves_ABCDE', 2, { silent: true });
 await S.cloud.signOut();
 check('выход сначала отправил прогресс, записанный игрой', Number(await cloudXp()) === gameXp, `${await cloudXp()} vs ${gameXp}`);
 check('после выхода на устройстве нет прогресса ученика', (await S.store.store.get('progress', null)) === null);
 check('после выхода нет сессии', (await S.cloud.currentUser()) === null);
+check('после выхода нет места в уроке и счётчика выходов', (await S.store.store.get('play_player_id', null)) === null && (await S.store.store.get('leaves_ABCDE', null)) === null);
 T = await device('T1');
 await T.cloud.signOut();
 check('после выхода учителя тренировки учеников стёрты с устройства', (await T.store.store.get('class_practice', null)) === null);
-check('прогресс остался в облаке', (await db.query(`select * from user_data where key = 'progress'`)).rows.length === 1);
+check('прогресс остался в облаке', (await db.query(`select * from user_data where key = 'progress' and user_id = $1`, [sid])).rows.length === 1);
 
 console.log(`\nИтог: ${pass} ok, ${fail} ошибок`);
 process.exit(fail ? 1 : 0);
