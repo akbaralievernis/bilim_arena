@@ -827,6 +827,7 @@ export default {
   omr_print_hint: 'Students fill the bubbles and mark their class-list number. Then check the sheets with a phone camera on the Scanner page.',
   omr_too_long: 'Only the first {n} questions fit on the sheet.',
   omr_scan: 'Scan',
+  offline_banner_local: 'No internet — the site keeps working. Results are saved on this device.',
   offline_banner: 'No internet — the site keeps working. Results are saved and sent when you are back online.',
   offline_board: 'A lesson with phones needs the internet. Offline: My tests → print and scan, or students use Practice.',
   race_export: 'To a race',

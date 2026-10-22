@@ -32,6 +32,8 @@ test('without internet: practice, tests, print, scanner and reports work; the bo
   lap('index');
   await expect(page.locator('#offlineBar')).toBeVisible();
   await expect(page.locator('#offlineBar')).toContainText('Нет интернета');
+  // Без входа в аккаунт баннер не обещает отправку в облако (аудит 21.10)
+  await expect(page.locator('#offlineBar')).toContainText('на этом устройстве');
 
   // Практика: раунд целиком без сети, ответ сохраняется на устройстве
   await page.goto('/practice.html?topic=math-6-fractions');

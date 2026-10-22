@@ -283,7 +283,10 @@ function watchOnline() {
     let bar = document.getElementById('offlineBar');
     if (navigator.onLine !== false) { bar?.remove(); return; }
     if (bar) return;
-    bar = el('div', { id: 'offlineBar', class: 'offline-bar', role: 'status' }, icon('offline', { size: 16 }), el('span', {}, t('offline_banner')));
+    // «Уйдут в облако» — только если на устройстве был вход в аккаунт; иначе результаты
+    // просто сохраняются здесь (аудит 21.10: баннер обещал отправку всем)
+    const banner = cloudNeeded() ? 'offline_banner' : 'offline_banner_local';
+    bar = el('div', { id: 'offlineBar', class: 'offline-bar', role: 'status' }, icon('offline', { size: 16 }), el('span', {}, t(banner)));
     document.body.append(bar);
   };
   window.addEventListener('online', update);

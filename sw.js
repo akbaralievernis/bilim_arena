@@ -8,7 +8,7 @@
  * Прогресс, XP и данные Supabase хранятся в localStorage/облаке — кэш их не трогает.
  */
 const PREFIX = 'ba-';
-const VERSION = 'ba-v61';
+const VERSION = 'ba-v62';
 const CORE = [
   './', './index.html', './home.css', './home.js',
   './board.html', './board.js', './play.html', './play.js',
@@ -114,8 +114,12 @@ self.addEventListener('fetch', (e) => {
   if (!sameOrigin) return; // MediaPipe, CDN ж.б. — браузердин өзүнө калтырабыз (шрифты теперь свои)
 
   // no-cache: браузердин HTTP кэшин айланып өтүп, серверден жаңы версияны текшерет
+  const asked = Date.now();
   const net = fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' })
     .then((res) => {
+      // Сеть снова быстрая — выходим из режима медленной сети сразу, а не через 3 минуты
+      // (раньше сброс был только на пути без кэша, аудит 21.10)
+      if (Date.now() - asked < 1500) slowUntil = 0;
       if (res && res.ok) {
         const copy = res.clone();
         caches.open(VERSION).then((c) => c.put(req, copy));

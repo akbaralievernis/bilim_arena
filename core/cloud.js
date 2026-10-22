@@ -117,10 +117,20 @@ export async function initCloud() {
   }
 }
 
+let retryTimer = null;
+let retryDelay = 0;
+
 function setStatus(state, error = null) {
   status.state = state;
   status.error = error ? String(error.message || error) : null;
   emit('ba:cloud-status', cloudStatus());
+  // Ошибка сервера (не «нет сети» — там ждём события online): повторить самим, всё реже,
+  // а не ждать перезагрузки страницы или следующего ответа (аудит 21.10)
+  clearTimeout(retryTimer);
+  if (state === 'error' && user) {
+    retryDelay = Math.min(retryDelay ? retryDelay * 2 : 30_000, 5 * 60_000);
+    retryTimer = setTimeout(() => { if (user && status.state === 'error') syncAll().catch(() => {}); }, retryDelay);
+  } else if (state === 'ok') retryDelay = 0;
 }
 
 /**
