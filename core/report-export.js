@@ -14,11 +14,14 @@ import { downloadXlsx } from './xlsx.js';
 
 /** 5-балльная подсказка: 85 % и выше — 5, 70 % — 4, 50 % — 3, ниже — 2 */
 export const GRADE_SCALE = [[85, 5], [70, 4], [50, 3], [0, 2]];
-export const suggestGrade = (pct) => (pct == null ? null : GRADE_SCALE.find(([min]) => pct >= min)[1]);
+// Повреждённое значение (NaN, Infinity) — без подсказки, а не ошибка всего отчёта (аудит 21.10)
+export const suggestGrade = (pct) => (pct == null || !Number.isFinite(Number(pct)) ? null : GRADE_SCALE.find(([min]) => Math.max(0, Number(pct)) >= min)[1]);
 
 const pct = (ok, total) => (total ? Math.round((ok / total) * 100) : null);
 const two = (n) => String(n).padStart(2, '0');
-const date = (ms) => { if (!ms) return ''; const d = new Date(ms); return `${two(d.getDate())}.${two(d.getMonth() + 1)}.${d.getFullYear()}`; };
+const dateText = (ms) => { if (!ms) return ''; const d = new Date(ms); return `${two(d.getDate())}.${two(d.getMonth() + 1)}.${d.getFullYear()}`; };
+// В таблицу — настоящая дата (сортируется и фильтруется в Excel), core/xlsx.js
+const date = (ms) => (ms && Number.isFinite(Number(ms)) ? { date: Number(ms) } : '');
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${two(d.getMonth() + 1)}-${two(d.getDate())}`; };
 const topicTitle = (id) => pick(getTopic(id)?.title, getLang()) || id || '';
 const subjectTitle = (topicId, subjectId) => pick(getSubject(getTopic(topicId)?.subject || subjectId)?.title, getLang()) || '';
@@ -50,10 +53,13 @@ const TOPIC_HEAD = () => [t('xl_student'), t('lesson_subject'), t('rep_topic'), 
 /** Все ученики: сводка и состояние по темам */
 export async function exportStudents() {
   const list = await studentSummaries();
+  const { minAnswers } = await masterySettings();
   const summary = [[t('xl_student'), t('rep_lessons_col'), t('rep_answers_col'), t('results_correct'), '%', t('rep_homework_col'), t('xl_homework_pct'), t('rep_weak'), t('rep_last_seen'), t('xl_grade_hint')]];
   const topics = [TOPIC_HEAD()];
   for (const s of list) {
-    const p = s.pct ?? s.homeworkPct;
+    // Подсказка оценки — только когда данных достаточно (как на листе тем), а не после одного ответа
+    const enough = (Number(s.answered) || 0) >= minAnswers || (Number(s.homework) || 0) > 0;
+    const p = enough ? (s.pct ?? s.homeworkPct) : null;
     summary.push([s.name, s.lessons, s.answered, s.correct, s.pct, s.homework, s.homeworkPct,
       s.weak.map((w) => skillTitle(w.topic, w.skill, getLang()) || w.skill).join(', '), date(s.lastAt), suggestGrade(p)]);
     const r = await studentReport(s.key);
@@ -79,7 +85,7 @@ export async function exportLesson(id) {
   });
   const weak = [[t('rep_topic'), t('hw_skill'), t('results_correct'), t('rep_answers_col'), '%']];
   weakFrom(lesson.bySkill, 50).forEach((w) => weak.push([topicTitle(w.topic), skillTitle(w.topic, w.skill, getLang()) || w.skill, w.ok, w.total, pct(w.ok, w.total)]));
-  const title = `${topicTitle(lesson.topic)} ${date(lesson.at)}`.trim();
+  const title = `${topicTitle(lesson.topic)} ${dateText(lesson.at)}`.trim();
   downloadXlsx(`Bilim Arena — ${title}.xlsx`, [
     { name: t('xl_sheet_lesson'), rows },
     { name: t('rep_class_weak'), rows: weak },

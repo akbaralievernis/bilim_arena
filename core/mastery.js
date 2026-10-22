@@ -27,8 +27,12 @@ const pct = (ok, total) => (total ? Math.round((ok / total) * 100) : null);
  * @returns {{ status:string, pct:number|null, checkPct:number|null, need:number }}
  *   need — сколько ещё ответов нужно, чтобы делать вывод
  */
-export function masteryStatus({ answered = 0, correct = 0, checks = [] } = {}, settings = MASTERY_DEFAULTS) {
+export function masteryStatus(data = {}, settings = MASTERY_DEFAULTS) {
   const { threshold, minAnswers } = { ...MASTERY_DEFAULTS, ...settings };
+  // Повреждённые данные (не число, не массив) — не ошибка отчёта, а «нет данных» (аудит 21.10)
+  const answered = Number(data?.answered) || 0;
+  const correct = Number(data?.correct) || 0;
+  const checks = (Array.isArray(data?.checks) ? data.checks : []).filter((c) => c && Number.isFinite(Number(c.total)));
   const last = [...checks].reverse().find((c) => c.total >= CHECK_MIN);
   const base = { pct: pct(correct, answered), checkPct: last ? pct(last.correct, last.total) : null, need: 0 };
 

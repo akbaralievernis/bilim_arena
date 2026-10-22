@@ -10,6 +10,7 @@
  */
 
 import { store, KEYS } from './store.js';
+import { CHECK_MIN } from './selection.js';
 
 const SUBMISSIONS = 'submissions';
 
@@ -41,6 +42,10 @@ export async function getAssignment(id) {
  *                        count, questionIds, classId, assignedAt, dueAt, attempts, xp }
  */
 export async function saveAssignment(data) {
+  // «Проверка» короче CHECK_MIN не засчитывается в освоение (core/mastery.js) — раньше учитель
+  // этого не узнавал; теперь такое задание не сохраняется (аудит 21.10)
+  const count = data.questionIds?.length || Number(data.count) || 0;
+  if (data.check && count < CHECK_MIN) throw new Error('check_too_short');
   const list = await allAssignments();
 
   if (data.id) {
@@ -120,7 +125,8 @@ export async function saveSubmission({ assignmentId, studentId, studentName, cor
   sub.total = total;
   sub.skillStats = mergeSkillStats(sub.skillStats, skillStats);
   sub.mistakes = mistakes || [];
-  sub.late = assignment ? now > assignment.dueAt : false;
+  // Опоздание — по первой сдаче: пересдача после срока не делает вовремя сданную работу просроченной
+  if (sub.late === undefined) sub.late = assignment ? now > assignment.dueAt : false;
   // Навыки каждой попытки — для сравнения первой и последней проверки (core/cycles.js)
   sub.history.push({ at: now, percent, correct, total, ...(skillStats ? { bySkill: skillStats } : {}) });
 

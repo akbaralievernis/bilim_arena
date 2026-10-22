@@ -29,6 +29,9 @@ await db.exec(`
   grant execute on function public.is_class_teacher(uuid), public.is_class_member(uuid),
     public.teaches_student(uuid), public.is_full_account(), public.gen_join_code() to anon, authenticated;
 `);
+// Supabase выдаёт новым функциям права anon/authenticated по умолчанию; повторный запуск схемы
+// (как повторное выполнение миграции) должен эти права отобрать там, где их быть не должно
+await db.exec(readFileSync(new URL('../schema.sql', import.meta.url), 'utf8'));
 
 const ids = {
   T1: '11111111-1111-1111-1111-111111111111', T2: '22222222-2222-2222-2222-222222222222',
@@ -87,6 +90,17 @@ await expectOk('повторный вход не дублирует ученик
   db.query('select * from join_class($1, $2)', [code, 'Айбек'])), () => true);
 await expectOk('в классе один ученик', () => as('T1', false, () => db.query('select * from class_members')), rows(1));
 await expectDenied('неверный код', () => as('S2', true, () => db.query('select * from join_class($1, $2)', ['ZZZZZZ', 'X'])));
+// Аудит 21.10 (P2): подбор кода класса. Неверный код записывается (поэтому — пустой ответ, а не ошибка:
+// ошибка откатила бы запись), после 10 неверных за час — отказ даже для верного кода
+await expectOk('после 10 неверных кодов за час вход блокируется', async () => {
+  for (let i = 0; i < 9; i++) await as('S2', true, () => db.query('select * from join_class($1, $2)', ['ZZZZZ' + i, 'X']));
+  try { await as('S2', true, () => db.query('select * from join_class($1, $2)', [code, 'X'])); return false; }
+  catch (e) { return /too_many_attempts/.test(e.message); }
+}, (r) => r === true);
+await db.exec('reset role'); await db.query('delete from join_attempts');
+await expectOk('код класса — криптостойкий (без random())', () => db.query(`select pg_get_functiondef('public.gen_join_code()'::regprocedure) d`),
+  (r) => !/random\(\)/.test(r.rows[0].d) && /gen_random_uuid/.test(r.rows[0].d));
+await expectDenied('журнал попыток не читается', () => as('S2', true, () => db.query('select * from join_attempts')));
 await expectDenied('пустое имя', () => as('S2', true, () => db.query('select * from join_class($1, $2)', [code, '   '])));
 await expectDenied('без входа (роль anon) вступить нельзя', () => asAnonRole(() => db.query('select * from join_class($1, $2)', [code, 'X'])));
 await expectDenied('в обход функции вступить нельзя', () => as('S2', true, () =>
@@ -181,6 +195,17 @@ await expectOk('удаление класса удаляет задания (cas
   await db.query('delete from classes where id = $1', [classId]);
   return db.query('select * from assignments');
 }), rows(0));
+
+console.log('Размер данных и права функций');
+await expectDenied('прогресс больше 8 МБ не записывается', () => as('S1', true, () =>
+  db.query(`insert into user_data (key, value, updated_ms) values ('history', jsonb_build_array(repeat(md5(random()::text), 300000)), 1)
+            on conflict (user_id, key) do update set value = excluded.value`)));
+await expectOk('служебные функции не вызываются без входа', () => db.query(`select
+    has_function_privilege('anon', 'public.is_class_teacher(uuid)', 'execute') a,
+    has_function_privilege('anon', 'public.teaches_student(uuid)', 'execute') b,
+    has_function_privilege('anon', 'public.gen_join_code()', 'execute') c,
+    has_function_privilege('authenticated', 'public.is_class_member(uuid)', 'execute') d`),
+  (r) => r.rows[0].a === false && r.rows[0].b === false && r.rows[0].c === false && r.rows[0].d === true);
 
 console.log('Журнал ошибок');
 const report = (msg = 'TypeError: x is undefined') => db.query(

@@ -261,7 +261,12 @@ async function saveForm() {
   // Если вопросы выбраны вручную — их количество и есть количество вопросов
   if (data.questionIds) data.count = data.questionIds.length;
 
-  await saveAssignment(data);
+  try {
+    await saveAssignment(data);
+  } catch (e) {
+    if (/check_too_short/.test(String(e?.message))) return toast(t('hw_check_too_short', { n: 5 }), { icon: '⚠️', ms: 7000 });
+    throw e;
+  }
   toast(t('hw_saved'), { icon: '✅' });
   renderList();
 }

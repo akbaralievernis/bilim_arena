@@ -600,7 +600,7 @@ button.option:not([disabled]):hover { border-color: var(--primary); }
 .code-input { text-transform: uppercase; letter-spacing: 0.3em; font-family: var(--font-title); font-weight: 900; font-size: 1.4rem; text-align: center; }
 .class-code { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; padding: 0.6em 0.9em; border-radius: 12px; background: var(--surface-2); }
 .class-code b { font-family: var(--font-title); font-size: 1.6rem; letter-spacing: 0.2em; }
-.pill-x { margin-left: 6px; border: 0; background: transparent; color: var(--text-soft); font: inherit; font-weight: 800; cursor: pointer; min-width: 24px; min-height: 24px; }
+.pill-x { margin-left: 6px; border: 0; background: transparent; color: var(--text-soft); font: inherit; font-weight: 800; cursor: pointer; min-width: 40px; min-height: 40px; border-radius: 999px; } /* палец, а не мышь: было 24 px (аудит 21.10) */
 .pill-x:hover { color: var(--bad); }
 
 

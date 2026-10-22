@@ -156,7 +156,8 @@ async function startAssignment(onlyWrong = false, { fresh = false } = {}) {
     const ids = state.game.wrongQuestionIds();
     questions = state.game.ctx.questions.filter((q) => ids.includes(q.id));
   } else if (a.questionIds?.length) {
-    questions = await getQuestionsByRefs(a.questionIds, a.topic);
+    // Без вопросов, где учитель нашёл ошибку (отметки приходят вместе с заданиями)
+    questions = await getQuestionsByRefs(a.questionIds, a.topic, { skipFlagged: true });
   } else {
     // Сначала вопросы, которых ученик ещё не видел (новая попытка — новые вопросы)
     const seen = new Set(seenIds(await questionMemory(), a.topic));

@@ -345,8 +345,16 @@ export function parseQuestionRef(ref, fallbackTopic = null) {
 }
 
 /** Вопросы по ссылкам — из любых тем, в том же порядке, что и ссылки */
-export async function getQuestionsByRefs(refs, fallbackTopic = null) {
-  const parsed = (refs || []).map((r) => parseQuestionRef(r, fallbackTopic));
+/**
+ * skipFlagged — без вопросов, где учитель нашёл ошибку (домашнее задание ученику). Для печатного
+ * теста — нет: молча убранный вопрос сдвинул бы ключи уже напечатанных бланков.
+ */
+export async function getQuestionsByRefs(refs, fallbackTopic = null, { skipFlagged = false } = {}) {
+  let parsed = (refs || []).map((r) => parseQuestionRef(r, fallbackTopic));
+  if (skipFlagged) {
+    const flagged = await flaggedRefs();
+    parsed = parsed.filter((p) => !flagged.has(`${p.topic}::${p.id}`));
+  }
   const byTopic = new Map();
   parsed.forEach((p) => { if (!byTopic.has(p.topic)) byTopic.set(p.topic, []); byTopic.get(p.topic).push(p.id); });
   const found = new Map();

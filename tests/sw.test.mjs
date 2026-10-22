@@ -76,3 +76,18 @@ test('a ?v= request is answered by its exact cached copy, not an older one witho
   const { responded } = sw.fire('fetch', { request: { method: 'GET', url: ORIGIN + '/board.js?v=24', mode: 'no-cors' } });
   assert.equal((await responded).body, 'fresh');
 });
+
+test('slow mode ends as soon as the network is fast again', async () => {
+  let delay = 4000; // первая загрузка — «зависшая» сеть
+  let n = 0;
+  const sw = boot({ fetch: () => { const id = ++n; return new Promise((r) => setTimeout(() => r(ok('net#' + id)), delay)); } });
+  const VERSION = SOURCE.match(/const VERSION = '([^']+)'/)[1];
+  sw.caches.stores.set(VERSION, [{ url: ORIGIN + '/practice.js', res: ok('cached') }]);
+  const get = async () => (await sw.fire('fetch', { request: { method: 'GET', url: ORIGIN + '/practice.js', mode: 'no-cors' } }).responded).body;
+  assert.equal(await get(), 'cached', 'hung network: answered from the cache');
+  await new Promise((r) => setTimeout(r, 700)); // зависший запрос докачался (и обновил кэш)
+  delay = 10;                                    // сеть снова быстрая
+  await get();                                   // ещё режим медленной сети: кэш, сеть — в фоне
+  await new Promise((r) => setTimeout(r, 50));
+  assert.equal(await get(), 'net#3', 'fast network again: straight from the network, not the cache');
+});

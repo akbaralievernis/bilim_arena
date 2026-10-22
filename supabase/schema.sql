@@ -17,11 +17,12 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 
--- Код класса: 6 символов без похожих букв и цифр (0/O, 1/I)
+-- Код класса: 6 символов без похожих букв и цифр (0/O, 1/I). Случайность — криптостойкая
+-- (байты gen_random_uuid; random() предсказуем), 256 делится на 32 — без перекоса (аудит 21.10)
 create or replace function public.gen_join_code()
 returns text language sql volatile as $$
-  select string_agg(substr('23456789ABCDEFGHJKLMNPQRSTUVWXYZ', 1 + floor(random() * 32)::int, 1), '')
-  from generate_series(1, 6);
+  select string_agg(substr('23456789ABCDEFGHJKLMNPQRSTUVWXYZ', 1 + get_byte(b, i) % 32, 1), '' order by i)
+  from (select uuid_send(gen_random_uuid()) as b) x, generate_series(0, 5) as i;
 $$;
 
 -- ─── Таблицы ────────────────────────────────────────────────────────────────
@@ -72,6 +73,25 @@ create index if not exists class_members_user_idx on public.class_members (user_
 create index if not exists assignments_class_idx on public.assignments (class_id);
 create index if not exists submissions_class_idx on public.submissions (class_id);
 
+-- Неверные коды класса (для лимита попыток в join_class). Через API недоступна никому.
+create table if not exists public.join_attempts (
+  user_id      uuid not null,
+  attempted_at timestamptz not null default now()
+);
+create index if not exists join_attempts_user_idx on public.join_attempts (user_id, attempted_at);
+alter table public.join_attempts enable row level security;
+revoke all on public.join_attempts from anon, authenticated;
+
+-- Размер данных: без лимита один аккаунт мог записать мегабайты в каждую строку (аудит 21.10).
+-- С запасом: вопросы учителя с картинками живут в user_data/assignments. not valid — старые
+-- строки не проверяются, только новые записи.
+alter table public.user_data drop constraint if exists user_data_value_size;
+alter table public.user_data add constraint user_data_value_size check (pg_column_size(value) <= 8 * 1024 * 1024) not valid;
+alter table public.assignments drop constraint if exists assignments_data_size;
+alter table public.assignments add constraint assignments_data_size check (pg_column_size(data) <= 8 * 1024 * 1024) not valid;
+alter table public.submissions drop constraint if exists submissions_data_size;
+alter table public.submissions add constraint submissions_data_size check (pg_column_size(data) <= 1024 * 1024) not valid;
+
 -- ─── Вспомогательные функции (security definer — без рекурсии в RLS) ────────
 
 create or replace function public.is_class_teacher(cid uuid)
@@ -98,6 +118,13 @@ returns boolean language sql stable as $$
   select coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) = false;
 $$;
 
+-- Служебные функции: только для вошедших (их используют политики RLS и значение по умолчанию
+-- join_code); без входа вызывать их незачем (аудит 21.10)
+revoke all on function public.is_class_teacher(uuid), public.is_class_member(uuid), public.teaches_student(uuid),
+  public.is_full_account(), public.gen_join_code() from public, anon;
+grant execute on function public.is_class_teacher(uuid), public.is_class_member(uuid), public.teaches_student(uuid),
+  public.is_full_account(), public.gen_join_code() to authenticated;
+
 -- Вход ученика в класс по коду: единственный способ стать участником класса.
 -- Имя уникально в классе: если его уже носит другой ученик, добавляется номер («Айбек 2») —
 -- так нельзя взять имя одноклассника и попасть в его отчёт (аудит 21.10).
@@ -119,9 +146,17 @@ begin
     raise exception 'name_required';
   end if;
 
+  -- Подбор кода: не больше 10 неверных кодов за час на пользователя. Неверный код записывается
+  -- и даёт пустой ответ (исключение откатило бы запись); сайт показывает «класс не найден»
+  if (select count(*) from join_attempts
+      where user_id = auth.uid() and attempted_at > now() - interval '1 hour') >= 10 then
+    raise exception 'too_many_attempts';
+  end if;
   select * into c from classes where join_code = upper(trim(code));
   if not found then
-    raise exception 'class_not_found';
+    delete from join_attempts where attempted_at < now() - interval '1 day';
+    insert into join_attempts (user_id) values (auth.uid());
+    return;
   end if;
 
   final_name := clean_name;

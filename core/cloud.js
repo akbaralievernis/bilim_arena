@@ -18,6 +18,7 @@ import { invalidateProgress } from './progress.js';
 import { allAssignments, allSubmissions } from './assignments.js';
 import { allQuestions } from './questions.js';
 import { mergeAssignments, mergeSubmissions } from './sync.js';
+import { ownFlaggedRefs } from './review.js';
 
 // Точная версия: обновление библиотеки — осознанное решение, а не сюрприз на уроке.
 // Файл лежит на самом сайте (vendor/, npm @supabase/supabase-js@2.117.3, dist/umd): школьная сеть
@@ -54,7 +55,9 @@ const OPTIONAL_KEYS = ['tests', 'cycles', 'dup_reviewed', 'qreview'];
 let unsupported = new Set();
 /** Всё, что относится к пользователю на этом устройстве (очищается при смене аккаунта) */
 const LOCAL_USER_KEYS = [KEYS.profile, KEYS.progress, KEYS.errors, KEYS.history, 'questions', KEYS.lessons,
-  KEYS.assignments, 'submissions', KEYS.classes, 'tests', 'cycles', 'dup_reviewed', 'qreview', 'class_practice', 'hw_runs'];
+  KEYS.assignments, 'submissions', KEYS.classes, 'tests', 'cycles', 'dup_reviewed', 'qreview', 'class_practice', 'hw_runs', 'class_flags',
+  // место ученика в уроке на доске: иначе следующий ученик на этом телефоне занял бы его
+  'play_player_id', 'play_player_secret', 'play_last_room'];
 
 const META = 'sync_meta';     // { key: время последнего изменения на устройстве }
 const OWNER = 'sync_owner';   // чьи данные сейчас на устройстве
@@ -114,10 +117,20 @@ export async function initCloud() {
   }
 }
 
+let retryTimer = null;
+let retryDelay = 0;
+
 function setStatus(state, error = null) {
   status.state = state;
   status.error = error ? String(error.message || error) : null;
   emit('ba:cloud-status', cloudStatus());
+  // Ошибка сервера (не «нет сети» — там ждём события online): повторить самим, всё реже,
+  // а не ждать перезагрузки страницы или следующего ответа (аудит 21.10)
+  clearTimeout(retryTimer);
+  if (state === 'error' && user) {
+    retryDelay = Math.min(retryDelay ? retryDelay * 2 : 30_000, 5 * 60_000);
+    retryTimer = setTimeout(() => { if (user && status.state === 'error') syncAll().catch(() => {}); }, retryDelay);
+  } else if (state === 'ok') retryDelay = 0;
 }
 
 /**
@@ -125,17 +138,29 @@ function setStatus(state, error = null) {
  * Первый вход — локальный прогресс переносится в аккаунт.
  * Вход другим аккаунтом (общий компьютер в классе) — чужие данные убираются.
  */
-async function adoptDevice() {
+async function adoptDevice({ name = null } = {}) {
   const owner = await store.get(OWNER, null);
-  if (owner && owner !== user.id) {
-    for (const key of LOCAL_USER_KEYS) await store.remove(key);
+  // Без владельца, но под другим именем (на общем компьютере играл другой ученик без входа) —
+  // это не его данные: раньше весь чужой прогресс уходил в новый аккаунт (аудит 21.10)
+  const localName = (await getProfile()).name;
+  const norm = (x) => String(x || '').trim().toLowerCase();
+  const someoneElse = !owner && name && localName && norm(localName) !== norm(name);
+  if ((owner && owner !== user.id) || someoneElse) {
+    await clearDeviceUser();
     await store.remove(META);
     await store.remove(SEEN);
     await store.remove(KNOWN);
-    invalidateProfile();
-    invalidateProgress();
   }
   await store.set(OWNER, user.id, { silent: true });
+}
+
+/** Данные пользователя на устройстве: ключи аккаунта, место в уроке на доске, счётчики выходов, прогресс игр */
+async function clearDeviceUser() {
+  for (const key of LOCAL_USER_KEYS) await store.remove(key);
+  for (const key of await store.keys()) if (key.startsWith('leaves_')) await store.remove(key);
+  try { localStorage.removeItem('BA_PROGRESS_V1'); } catch { /* недоступно */ } // XP отдельных игр (shared/progress.js)
+  invalidateProfile();
+  invalidateProgress();
 }
 
 // ─── Вход ─────────────────────────────────────────────────────────────────────
@@ -188,7 +213,7 @@ export async function studentJoin({ code, name }) {
   }
   user = u;
   role = 'student';
-  await adoptDevice();
+  await adoptDevice({ name });
 
   const { data, error } = await c.rpc('join_class', { code: String(code).trim(), display_name: String(name).trim() });
   if (error) throw error;
@@ -222,10 +247,8 @@ export async function signOut({ force = false } = {}) {
   if (!force && pending.size) throw new Error('unsynced');
   store.onWrite = null;
   await c.auth.signOut();
-  for (const key of LOCAL_USER_KEYS) await store.remove(key);
+  await clearDeviceUser();
   for (const key of [META, SEEN, OWNER, LAST, KNOWN]) await store.remove(key);
-  invalidateProfile();
-  invalidateProgress();
   user = null;
   role = null;
   setStatus('idle');
@@ -469,11 +492,12 @@ async function syncTeacherAssignments(classes) {
   // 4. Задания облачных классов → в облако (вместе с нужными вопросами учителя)
   const cloudClassIds = new Set(classes.map((x) => x.id));
   const questions = await allQuestions();
+  const flags = await ownFlaggedRefs(); // вопросы с ошибкой — ученики их не получат
   const rows = local.filter((a) => cloudClassIds.has(a.classId)).map((a) => {
     const needed = a.questionIds?.length
       ? questions.filter((q) => a.questionIds.includes(q.id))
       : questions.filter((q) => q.topic === a.topic);
-    return { id: a.id, class_id: a.classId, teacher_id: user.id, data: { assignment: a, questions: needed }, updated_at: new Date().toISOString() };
+    return { id: a.id, class_id: a.classId, teacher_id: user.id, data: { assignment: a, questions: needed, flags }, updated_at: new Date().toISOString() };
   });
   if (rows.length) {
     const { error: e2 } = await c.from('assignments').upsert(rows);
@@ -498,7 +522,8 @@ async function pullStudentAssignments() {
   if (error) throw error;
   await mergeAssignments({
     assignments: data.map((r) => r.data?.assignment).filter(Boolean),
-    questions: data.flatMap((r) => r.data?.questions || [])
+    questions: data.flatMap((r) => r.data?.questions || []),
+    flags: data.flatMap((r) => (Array.isArray(r.data?.flags) ? r.data.flags : []))
   });
   // и свои результаты — если выполнял на другом устройстве
   const { data: subs, error: e2 } = await c.from('submissions').select('data').eq('student_id', user.id);

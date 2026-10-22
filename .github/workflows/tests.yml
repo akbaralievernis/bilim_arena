@@ -1,0 +1,50 @@
+# Автотесты на каждый PR и пуш в main (аудит 21.10: CI не было — тесты не запускались при публикации).
+# Сайт публикуется GitHub Pages из main; эта проверка ничего не публикует.
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  unit-and-database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Unit tests
+        run: npm test
+      - name: Supabase (RLS and sync, isolated PGlite)
+        working-directory: supabase/tests
+        run: npm ci && npm test
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm ci
+        working-directory: signal
+      # playwright.config.js берёт установленный Chrome (channel: 'chrome') — на ubuntu-latest он есть
+      - name: Pages, classroom, offline (Chrome)
+        env:
+          WRANGLER_SEND_METRICS: 'false'
+        run: npx playwright test --project=pages --project=classroom --project=offline
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7

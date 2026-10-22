@@ -21,6 +21,7 @@ const show = (id) => ['localScreen', 'signedOutScreen', 'signedInScreen']
 function errorText(e) {
   const m = String(e?.message || e);
   if (/class_not_found/.test(m)) return t('acc_err_code');
+  if (/too_many_attempts/.test(m)) return t('acc_err_attempts');
   if (/name_required/.test(m)) return t('err_enter_name');
   if (/Invalid login credentials/i.test(m)) return t('acc_err_login');
   if (/already registered/i.test(m)) return t('acc_err_exists');

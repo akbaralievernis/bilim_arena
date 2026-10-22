@@ -217,6 +217,20 @@ export async function recordExplained({ topic, questionIds = [] }) {
   await write(d);
 }
 
+/**
+ * Итоговая проверка началась: её вопросы считаются показанными сразу. Брошенная на середине
+ * проверка раньше ничего не сохраняла — ученик мог посмотреть вопросы, найти ответы и начать
+ * заново с теми же вопросами (аудит 21.10). Ответы при завершении записываются как обычно.
+ */
+export async function recordCheckStarted({ topic, questionIds = [] }) {
+  const d = await read();
+  questionIds.forEach((id) => {
+    const key = memKey(topic, id);
+    d.qs[key] = shownRecord(d.qs[key]);
+  });
+  await write(d);
+}
+
 /** Статус освоения темы (core/mastery.js) */
 export async function topicStatus(topicId, settings = null) {
   const d = await read();
@@ -235,7 +249,8 @@ export async function topicStatus(topicId, settings = null) {
  */
 export function topicJourney(d, topic, bankIds = [], settings = MASTERY_DEFAULTS) {
   const pct = (ok, total) => (total ? Math.round((ok / total) * 100) : null);
-  const checks = (d.checks?.[topic] || []).filter((c) => c.total >= CHECK_MIN).sort((a, b) => a.at - b.at);
+  const list = d.checks?.[topic];
+  const checks = (Array.isArray(list) ? list : []).filter((c) => c && c.total >= CHECK_MIN).sort((a, b) => a.at - b.at);
   const path = d.path?.[topic] || {};
   const diagTotals = Object.values(path.diag || {}).reduce((acc, s) => ({ ok: acc.ok + (Number(s.ok) || 0), total: acc.total + (Number(s.total) || 0) }), { ok: 0, total: 0 });
   const baseline = diagTotals.total
