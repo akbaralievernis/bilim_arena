@@ -8,7 +8,7 @@
  * Прогресс, XP и данные Supabase хранятся в localStorage/облаке — кэш их не трогает.
  */
 const PREFIX = 'ba-';
-const VERSION = 'ba-v58';
+const VERSION = 'ba-v60';
 const CORE = [
   './', './index.html', './home.css', './home.js',
   './board.html', './board.js', './play.html', './play.js',
@@ -72,14 +72,23 @@ const CORE = [
 
 self.addEventListener('install', (e) => {
   // cache: 'reload' — берём файлы с сервера, а не из старого кэша браузера.
-  // Файлы добавляются по одному: если какого-то нет, новая версия всё равно
-  // установится (addAll отменил бы всю установку и оставил старую версию).
-  e.waitUntil(
-    caches.open(VERSION)
-      .then((c) => Promise.all(CORE.map((u) =>
-        c.add(new Request(u, { cache: 'reload' })).catch((err) => console.warn('[sw] не закэширован', u, err && err.message)))))
-      .then(() => self.skipWaiting())
-  );
+  // Новая версия ставится только целиком: если хоть один файл не скачался (плохая сеть),
+  // установка отменяется и остаётся прежний полный кэш — браузер повторит при следующем
+  // открытии. Раньше версия ставилась с дырами и удаляла старый кэш (аудит 21.10).
+  // Что все файлы списка существуют, проверяет tests/offline.test.mjs.
+  e.waitUntil((async () => {
+    const c = await caches.open(VERSION);
+    const failed = [];
+    await Promise.all(CORE.map((u) => c.add(new Request(u, { cache: 'reload' })).catch((err) => {
+      failed.push(u);
+      console.warn('[sw] не закэширован', u, err && err.message);
+    })));
+    if (failed.length) {
+      await caches.delete(VERSION);
+      throw new Error('install incomplete: ' + failed.length + ' files');
+    }
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (e) => {
@@ -113,14 +122,17 @@ self.addEventListener('fetch', (e) => {
       }
       return res;
     });
-  const fallback = () => caches.match(req, { ignoreSearch: true })
+  // Сначала точная копия (board.js?v=24), только потом без параметров: иначе с ignoreSearch
+  // отдавалась первая подходящая — старый board.js из прошлой установки (аудит 21.10)
+  const fromCache = (r) => caches.match(r).then((hit) => hit || caches.match(r, { ignoreSearch: true }));
+  const fallback = () => fromCache(req)
     .then((r) => r || (req.mode === 'navigate' ? caches.match('./index.html') : Response.error()));
 
   e.respondWith((async () => {
     try {
       if (Date.now() < slowUntil) {
         // Режим медленной сети: страница не ждёт каждый файл по несколько секунд
-        const cached = await caches.match(req, { ignoreSearch: true });
+        const cached = await fromCache(req);
         if (cached) return cached;
       }
       const started = Date.now();
@@ -131,7 +143,7 @@ self.addEventListener('fetch', (e) => {
       }
       // Связь есть, но очень медленная: кэш сейчас, сеть обновит его в фоне
       slowUntil = Date.now() + SLOW_MODE_MS;
-      const cached = await caches.match(req, { ignoreSearch: true });
+      const cached = await fromCache(req);
       return cached || await net;
     } catch {
       return fallback();

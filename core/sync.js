@@ -32,6 +32,32 @@ export async function packAssignments() {
   return { assignments, questions };
 }
 
+/**
+ * Одна запись результата с двух устройств. Попытки не теряются: история — объединение
+ * (одна попытка = одно время `at`), число попыток — по истории, лучший результат — максимум.
+ * Последние поля (процент, ошибки) — от более свежей записи. Раньше более свежая по lastAt
+ * запись заменяла другую целиком: пропадали попытки, а при отстающих часах телефона —
+ * и новая попытка (аудит 21.10). null — ничего нового.
+ */
+function mergeSubmission(have, incoming) {
+  const key = (h) => `${h.at}`;
+  const history = [...(have.history || [])];
+  const known = new Set(history.map(key));
+  const fresh = (incoming.history || []).filter((h) => h && !known.has(key(h)));
+  const newer = (incoming.lastAt || 0) > (have.lastAt || 0);
+  if (!fresh.length && !newer) return null;
+  history.push(...fresh);
+  history.sort((a, b) => (a.at || 0) - (b.at || 0));
+  const base = newer ? { ...have, ...incoming } : { ...incoming, ...have };
+  return {
+    ...base,
+    history,
+    attempts: Math.max(have.attempts || 0, incoming.attempts || 0, history.length),
+    best: Math.max(have.best || 0, incoming.best || 0),
+    lastAt: Math.max(have.lastAt || 0, incoming.lastAt || 0)
+  };
+}
+
 /** Результаты от ученика объединяются с уже имеющимися */
 export async function mergeSubmissions(incoming = []) {
   const list = await allSubmissions();
@@ -43,10 +69,9 @@ export async function mergeSubmissions(incoming = []) {
     if (i < 0) {
       list.push(sub);
       added += 1;
-    } else if ((sub.lastAt || 0) > (list[i].lastAt || 0)) {
-      // более свежая попытка ученика
-      list[i] = { ...list[i], ...sub, best: Math.max(list[i].best || 0, sub.best || 0) };
-      added += 1;
+    } else {
+      const merged = mergeSubmission(list[i], sub);
+      if (merged) { list[i] = merged; added += 1; }
     }
   });
 

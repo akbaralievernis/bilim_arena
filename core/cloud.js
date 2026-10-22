@@ -195,8 +195,9 @@ export async function studentJoin({ code, name }) {
   const cls = data?.[0];
   if (!cls) throw new Error('class_not_found');
 
+  // Имя уже занято одноклассником — база дала номер («Айбек 2»); в отчётах учитель видит именно его
   await saveProfile({
-    id: user.id, role: 'student', name, classId: cls.class_id, className: cls.class_name,
+    id: user.id, role: 'student', name: cls.member_name || name, classId: cls.class_id, className: cls.class_name,
     ...(cls.grade ? { grade: cls.grade } : {})
   });
   store.onWrite = onLocalWrite;
@@ -210,6 +211,13 @@ export async function studentJoin({ code, name }) {
  */
 export async function signOut({ force = false } = {}) {
   const c = await getClient();
+  // Отправить всё, а не только очередь этой вкладки: прогресс мог записать другая вкладка,
+  // игра (shared/progress.js) или страница до перезагрузки — раньше выход это стирал (аудит 21.10)
+  if (user && role) {
+    PERSONAL[role].forEach((k) => pending.add(k));
+    if (role === 'student') pending.add('submissions');
+    if (role === 'teacher') pending.add(KEYS.assignments);
+  }
   await flush();
   if (!force && pending.size) throw new Error('unsynced');
   store.onWrite = null;
@@ -331,6 +339,7 @@ async function syncPersonal() {
   const c = await getClient();
   const keys = PERSONAL[role].filter((k) => !unsupported.has(k));
   const meta = await store.get(META, {});
+  const metaAtStart = { ...meta };
   const { data: rows, error } = await c.from('user_data').select('key, value, updated_ms').eq('user_id', user.id).in('key', keys);
   if (error) throw error;
 
@@ -401,7 +410,15 @@ async function syncPersonal() {
     }
     if (e2) throw e2;
   }
-  await store.set(META, meta, { silent: true });
+  // Пока шли запросы, ученик мог ответить: onLocalWrite записал новую метку времени.
+  // Её нельзя затирать копией, прочитанной в начале, — иначе этот ответ не ушёл бы никогда
+  // (аудит 21.10). Пишем в той же очереди, что и onLocalWrite.
+  metaWrites = metaWrites.then(async () => {
+    const current = await store.get(META, {});
+    for (const k of Object.keys(current)) if (current[k] !== metaAtStart[k]) meta[k] = current[k];
+    await store.set(META, meta, { silent: true });
+  }).catch(() => {});
+  await metaWrites;
   await store.set(SEEN, seen, { silent: true });
   if (changed.includes(KEYS.profile)) invalidateProfile();
   if (changed.includes(KEYS.progress)) invalidateProgress();
@@ -492,8 +509,14 @@ async function pullStudentAssignments() {
 async function pushSubmissions() {
   const c = await getClient();
   const assignments = await allAssignments();
+  // Только задания, которые ученик видит в облаке сейчас. Результат по удалённому заданию
+  // (или классу) не проходит RLS — а один отказ отменял весь запрос, и не уходили
+  // никакие результаты, в том числе новые.
+  const { data: visible, error: e1 } = await c.from('assignments').select('id');
+  if (e1) throw e1;
+  const live = new Set(visible.map((r) => r.id));
   const rows = (await allSubmissions())
-    .filter((s) => s.studentId === user.id)
+    .filter((s) => s.studentId === user.id && live.has(s.assignmentId))
     .map((s) => ({ s, a: assignments.find((a) => a.id === s.assignmentId) }))
     .filter(({ a }) => a?.classId)
     .map(({ s, a }) => ({ assignment_id: s.assignmentId, student_id: user.id, class_id: a.classId, data: s, updated_at: new Date().toISOString() }));

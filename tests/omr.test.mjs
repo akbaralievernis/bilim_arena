@@ -48,3 +48,25 @@ test('layout: up to 72 rows in three columns, bubbles for choice, a box for writ
   const svg = sheetSvg({ testId: 't', questionIds: [], variant: 0, variantLabel: 'A', title: '<b>Тест</b>', items: items.slice(0, 3), labels: { name: 'N', number: '#', tens: '10', units: '1', howto: 'h', version: 'v' } });
   assert.ok(svg.includes('&lt;b&gt;Тест'), 'the title is escaped');
 });
+
+// Аудит 21.10 (P1): ключ строится заново при сканировании. Если у вопроса изменилось число
+// вариантов или правильный ответ, или вопрос пропал, ключи ВСЕХ следующих вопросов
+// сдвигаются — код версии обязан это заметить.
+test('version code notices a changed answer key, a missing question, but not a fixed typo', () => {
+  const ids = ['a', 'b'];
+  const qs = [
+    { id: 'a', type: 'single', prompt: { ru: 'Сколько?' }, options: [{ ru: '1' }, { ru: '2' }, { ru: '3' }], correct: 1 },
+    { id: 'b', type: 'multiple', prompt: { ru: 'Какие?' }, options: [{ ru: 'x' }, { ru: 'y' }], correct: [0] }
+  ];
+  const v = versionCode(ids, qs);
+  const edit = (i, patch) => qs.map((q, k) => (k === i ? { ...q, ...patch } : q));
+  assert.equal(versionCode(ids, edit(0, { prompt: { ru: 'Сколько будет?' } })), v, 'текст вопроса не меняет ключ');
+  assert.equal(versionCode(ids, edit(0, { options: [{ ru: '1' }, { ru: '2' }, { ru: '3!' }] })), v, 'текст варианта не меняет ключ');
+  assert.notEqual(versionCode(ids, edit(0, { options: [{ ru: '1' }, { ru: '2' }, { ru: '3' }, { ru: '4' }] })), v, 'новый вариант');
+  assert.notEqual(versionCode(ids, edit(0, { correct: 2 })), v, 'другой правильный ответ');
+  assert.notEqual(versionCode(ids, edit(1, { correct: [0, 1] })), v, 'другие правильные ответы');
+  assert.notEqual(versionCode(ids, [qs[0]]), v, 'вопрос пропал');
+  // Бланк несёт тот же код, что вычислит сканер
+  const bits = encodeSheet({ testId: 't1', variant: 0, questionIds: ids, questions: qs });
+  assert.equal(decodeBits(bits).version, v);
+});

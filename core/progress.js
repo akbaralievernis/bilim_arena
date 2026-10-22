@@ -41,10 +41,15 @@ const blank = () => ({
 });
 
 let cached = null;
+let cachedRaw = null;
 
+// Кеш действителен, пока строка в хранилище та же: другая вкладка (или игра) могла записать
+// свой прогресс — тогда читаем заново, иначе следующая запись затёрла бы её ответы (аудит 21.10)
 async function read() {
-  if (cached) return cached;
+  const raw = await store.raw(KEYS.progress);
+  if (cached && raw === cachedRaw) return cached;
   cached = { ...blank(), ...(await store.get(KEYS.progress, {})) };
+  cachedRaw = raw;
   return cached;
 }
 
@@ -54,6 +59,7 @@ export function invalidateProgress() { cached = null; }
 async function write(data) {
   cached = data;
   await store.set(KEYS.progress, data);
+  cachedRaw = await store.raw(KEYS.progress);
   return data;
 }
 

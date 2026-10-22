@@ -180,10 +180,63 @@ await T2b.cloud.syncAll();
 check('на втором устройстве задание тоже исчезло', !(await T2b.hw.allAssignments()).some((a) => a.id === a1.id));
 check('второе устройство не вернуло задание в облако', (await db.query('select * from assignments')).rows.length === 0);
 
+// ── 5б. Удалённое задание не блокирует отправку новых результатов ученика ─────
+// Раньше все результаты уходили одним запросом: строка удалённого задания не проходила
+// RLS — и не уходило ничего, в том числе новые домашки (аудит 21.10, P0).
+console.log('Удалённое задание и новые результаты');
+T = await device('T1');
+const a2 = await T.hw.saveAssignment({ title: 'ДЗ 2', subject: 'math', grade: 6, topic: 'math-6-fractions',
+  classId: cls.id, questionIds: [q1.id], count: 1, attempts: 2, xp: 50 });
+await T.cloud.flush();
+S = await device('S1');
+await S.cloud.syncAll();
+check('ученик получил новое задание', (await S.hw.allAssignments()).some((a) => a.id === a2.id));
+await S.hw.saveSubmission({ assignmentId: a2.id, studentId: p.id, studentName: 'Айбек', correct: 1, total: 1,
+  skillStats: { compare: { ok: 1, total: 1 } }, mistakes: [] });
+await S.cloud.flush();
+const rowsA2 = await db.query('select assignment_id from submissions where assignment_id = $1', [a2.id]);
+check('результат по новому заданию ушёл в облако, хотя старое задание удалено', rowsA2.rows.length === 1,
+  JSON.stringify(S.cloud.cloudStatus()));
+check('синхронизация ученика без ошибки', S.cloud.cloudStatus().state === 'ok', JSON.stringify(S.cloud.cloudStatus()));
+
+// ── 5в. Ответ во время синхронизации и прогресс из игры не теряются ─────────────
+// (аудит 21.10, группа F) Раньше syncPersonal в конце перезаписывал метки времени устаревшей
+// копией — ответ, данный, пока шёл запрос, не уходил в облако никогда; а выход из аккаунта
+// видел только очередь этой вкладки и стирал прогресс, записанный игрой или до перезагрузки.
+console.log('Ответ во время синхронизации и выход');
+S = await device('S1');
+const sid = S.cloud.cloudStatus().user.id;
+const cloudXp = async () => (await db.query(`select value->>'xp' xp from user_data where user_id = $1 and key = 'progress'`, [sid])).rows[0]?.xp;
+const client = await S.cloud.getClient();
+const origFrom = client.from;
+let releaseSelect; const opened = new Promise((r) => (releaseSelect = r));
+let selectHit; const hit = new Promise((r) => (selectHit = r));
+client.from = (t) => { const q = origFrom(t); const ex = q.exec.bind(q);
+  q.exec = async () => { if (t === 'user_data' && q.op === 'select') { selectHit(); await opened; } return ex(); }; return q; };
+const slowSync = S.cloud.syncAll();
+await hit;
+await S.progress.recordAnswer({ topic: 'math-6-fractions', skill: 'compare', correct: true, questionId: 'f02', gameId: 'practice' });
+client.from = origFrom; releaseSelect();
+await slowSync;
+await S.cloud.flush();
+const localXp = (await S.progress.getProgress()).xp;
+check('ответ, данный во время синхронизации, дошёл до облака', Number(await cloudXp()) === localXp, `${await cloudXp()} vs ${localXp}`);
+
+// Игра записала прогресс напрямую (shared/progress.js), в очередь отправки он не попал
+const gameProgress = await S.store.store.get('progress');
+gameProgress.xp += 40;
+await S.store.store.set('progress', gameProgress, { silent: true });
+const meta = await S.store.store.get('sync_meta', {});
+meta.progress = Date.now() + 5;
+await S.store.store.set('sync_meta', meta, { silent: true });
+S.progress.invalidateProgress();
+const gameXp = (await S.progress.getProgress()).xp;
+
 // ── 6. Выход ученика убирает его данные с устройства ─────────────────────────
 console.log('Выход ученика (S1)');
 S = await device('S1');
 await S.cloud.signOut();
+check('выход сначала отправил прогресс, записанный игрой', Number(await cloudXp()) === gameXp, `${await cloudXp()} vs ${gameXp}`);
 check('после выхода на устройстве нет прогресса ученика', (await S.store.store.get('progress', null)) === null);
 check('после выхода нет сессии', (await S.cloud.currentUser()) === null);
 T = await device('T1');

@@ -57,10 +57,17 @@ async function analyze(source, w, h) {
   if (!det) return { ok: false, reason: 'omr_not_found' };
   const test = state.tests.get(det.code.test);
   if (!test) return { ok: false, reason: 'omr_unknown_test' };
-  const items = buildVariant(test, await questionsOf(test), det.code.variant, getLang());
+  const questions = await questionsOf(test);
+  const items = buildVariant(test, questions, det.code.variant, getLang());
   const read = readSheet(det, items);
-  const changed = versionCode(test.questionIds) !== det.code.version;
-  return { ok: true, det, test, items, read, canvas, changed, variant: det.code.variant };
+  // Ключ строится заново из текущих вопросов. Если после печати изменился ключ (число
+  // вариантов, правильный ответ) или пропал вопрос — проверять нельзя: оценки были бы неверными.
+  const current = versionCode(test.questionIds, questions);
+  const legacy = versionCode(test.questionIds); // бланки, напечатанные до 21.10.2026
+  const missing = questions.length < (test.questionIds?.length || 0);
+  const blocked = missing || (det.code.version !== current && det.code.version !== legacy);
+  const changed = !blocked && det.code.version !== current;
+  return { ok: true, det, test, items, read, canvas, changed, blocked, variant: det.code.variant };
 }
 
 // ─── Камера ───────────────────────────────────────────────────────────────────
@@ -227,7 +234,8 @@ function renderResult() {
   $('#resTitle').textContent = `${res.test.title} · ${t('tst_variant')} ${variantName(res.variant)}`;
   $('#resScore').textContent = `${correct}/${res.items.length}`;
   const warns = [];
-  if (res.changed) warns.push(t('omr_changed'));
+  if (res.blocked) warns.push(t('omr_blocked'));
+  else if (res.changed) warns.push(t('omr_changed'));
   if (res.read.numberStatus !== 'ok') warns.push(t('omr_number_unsure'));
   $('#resWarn').textContent = warns.join(' ');
 
@@ -260,8 +268,8 @@ function renderResult() {
   });
   $('#resIssues').replaceChildren(...(issues.length ? [el('b', {}, t('omr_check_these')), ...issues] : [el('p', { class: 'small muted' }, t('omr_all_clear'))]));
   const waiting = res.items.some((_, i) => res.read.rows[i]?.kind === 'box' && res.manual[i] === undefined);
-  $('#acceptBtn').disabled = waiting;
-  $('#acceptBtn').title = waiting ? t('omr_decide_boxes') : '';
+  $('#acceptBtn').disabled = waiting || !!res.blocked;
+  $('#acceptBtn').title = res.blocked ? t('omr_blocked') : waiting ? t('omr_decide_boxes') : '';
   drawOverlay(res);
 }
 
@@ -288,6 +296,7 @@ function closeResult() {
 
 async function accept() {
   const res = state.current;
+  if (res?.blocked) return toast(t('omr_blocked'), { icon: '⚠️' });
   const number = Number($('#resNumber').value) || null;
   const name = $('#resName').value.trim() || (number ? t('omr_student_n', { n: number }) : '');
   if (!name) return toast(t('omr_need_name'), { icon: '⚠️' });

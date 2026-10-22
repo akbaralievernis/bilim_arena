@@ -68,3 +68,33 @@ test('scan page: upload a photo, confirm, save to reports', async ({ page, brows
   await expect(page.locator('#lessonList')).toContainText('Бумажная проверка');
   expect(problems).toEqual([]);
 });
+
+// Аудит 21.10 (P1): после печати тест изменился — ключ уже не тот, сохранять нельзя
+test('scan page: a sheet printed before the test changed cannot be saved', async ({ page, browser }) => {
+  await page.addInitScript(({ t, c }) => {
+    localStorage.setItem('BA2_lang', '"ru"');
+    if (!localStorage.getItem('BA2_tests')) localStorage.setItem('BA2_tests', JSON.stringify([t]));
+    if (!localStorage.getItem('BA2_classes')) localStorage.setItem('BA2_classes', JSON.stringify([c]));
+  }, { t: { ...T, id: 't_scan_old' }, c: CLASS });
+  await page.goto('/print.html?test=t_scan_old');
+  const svg = await page.locator('.p-omr svg').first().evaluate((n) => n.outerHTML);
+  const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } });
+  const studio = await ctx.newPage();
+  await studio.setContent(`<body style="margin:0;background:#777;display:grid;place-items:center;min-height:1400px"><div style="width:820px;background:#fff">${svg.replace(/width="[^"]+mm" height="[^"]+mm"/, 'width="100%"')}</div></body>`);
+  const photo = await studio.screenshot({ type: 'jpeg', quality: 80 });
+  await ctx.close();
+
+  // Учитель убрал из теста вопрос после печати: ключи всех следующих вопросов сдвинулись бы
+  await page.evaluate(() => {
+    const tests = JSON.parse(localStorage.getItem('BA2_tests'));
+    tests[0].questionIds = tests[0].questionIds.filter((id) => id !== 'f02');
+    tests[0].updatedAt += 1;
+    localStorage.setItem('BA2_tests', JSON.stringify(tests));
+  });
+  await page.goto('/scan.html');
+  await page.locator('#classSel').selectOption('c_demo');
+  await page.locator('#fileInput').setInputFiles({ name: 'old.jpg', mimeType: 'image/jpeg', buffer: photo });
+  await expect(page.locator('#resultCard')).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator('#resWarn')).toContainText('устарел');
+  await expect(page.locator('#acceptBtn')).toBeDisabled();
+});

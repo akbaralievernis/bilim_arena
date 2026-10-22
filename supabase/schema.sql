@@ -98,14 +98,19 @@ returns boolean language sql stable as $$
   select coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) = false;
 $$;
 
--- Вход ученика в класс по коду: единственный способ стать участником класса
-create or replace function public.join_class(code text, display_name text)
-returns table (class_id uuid, class_name text, grade int)
+-- Вход ученика в класс по коду: единственный способ стать участником класса.
+-- Имя уникально в классе: если его уже носит другой ученик, добавляется номер («Айбек 2») —
+-- так нельзя взять имя одноклассника и попасть в его отчёт (аудит 21.10).
+drop function if exists public.join_class(text, text);
+create function public.join_class(code text, display_name text)
+returns table (class_id uuid, class_name text, grade int, member_name text)
 language plpgsql security definer set search_path = public as $$
 #variable_conflict use_column
 declare
   c classes%rowtype;
   clean_name text := left(trim(display_name), 40);
+  final_name text;
+  n int := 1;
 begin
   if auth.uid() is null then
     raise exception 'not_signed_in';
@@ -119,11 +124,18 @@ begin
     raise exception 'class_not_found';
   end if;
 
+  final_name := clean_name;
+  while exists (select 1 from class_members m
+                where m.class_id = c.id and m.user_id <> auth.uid() and lower(m.name) = lower(final_name)) loop
+    n := n + 1;
+    final_name := left(clean_name, 36) || ' ' || n;
+  end loop;
+
   insert into class_members (class_id, user_id, name)
-  values (c.id, auth.uid(), clean_name)
+  values (c.id, auth.uid(), final_name)
   on conflict on constraint class_members_pkey do update set name = excluded.name;
 
-  return query select c.id, c.name, c.grade;
+  return query select c.id, c.name, c.grade, final_name;
 end;
 $$;
 
@@ -199,6 +211,24 @@ create policy user_data_own on public.user_data for all to authenticated
 create policy user_data_teacher on public.user_data for select to authenticated
   using (key in ('progress', 'errors') and public.teaches_student(user_id));
 
+-- Содержимое результата не может спорить со строкой: studentId, assignmentId и имя берутся
+-- из самой строки и списка класса, а не из того, что прислал браузер (аудит 21.10)
+create or replace function public.submissions_fill()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  new.data := coalesce(new.data, '{}'::jsonb) || jsonb_build_object(
+    'studentId', new.student_id::text,
+    'assignmentId', new.assignment_id,
+    'studentName', coalesce(
+      (select m.name from class_members m where m.class_id = new.class_id and m.user_id = new.student_id),
+      new.data ->> 'studentName'));
+  return new;
+end $$;
+revoke all on function public.submissions_fill() from public, anon, authenticated;
+drop trigger if exists submissions_fill on public.submissions;
+create trigger submissions_fill before insert or update on public.submissions
+  for each row execute function public.submissions_fill();
+
 -- ─── Журнал ошибок сайта ────────────────────────────────────────────────────
 -- Браузер сообщает о сбоях (core/errors.js): страница без параметров, текст
 -- ошибки, язык, браузер. Имён и id пользователей здесь нет. Записать может
@@ -221,17 +251,23 @@ create policy client_errors_insert on public.client_errors for insert to anon, a
   with check (true);
 -- Политики чтения нет: через API журнал не читается никем
 
--- Защита от потока: не больше 300 отчётов за 10 минут на весь сайт;
--- записи старше 30 дней удаляются
+-- Защита от потока: не больше 300 отчётов за 10 минут на весь сайт и не больше 20 000 всего;
+-- записи старше 30 дней удаляются. Время записи ставит база: присланное браузером время
+-- позволяло обойти лимит («старые» записи) или заблокировать журнал навсегда (аудит 21.10).
 create or replace function public.client_errors_guard()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
+  new.created_at := now();
   if (select count(*) from public.client_errors where created_at > now() - interval '10 minutes') >= 300 then
     raise exception 'too many error reports' using errcode = 'P0001';
   end if;
   delete from public.client_errors where created_at < now() - interval '30 days';
+  if (select count(*) from public.client_errors) >= 20000 then
+    raise exception 'too many error reports' using errcode = 'P0001';
+  end if;
   return new;
 end $$;
+revoke all on function public.client_errors_guard() from public, anon, authenticated;
 drop trigger if exists client_errors_guard on public.client_errors;
 create trigger client_errors_guard before insert on public.client_errors
   for each row execute function public.client_errors_guard();
