@@ -60,6 +60,13 @@
 
 Сейчас настроен Metered (бесплатно 500 МБ/мес): логин и пароль TURN записаны в `TURN.servers`. Расход виден в панели Metered → TURN Server & SFU.
 
+### Где опубликован сайт
+Один и тот же код из ветки `main` публикуется в двух местах, оба адреса рабочие:
+- GitHub Pages — https://akbaralievernis.github.io/bilim_arena/ (прежняя ссылка, запасная);
+- Vercel — https://bilim-arena-theta.vercel.app/ (проект `bilim-arena`, без сборки; заголовки безопасности — в `vercel.json`, лишние папки исключает `.vercelignore`).
+
+Новый адрес сайта нужно добавить в `ALLOWED_ORIGINS` (`signal/wrangler.toml`, затем `npm run deploy` в `signal/`) и в Supabase → Authentication → URL Configuration → Redirect URLs.
+
 ### Свой сервер знакомства (signal/)
 Доска и телефоны находят друг друга через сервер знакомства (по нему идут только служебные сообщения WebRTC, ответы учеников — напрямую). Раньше это был общий бесплатный сервер PeerJS; теперь можно поднять свой — папка `signal/`, Cloudflare Workers + Durable Objects (бесплатный тариф, без карты, не «засыпает»). Сайт сначала пробует свой сервер, при сбое сам переходит на общий.
 
