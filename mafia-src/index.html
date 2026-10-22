@@ -14,7 +14,16 @@
     <script src="../../shared/sw-register.js?v=14"></script>
 </head>
   <body>
-    <div id="root"></div>
+    <!-- Пока игра загружается — этот текст; без интернета он остаётся вместо белого экрана (аудит 21.10).
+         React заменяет содержимое #root, как только игра запустилась. -->
+    <div id="root"><div style="min-height:100vh;display:grid;place-items:center;padding:24px;font-family:Inter,system-ui,sans-serif;text-align:center;color:#202b46">
+      <div style="max-width:420px">
+        <p style="font-size:2.4rem;margin:0">🎭</p>
+        <p style="font-weight:800;font-size:1.2rem;margin:8px 0">Мафия жүктөлүүдө… · Загрузка…</p>
+        <p style="color:#5a6480;margin:0">Эгер оюн ачылбаса — интернет керек: Мафия класс менен онлайн ойнолот.<br />Если игра не открывается — нужен интернет: Мафия играется онлайн.<br />If the game does not open, you need the internet.</p>
+        <p style="margin-top:16px"><a href="../../games.html" style="color:#e0162b;font-weight:700">← Оюндар · Игры</a></p>
+      </div>
+    </div></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -37,3 +37,16 @@ test('an on-time submission stays on time after a retry past the deadline', asyn
   const b = await saveAssignment({ title: 'z', topic: 'math-6-fractions', count: 5, dueAt: Date.now() - 1000 });
   assert.equal((await saveSubmission({ assignmentId: b.id, studentId: 's', studentName: 'Айбек', correct: 1, total: 5 })).late, true);
 });
+
+test('an abandoned check does not let the student see the same questions again in the next check', async () => {
+  const { recordCheckStarted, questionMemory, invalidateProgress } = await import('../core/progress.js');
+  const { pickCheck } = await import('../core/selection.js');
+  invalidateProgress();
+  const pool = Array.from({ length: 12 }, (_, i) => ({ id: `q${i}` }));
+  const first = pickCheck(pool, await questionMemory(), 'T', { count: 6 });
+  await recordCheckStarted({ topic: 'T', questionIds: first.questions.map((q) => q.id) });
+  // ученик бросил проверку, посмотрел ответы и начал заново
+  const second = pickCheck(pool, await questionMemory(), 'T', { count: 6 });
+  const again = second.questions.filter((q) => first.questions.some((x) => x.id === q.id));
+  assert.equal(again.length, 0);
+});

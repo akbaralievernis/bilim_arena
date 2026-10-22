@@ -217,6 +217,20 @@ export async function recordExplained({ topic, questionIds = [] }) {
   await write(d);
 }
 
+/**
+ * Итоговая проверка началась: её вопросы считаются показанными сразу. Брошенная на середине
+ * проверка раньше ничего не сохраняла — ученик мог посмотреть вопросы, найти ответы и начать
+ * заново с теми же вопросами (аудит 21.10). Ответы при завершении записываются как обычно.
+ */
+export async function recordCheckStarted({ topic, questionIds = [] }) {
+  const d = await read();
+  questionIds.forEach((id) => {
+    const key = memKey(topic, id);
+    d.qs[key] = shownRecord(d.qs[key]);
+  });
+  await write(d);
+}
+
 /** Статус освоения темы (core/mastery.js) */
 export async function topicStatus(topicId, settings = null) {
   const d = await read();

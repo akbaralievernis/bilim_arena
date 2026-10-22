@@ -16,7 +16,7 @@ import { SUBJECTS, TOPICS, topicsOf, getTopic, getSubject, getQuestions, skillTi
 import { BaseGame } from './core/engine.js';
 import { renderQuestion } from './core/quiz-ui.js';
 import { setPromptImage } from './core/images.js';
-import { getProgress, questionMemory, recordCheck, topicStatus, topicPath, recordDiagnostic, recordExplained } from './core/progress.js';
+import { getProgress, questionMemory, recordCheck, topicStatus, topicPath, recordDiagnostic, recordExplained, recordCheckStarted } from './core/progress.js';
 import { pickPractice, pickCheck, pickDiagnostic, pickExamples, weakSkillsOf, dueCount, unseenCount, CHECK_MIN } from './core/selection.js';
 import { masterySettings } from './core/mastery.js';
 import { store, KEYS } from './core/store.js';
@@ -239,6 +239,7 @@ async function startGame(onlyWrong = false, mode = 'practice') {
         return openIntro(state.topic);
       }
       questions = chosen.questions;
+      await recordCheckStarted({ topic: state.topic, questionIds: questions.map((q) => q.id) });
     } else {
       const focus = weakSkillsOf((await topicPath(state.topic)).diag);
       questions = pickPractice(pool, mem, state.topic, { count: ROUND, focus }).questions;
