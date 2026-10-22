@@ -29,10 +29,25 @@ export async function setReview(topic, id, status, note = '') {
   return all[ref] || null;
 }
 
-/** «тема::id» вопросов, где учитель нашёл ошибку */
-export async function flaggedRefs() {
+/** Отметки «есть ошибка» учителя класса — приходят ученику вместе с заданиями (core/sync.js) */
+export const CLASS_FLAGS_KEY = 'class_flags';
+
+/** «тема::id» вопросов, где этот учитель нашёл ошибку */
+export async function ownFlaggedRefs() {
   const all = await allReviews();
-  return new Set(Object.entries(all).filter(([, v]) => v?.s === 'issue').map(([k]) => k));
+  return Object.entries(all).filter(([, v]) => v?.s === 'issue').map(([k]) => k);
+}
+
+/** «тема::id» вопросов с ошибкой: свои отметки и отметки учителя класса (на устройстве ученика) */
+export async function flaggedRefs() {
+  const fromTeacher = await store.get(CLASS_FLAGS_KEY, []);
+  return new Set([...(await ownFlaggedRefs()), ...(Array.isArray(fromTeacher) ? fromTeacher : [])]);
+}
+
+/** Ученик: отметки учителя из последних полученных заданий (заменяют прежние — снятые отметки уходят) */
+export async function setClassFlags(refs) {
+  const clean = (Array.isArray(refs) ? refs : []).filter((r) => typeof r === 'string' && r.length <= 120).slice(0, 2000);
+  await store.set(CLASS_FLAGS_KEY, [...new Set(clean)], { silent: true });
 }
 
 /** Сколько вопросов темы проверено и сколько с ошибкой */

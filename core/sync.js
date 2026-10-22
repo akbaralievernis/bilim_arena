@@ -10,6 +10,7 @@
  */
 
 import { store, KEYS } from './store.js';
+import { ownFlaggedRefs, setClassFlags } from './review.js';
 import { allAssignments, allSubmissions } from './assignments.js';
 import { allQuestions } from './questions.js';
 
@@ -29,7 +30,8 @@ export async function packAssignments() {
   const questions = (await allQuestions())
     .filter((q) => needed.has(q.id) || topics.has(q.topic));
 
-  return { assignments, questions };
+  // Отметки «есть ошибка»: ученик не получит такие вопросы ни в задании, ни в тренировке
+  return { assignments, questions, flags: await ownFlaggedRefs() };
 }
 
 /**
@@ -82,7 +84,8 @@ export async function mergeSubmissions(incoming = []) {
 // ─── Сторона ученика ──────────────────────────────────────────────────────────
 
 /** Задания и вопросы от учителя сохраняются на телефоне */
-export async function mergeAssignments({ assignments = [], questions = [] } = {}) {
+export async function mergeAssignments({ assignments = [], questions = [], flags } = {}) {
+  if (Array.isArray(flags)) await setClassFlags(flags);
   const list = await allAssignments();
   let added = 0;
   assignments.forEach((a) => {

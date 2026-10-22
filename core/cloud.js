@@ -18,6 +18,7 @@ import { invalidateProgress } from './progress.js';
 import { allAssignments, allSubmissions } from './assignments.js';
 import { allQuestions } from './questions.js';
 import { mergeAssignments, mergeSubmissions } from './sync.js';
+import { ownFlaggedRefs } from './review.js';
 
 // Точная версия: обновление библиотеки — осознанное решение, а не сюрприз на уроке.
 // Файл лежит на самом сайте (vendor/, npm @supabase/supabase-js@2.117.3, dist/umd): школьная сеть
@@ -54,7 +55,7 @@ const OPTIONAL_KEYS = ['tests', 'cycles', 'dup_reviewed', 'qreview'];
 let unsupported = new Set();
 /** Всё, что относится к пользователю на этом устройстве (очищается при смене аккаунта) */
 const LOCAL_USER_KEYS = [KEYS.profile, KEYS.progress, KEYS.errors, KEYS.history, 'questions', KEYS.lessons,
-  KEYS.assignments, 'submissions', KEYS.classes, 'tests', 'cycles', 'dup_reviewed', 'qreview', 'class_practice', 'hw_runs'];
+  KEYS.assignments, 'submissions', KEYS.classes, 'tests', 'cycles', 'dup_reviewed', 'qreview', 'class_practice', 'hw_runs', 'class_flags'];
 
 const META = 'sync_meta';     // { key: время последнего изменения на устройстве }
 const OWNER = 'sync_owner';   // чьи данные сейчас на устройстве
@@ -469,11 +470,12 @@ async function syncTeacherAssignments(classes) {
   // 4. Задания облачных классов → в облако (вместе с нужными вопросами учителя)
   const cloudClassIds = new Set(classes.map((x) => x.id));
   const questions = await allQuestions();
+  const flags = await ownFlaggedRefs(); // вопросы с ошибкой — ученики их не получат
   const rows = local.filter((a) => cloudClassIds.has(a.classId)).map((a) => {
     const needed = a.questionIds?.length
       ? questions.filter((q) => a.questionIds.includes(q.id))
       : questions.filter((q) => q.topic === a.topic);
-    return { id: a.id, class_id: a.classId, teacher_id: user.id, data: { assignment: a, questions: needed }, updated_at: new Date().toISOString() };
+    return { id: a.id, class_id: a.classId, teacher_id: user.id, data: { assignment: a, questions: needed, flags }, updated_at: new Date().toISOString() };
   });
   if (rows.length) {
     const { error: e2 } = await c.from('assignments').upsert(rows);
@@ -498,7 +500,8 @@ async function pullStudentAssignments() {
   if (error) throw error;
   await mergeAssignments({
     assignments: data.map((r) => r.data?.assignment).filter(Boolean),
-    questions: data.flatMap((r) => r.data?.questions || [])
+    questions: data.flatMap((r) => r.data?.questions || []),
+    flags: data.flatMap((r) => (Array.isArray(r.data?.flags) ? r.data.flags : []))
   });
   // и свои результаты — если выполнял на другом устройстве
   const { data: subs, error: e2 } = await c.from('submissions').select('data').eq('student_id', user.id);
