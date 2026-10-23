@@ -40,7 +40,9 @@ class Query {
   delete() { this.op = 'delete'; return this; }
   eq(col, v) { this.filters.push([col, '=', v]); return this; }
   in(col, vals) { this.filters.push([col, 'in', vals]); return this; }
-  order(col) { this.orderBy = col; return this; }
+  update(values) { this.op = 'update'; this.values = values; return this; }
+  order(col, { ascending = true } = {}) { this.orderBy = `${col}${ascending ? '' : ' desc'}`; return this; }
+  limit(n) { this.max = n; return this; }
   then(res, rej) { return this.exec().then(res, rej); }
 
   where(params) {
@@ -62,6 +64,7 @@ class Query {
           const embeds = parts.filter((p) => p.includes('('));
           let sql = `select ${plain.join(', ')} from public.${this.table}` + this.where(params);
           if (this.orderBy) sql += ` order by ${this.orderBy}`;
+          if (this.max) sql += ` limit ${Number(this.max)}`;
           const rows = (await db.query(sql, params)).rows;
           for (const e of embeds) {
             const [, t, c] = e.match(/^(\w+)\((.*)\)$/);
@@ -69,6 +72,12 @@ class Query {
             for (const r of rows) r[t] = (await db.query(`select ${c} from public.${t} where ${fk} = $1`, [r.id])).rows;
           }
           return rows;
+        }
+        if (this.op === 'update') {
+          const cols = Object.keys(this.values);
+          cols.forEach((c) => params.push(this.values[c]));
+          await db.query(`update public.${this.table} set ${cols.map((c, i) => `${c} = $${i + 1}`).join(', ')}` + this.where(params), params);
+          return null;
         }
         if (this.op === 'delete') {
           await db.query(`delete from public.${this.table}` + this.where(params), params);
@@ -89,7 +98,7 @@ class Query {
       });
       return { data, error: null };
     } catch (e) {
-      return { data: null, error: { message: e.message } };
+      return { data: null, error: { message: e.message, code: e.code } };
     }
   }
 }
@@ -101,19 +110,22 @@ export function createClient() {
     _session: () => { try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; } },
     _setSession: (s) => (s ? localStorage.setItem(KEY, JSON.stringify(s)) : localStorage.removeItem(KEY)),
     from: (t) => new Query(client, t),
-    async rpc(fn, args) {
+    async rpc(fn, args = {}) {
       try {
         const names = Object.keys(args);
         const data = await asUser(client._session(), (db) =>
-          db.query(`select * from public.${fn}(${names.map((n, i) => `${n} => $${i + 1}`).join(', ')})`, names.map((n) => args[n])).then((r) => r.rows));
-        return { data, error: null };
-      } catch (e) { return { data: null, error: { message: e.message } }; }
+          db.query(`select * from public.${fn}(${names.map((n, i) => `${n} => $${i + 1}`).join(', ')})`,
+            names.map((n) => (args[n] !== null && typeof args[n] === 'object' ? JSON.stringify(args[n]) : args[n]))).then((r) => r.rows));
+        // Функция со скалярным ответом: настоящий PostgREST отдаёт само значение, а не строку
+        const scalar = data.length === 1 && Object.keys(data[0]).length === 1 && fn in data[0];
+        return { data: scalar ? data[0][fn] : data, error: null };
+      } catch (e) { return { data: null, error: { message: e.message, code: e.code } }; }
     },
     auth: {
       async getSession() { return { data: { session: client._session() } }; },
       async signInAnonymously() {
         const id = crypto.randomUUID();
-        await serial(() => globalThis.__pg.query('insert into auth.users (id) values ($1)', [id]));
+        await serial(() => globalThis.__pg.query('insert into auth.users (id, is_anonymous) values ($1, true)', [id]));
         client._setSession({ user: { id, is_anonymous: true, user_metadata: {} } });
         return { data: {}, error: null };
       },

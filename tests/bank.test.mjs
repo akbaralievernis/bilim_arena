@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 globalThis.localStorage = { getItem: () => null, setItem() {}, removeItem() {}, key: () => null, length: 0 };
 
-const { TOPICS, loadBank } = await import('../core/curriculum.js');
+const { TOPICS, loadBank, BANK_QUESTIONS_FLOOR } = await import('../core/curriculum.js');
 const { findDuplicates, normalize } = await import('../core/duplicates.js');
 
 const banks = [];
@@ -85,4 +85,8 @@ test('no option equals the right answer in value (1/2 and 2/4 both offered)', ()
     });
   }
   assert.deepEqual(bad, []);
+});
+
+test('the question count on the home page is honest (rounded down to tens)', () => {
+  assert.equal(BANK_QUESTIONS_FLOOR, Math.floor(all.length / 10) * 10, `banks have ${all.length} questions: update BANK_QUESTIONS_FLOOR`);
 });

@@ -1,0 +1,9 @@
+# Сайт статический: на Vercel уходят только файлы, нужные в браузере
+/tests
+/supabase
+/signal
+/mafia-src
+/docs
+/test-results
+/playwright-report
+/playwright.config.js

@@ -10,6 +10,7 @@
 import { pick } from './i18n.js';
 import { shuffleOptions } from './curriculum.js';
 import { recordAnswer, recordGame } from './progress.js';
+import { recordPlay } from './stats.js';
 
 const norm = (v) => String(v ?? '').trim().toLowerCase().replace(/\s+/g, '');
 
@@ -406,6 +407,8 @@ export class BaseGame {
         correct: r.correctAnswers, total: r.totalAnswers
       });
     }
+    // Обезличенная статистика сайта: на доске — один раз за весь класс (core/stats.js)
+    recordPlay({ gameId: this.meta.id, topic: this.ctx.topic, log: this.log, players: r.players?.length || 0 });
     return r;
   }
 

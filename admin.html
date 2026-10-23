@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ky" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <!-- Безопасность: скрипты только с сайта, соединения только с базой -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://udkxmgflbxetfzziftla.supabase.co wss://udkxmgflbxetfzziftla.supabase.co; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F7F8FC" />
+  <meta name="description" content="Билим Арена — администратордун панели." />
+  <title>Админ-панель — Билим Арена</title>
+  <link rel="icon" href="./assets/brand/favicon-64.png" type="image/png" />
+  <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
+  <link rel="stylesheet" href="./core/ui.css?v=25" />
+  <link rel="stylesheet" href="./admin.css?v=2" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main" data-i18n="skip_to_content">Мазмунга өтүү</a>
+  <div id="header"></div>
+
+  <main id="main" class="wrap stack" style="padding-top:20px;padding-bottom:40px">
+    <h1 data-i18n="adm_title">Админ-панель</h1>
+
+    <!-- Пока проверяем права, и почему нельзя войти -->
+    <section class="card stack" id="gate" aria-live="polite">
+      <p class="muted" id="gateText" data-i18n="loading">Жүктөлүүдө…</p>
+      <div class="stack hidden" id="gateSqlBox">
+        <p class="small" data-i18n="adm_denied_sql">Если это аккаунт владельца, выполните в Supabase → SQL Editor:</p>
+        <pre class="adm-sql" id="gateSql"></pre>
+      </div>
+      <div class="row hidden" id="gateActions">
+        <a class="btn primary" href="./account.html" data-i18n="adm_sign_in">Мугалим катары кирүү</a>
+      </div>
+    </section>
+
+    <div class="stack hidden" id="panel">
+      <div class="row tabs" role="tablist">
+        <button class="chip on" type="button" role="tab" aria-selected="true" data-tab="overview" data-i18n="adm_tab_overview">Сереп</button>
+        <button class="chip" type="button" role="tab" aria-selected="false" data-tab="submissions"><span data-i18n="adm_tab_submissions">Мугалимдердин суроолору</span> <b id="pendingBadge"></b></button>
+        <button class="chip" type="button" role="tab" aria-selected="false" data-tab="bank" data-i18n="adm_tab_bank">Жалпы банк</button>
+        <button class="chip" type="button" role="tab" aria-selected="false" data-tab="errors" data-i18n="adm_tab_errors">Каталар журналы</button>
+        <button class="chip" type="button" role="tab" aria-selected="false" data-tab="service" data-i18n="adm_tab_service">Тейлөө</button>
+      </div>
+
+      <!-- Обзор -->
+      <section class="stack" id="tab-overview" role="tabpanel">
+        <div class="row" role="group" aria-label="Мезгил" data-i18n-attr="aria-label:adm_period">
+          <button class="chip" type="button" data-days="7">7</button>
+          <button class="chip on" type="button" data-days="30">30</button>
+          <button class="chip" type="button" data-days="90">90</button>
+          <span class="muted small" data-i18n="adm_days">күн</span>
+        </div>
+        <div class="adm-kpis" id="kpis"></div>
+        <div class="grid two">
+          <div class="card stack"><h2 class="adm-h" data-i18n="adm_chart_visits">Сайтка кирүүлөр (күнүнө)</h2><div id="chartVisits"></div></div>
+          <div class="card stack"><h2 class="adm-h" data-i18n="adm_chart_plays">Ойнолгон оюндар (күнүнө)</h2><div id="chartPlays"></div></div>
+        </div>
+        <div class="grid two">
+          <div class="card stack"><h2 class="adm-h" data-i18n="adm_chart_games">Кайсы оюн көп ойнолот</h2><div id="chartGames"></div></div>
+          <div class="card stack"><h2 class="adm-h" data-i18n="adm_chart_topics">Темалар: каталардын үлүшү</h2><div id="chartTopics"></div></div>
+        </div>
+        <div class="card stack">
+          <h2 class="adm-h" data-i18n="adm_hard_title">Эң көп ката кетирилген суроолор</h2>
+          <p class="muted small" data-i18n="adm_hard_hint">Жок дегенде 5 жооп. Ката көп болсо — суроо өтө оор же туура эмес түзүлгөн болушу мүмкүн.</p>
+          <div id="hardQuestions"></div>
+        </div>
+        <p class="muted small" data-i18n="adm_privacy_note">Статистикада аттар жана id жок: оюн, тема жана жооптордун саны гана.</p>
+      </section>
+
+      <!-- Заявки учителей -->
+      <section class="stack hidden" id="tab-submissions" role="tabpanel">
+        <div class="row" role="group">
+          <button class="chip on" type="button" data-status="pending" data-i18n="adm_st_pending">Каралууда</button>
+          <button class="chip" type="button" data-status="approved" data-i18n="adm_st_approved">Кабыл алынды</button>
+          <button class="chip" type="button" data-status="rejected" data-i18n="adm_st_rejected">Четке кагылды</button>
+        </div>
+        <div class="stack" id="submissionList"></div>
+      </section>
+
+      <!-- Общий банк -->
+      <section class="stack hidden" id="tab-bank" role="tabpanel">
+        <p class="muted small" data-i18n="adm_bank_hint">Бул суроолор бардык оюндарга кошулат. Жашырылган суроо оюндарда чыкпайт, бирок өчүрүлбөйт.</p>
+        <div class="stack" id="bankList"></div>
+      </section>
+
+      <!-- Журнал ошибок сайта -->
+      <section class="stack hidden" id="tab-errors" role="tabpanel">
+        <div class="row between">
+          <p class="muted small" data-i18n="adm_errors_hint">Сайттагы JavaScript каталары акыркы 30 күндө. Бирдей каталар бириктирилген.</p>
+          <button class="btn danger" type="button" id="errorsClearBtn" data-i18n="adm_errors_clear">Журналды тазалоо</button>
+        </div>
+        <div class="stack" id="errorList"></div>
+      </section>
+
+      <!-- Обслуживание -->
+      <section class="stack hidden" id="tab-service" role="tabpanel">
+        <div class="card stack">
+          <h2 class="adm-h" data-i18n="adm_anon_title">Ашыкча анонимдүү аккаунттар</h2>
+          <p class="muted small" data-i18n="adm_anon_hint">Класста жок, эски жана активдүү эмес окуучу аккаунттары. Класстагы окуучулар эч качан өчүрүлбөйт.</p>
+          <div class="row">
+            <label class="field" style="max-width:200px">
+              <span class="label" data-i18n="adm_anon_days">Канча күндөн эски</span>
+              <input class="input" id="anonDays" type="number" min="14" max="365" value="60" />
+            </label>
+          </div>
+          <p id="anonCount" class="small" aria-live="polite"></p>
+          <div class="row">
+            <button class="btn" type="button" id="anonCheckBtn" data-i18n="adm_anon_check">Текшерүү</button>
+            <button class="btn danger" type="button" id="anonCleanBtn" data-i18n="adm_anon_clean">Өчүрүү</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <div id="toasts"></div>
+  <script type="module" src="./admin.js?v=2"></script>
+</body>
+</html>

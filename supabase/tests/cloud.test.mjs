@@ -9,7 +9,8 @@ const ROOT = new URL('../../', import.meta.url).href;
 const db = new PGlite();
 await db.exec(`
   create schema auth;
-  create table auth.users (id uuid primary key);
+  create table auth.users (id uuid primary key, email text, is_anonymous boolean not null default false,
+    created_at timestamptz not null default now());
   create function auth.uid() returns uuid language sql stable as
     $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
   create function auth.jwt() returns jsonb language sql stable as
@@ -260,6 +261,51 @@ T = await device('T1');
 await T.cloud.signOut();
 check('после выхода учителя тренировки учеников стёрты с устройства', (await T.store.store.get('class_practice', null)) === null);
 check('прогресс остался в облаке', (await db.query(`select * from user_data where key = 'progress' and user_id = $1`, [sid])).rows.length === 1);
+
+console.log('Общий банк вопросов и админ-панель (core/admin.js)');
+{
+  const TQ = await device('teacherQ');
+  await TQ.cloud.teacherSignUp({ email: 'asanova@school.kg', password: 'secret-123', name: 'Асанова' });
+  const adminApi = await import(ROOT + 'core/admin.js');
+  const q = await TQ.questions.saveQuestion({ topic: 'math-6-fractions', skill: 'add-sub', type: 'single',
+    question: { ru: '3 + 3 = ?' }, options: ['6', '7'], correctAnswer: 0 });
+  await adminApi.submitToBank(q);
+  let again = null;
+  try { await adminApi.submitToBank(q); } catch (e) { again = e.message; }
+  check('учитель предлагает вопрос, повторно — «уже на рассмотрении»', again === 'already_sent', again);
+  const mine = await adminApi.mySubmissions();
+  check('учитель видит статус своей заявки', mine.get(q.id)?.status === 'pending', JSON.stringify([...mine]));
+  check('учитель не администратор', (await adminApi.isAdmin()) === false);
+  let denied = false;
+  try { await adminApi.overview(30); } catch { denied = true; }
+  check('учитель не получает обзор администратора', denied);
+
+  const kid = await device('kidQ');
+  await (await kid.cloud.getClient()).auth.signInAnonymously();
+  let kidErr = null;
+  try { await adminApi.submitToBank(q); } catch (e) { kidErr = e.message; }
+  check('анонимный ученик не может предложить вопрос', kidErr === 'not_teacher', kidErr);
+
+  const O = await device('owner');
+  await O.cloud.teacherSignUp({ email: 'owner@school.kg', password: 'secret-123', name: 'Владелец' });
+  const ownerId = (await O.cloud.currentUser()).id;
+  await db.query('insert into public.admins (user_id) values ($1)', [ownerId]);
+  check('владелец — администратор', (await adminApi.isAdmin()) === true);
+  const pending = await adminApi.listSubmissions('pending');
+  check('администратор видит заявку', pending.length === 1 && pending[0].question.question.ru === '3 + 3 = ?', JSON.stringify(pending));
+  const pubId = await adminApi.approve(pending[0].id, { question: { ...pending[0].question, explanation: { ru: '3 + 3 = 6' } } });
+  check('одобрение возвращает id общего вопроса', typeof pubId === 'string' && pubId.length === 36, String(pubId));
+  const pub = await adminApi.listPublic();
+  check('в общем банке — вопрос с правкой администратора', pub.length === 1 && pub[0].question.explanation?.ru === '3 + 3 = 6');
+  await adminApi.setPublicActive(pub[0].id, false);
+  check('администратор скрывает вопрос', (await adminApi.listPublic())[0].active === false);
+  const o = await adminApi.overview(30);
+  check('обзор: заявка одобрена, активных общих вопросов нет', o.bank.approved === 1 && o.bank.public_active === 0 && o.users.teachers >= 2, JSON.stringify(o.bank));
+  check('счёт лишних анонимных аккаунтов доступен', typeof (await adminApi.staleAnonymous(60)) === 'number');
+
+  await device('teacherQ');
+  check('автор видит, что вопрос одобрен', (await adminApi.mySubmissions()).get(q.id)?.status === 'approved');
+}
 
 console.log(`\nИтог: ${pass} ok, ${fail} ошибок`);
 process.exit(fail ? 1 : 0);

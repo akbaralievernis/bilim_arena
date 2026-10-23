@@ -6,8 +6,8 @@ compatibility_date = "2025-09-01"
 
 [vars]
 PEER_KEY = "bilimarena"
-# Сайт, с которого разрешено подключаться (и localhost для разработки)
-ALLOWED_ORIGINS = "https://akbaralievernis.github.io,http://localhost:8765,http://127.0.0.1:8765,http://localhost:8766"
+# Сайты, с которых разрешено подключаться: GitHub Pages, Vercel (и localhost для разработки)
+ALLOWED_ORIGINS = "https://akbaralievernis.github.io,https://bilim-arena-theta.vercel.app,https://bilim-arena-akbaralievernis-projects.vercel.app,http://localhost:8765,http://127.0.0.1:8765,http://localhost:8766"
 
 [[durable_objects.bindings]]
 name = "HUB"
