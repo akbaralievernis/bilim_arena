@@ -64,6 +64,7 @@
 Один и тот же код из ветки `main` публикуется в двух местах, оба адреса рабочие:
 - GitHub Pages — https://akbaralievernis.github.io/bilim_arena/ (прежняя ссылка, запасная);
 - Vercel — https://bilim-arena-theta.vercel.app/ (проект `bilim-arena`, без сборки; заголовки безопасности — в `vercel.json`, лишние папки исключает `.vercelignore`).
+- Поиск (Google и др.): главный адрес — Vercel. На публичных страницах `rel="canonical"` ведёт туда (копия на Pages не спорит с ним в поиске), `robots.txt` и `sitemap.xml` лежат в корне, на главной — разметка WebSite с названиями «Билим Арена» и «Bilim Arena». Чтобы сайт быстрее попал в поиск: Google Search Console → добавить ресурс `https://bilim-arena-theta.vercel.app/` → подтвердить (мета-тег) → «Файлы Sitemap» → `sitemap.xml` → «Проверка URL» → «Запросить индексирование». При смене домена поменять адрес в canonical, `robots.txt` и `sitemap.xml`.
 
 Новый адрес сайта нужно добавить в `ALLOWED_ORIGINS` (`signal/wrangler.toml`, затем `npm run deploy` в `signal/`) и в Supabase → Authentication → URL Configuration → Redirect URLs.
 
