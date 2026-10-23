@@ -47,7 +47,9 @@ function reachable() {
 test('every file the pages need is in the offline cache', () => {
   const need = reachable()
     // Мафия собирается отдельно (games/mafia/assets) и кэшируется при первом открытии
-    .filter((f) => !f.startsWith('games/mafia/assets/') && !f.startsWith('mafia-src/') && !f.startsWith('tests/'));
+    .filter((f) => !f.startsWith('games/mafia/assets/') && !f.startsWith('mafia-src/') && !f.startsWith('tests/'))
+    // Файл подтверждения Google Search Console — не страница сайта
+    .filter((f) => !/^google[0-9a-f]+\.html$/.test(f));
   const missing = need.filter((f) => !CORE.has(f));
   assert.deepEqual(missing, []);
 });

@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /report.html
+
+Sitemap: https://bilim-arena-theta.vercel.app/sitemap.xml
