@@ -13,7 +13,7 @@
   <link rel="icon" href="./assets/brand/favicon-64.png" type="image/png" />
   <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
   <link rel="stylesheet" href="./core/ui.css?v=25" />
-  <link rel="stylesheet" href="./admin.css?v=1" />
+  <link rel="stylesheet" href="./admin.css?v=2" />
 </head>
 
 <body>
@@ -26,6 +26,10 @@
     <!-- Пока проверяем права, и почему нельзя войти -->
     <section class="card stack" id="gate" aria-live="polite">
       <p class="muted" id="gateText" data-i18n="loading">Жүктөлүүдө…</p>
+      <div class="stack hidden" id="gateSqlBox">
+        <p class="small" data-i18n="adm_denied_sql">Если это аккаунт владельца, выполните в Supabase → SQL Editor:</p>
+        <pre class="adm-sql" id="gateSql"></pre>
+      </div>
       <div class="row hidden" id="gateActions">
         <a class="btn primary" href="./account.html" data-i18n="adm_sign_in">Мугалим катары кирүү</a>
       </div>
@@ -36,6 +40,7 @@
         <button class="chip on" type="button" role="tab" aria-selected="true" data-tab="overview" data-i18n="adm_tab_overview">Сереп</button>
         <button class="chip" type="button" role="tab" aria-selected="false" data-tab="submissions"><span data-i18n="adm_tab_submissions">Мугалимдердин суроолору</span> <b id="pendingBadge"></b></button>
         <button class="chip" type="button" role="tab" aria-selected="false" data-tab="bank" data-i18n="adm_tab_bank">Жалпы банк</button>
+        <button class="chip" type="button" role="tab" aria-selected="false" data-tab="errors" data-i18n="adm_tab_errors">Каталар журналы</button>
         <button class="chip" type="button" role="tab" aria-selected="false" data-tab="service" data-i18n="adm_tab_service">Тейлөө</button>
       </div>
 
@@ -80,6 +85,15 @@
         <div class="stack" id="bankList"></div>
       </section>
 
+      <!-- Журнал ошибок сайта -->
+      <section class="stack hidden" id="tab-errors" role="tabpanel">
+        <div class="row between">
+          <p class="muted small" data-i18n="adm_errors_hint">Сайттагы JavaScript каталары акыркы 30 күндө. Бирдей каталар бириктирилген.</p>
+          <button class="btn danger" type="button" id="errorsClearBtn" data-i18n="adm_errors_clear">Журналды тазалоо</button>
+        </div>
+        <div class="stack" id="errorList"></div>
+      </section>
+
       <!-- Обслуживание -->
       <section class="stack hidden" id="tab-service" role="tabpanel">
         <div class="card stack">
@@ -101,6 +115,6 @@
     </div>
   </main>
   <div id="toasts"></div>
-  <script type="module" src="./admin.js?v=1"></script>
+  <script type="module" src="./admin.js?v=2"></script>
 </body>
 </html>

@@ -67,6 +67,8 @@ test('a teacher who is not an administrator gets no access', async ({ page }) =>
   await fakeDb(page, { 'rpc/is_admin': false });
   await page.goto('/admin.html');
   await expect(page.locator('#gateText')).toContainText('owner@school.kg не администратор');
+  // Готовая команда, чтобы владелец выдал себе права, — с id именно этого аккаунта
+  await expect(page.locator('#gateSql')).toHaveText(`insert into public.admins (user_id) values ('${USER.id}') on conflict do nothing;`);
   await expect(page.locator('#panel')).toBeHidden();
 });
 
@@ -166,4 +168,39 @@ test('without signing in the share button explains how to sign in', async ({ pag
   await page.goto('/questions.html');
   await page.locator('.q-row', { hasText: 'Гостевой вопрос' }).getByRole('button', { name: 'Предложить в общий банк' }).click();
   await expect(page.locator('#toasts')).toContainText('войдите как учитель');
+});
+
+test('a broken question cannot be approved, and the error log groups identical errors', async ({ page }) => {
+  await signedIn(page);
+  const broken = { ...SUBMISSION, question: { ...SUBMISSION.question, options: ['3/4'] } };
+  const calls = await fakeDb(page, {
+    'rpc/is_admin': true,
+    'rpc/admin_overview': OVERVIEW,
+    'GET question_submissions': (req) => (new URL(req.url()).searchParams.get('status') === 'eq.pending' ? [broken] : []),
+    'GET client_errors': [
+      { id: 3, created_at: new Date().toISOString(), page: '/board.html', message: 'x is undefined', stack: 'at board.js:10', ua: 'Chrome' },
+      { id: 2, created_at: new Date().toISOString(), page: '/play.html', message: 'x is undefined' },
+      { id: 1, created_at: new Date().toISOString(), page: '/play.html', message: 'Failed to load' }
+    ]
+  });
+  await page.goto('/admin.html');
+  await expect(page.locator('#kpis')).toContainText('Анонимных аккаунтов');
+
+  await page.locator('[data-tab="submissions"]').click();
+  const card = page.locator('#submissionList .adm-sub');
+  await expect(card).toContainText('хотя бы 2 непустых варианта');
+  await card.getByRole('button', { name: 'Одобрить' }).click();
+  await expect(page.locator('#toasts')).toContainText('хотя бы 2 непустых варианта');
+  await expect(card).toHaveCount(1);
+  expect(calls.some((c) => c.path === 'rpc/admin_approve_submission')).toBe(false);
+
+  await page.locator('[data-tab="errors"]').click();
+  const items = page.locator('#errorList .adm-err');
+  await expect(items).toHaveCount(2);
+  await expect(items.first()).toContainText('x is undefined');
+  await expect(items.first()).toContainText('2 раз');
+  page.once('dialog', (d) => d.accept());
+  await page.getByRole('button', { name: 'Очистить журнал' }).click();
+  await expect(page.locator('#toasts')).toContainText('Журнал очищен');
+  expect(calls.some((c) => c.method === 'DELETE' && c.path === 'client_errors')).toBe(true);
 });

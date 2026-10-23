@@ -359,5 +359,15 @@ await expectOk('функции администратора и очистки н
     has_function_privilege('anon', 'public.record_play(text, text, int, int, int, jsonb)', 'execute') e`),
   (r) => r.rows[0].a === false && r.rows[0].b === false && r.rows[0].c === false && r.rows[0].d === false && r.rows[0].e === true);
 
+console.log('Журнал ошибок в админ-панели');
+await expectDenied('учитель по-прежнему не читает журнал ошибок', () => as('T1', false, () => db.query('select * from client_errors')));
+await expectDenied('учитель не может стереть журнал', () => as('T1', false, () => db.query('delete from client_errors')));
+await expectOk('администратор читает журнал ошибок', () => as('A', false, () => db.query('select page, message from client_errors')),
+  (r) => r.rows.length > 0);
+await expectOk('администратор очищает журнал', async () => {
+  await as('A', false, () => db.query('delete from client_errors'));
+  return db.query('select count(*)::int n from client_errors');
+}, (r) => r.rows[0].n === 0);
+
 console.log(`\nИтог: ${pass} ok, ${fail} ошибок`);
 process.exit(fail ? 1 : 0);

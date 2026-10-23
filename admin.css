@@ -40,6 +40,12 @@
 .adm-st-approved { color: var(--ok-ink); }
 .adm-st-rejected { color: var(--bad-ink); }
 
+.adm-sql { margin: 0; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--line); font-family: ui-monospace, monospace; font-size: .8125rem; white-space: pre-wrap; overflow-wrap: anywhere; user-select: all; }
+
+/* Журнал ошибок */
+.adm-err-msg { margin: 0; font-family: ui-monospace, monospace; font-size: .875rem; overflow-wrap: anywhere; }
+.adm-err pre { margin: 6px 0 0; font-size: .75rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+
 @media (max-width: 560px) {
   .adm-kpi b { font-size: 1.3rem; }
   .adm-cols { height: 120px; gap: 1px; }

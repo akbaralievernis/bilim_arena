@@ -9,6 +9,7 @@
 
 import { getClient, currentUser } from './cloud.js';
 import { getProfile } from './profile.js';
+import { toEngineQuestion } from './questions.js';
 
 async function client() {
   return getClient();
@@ -21,6 +22,36 @@ const check = ({ data, error }) => {
 
 /** Таблиц ещё нет (миграция 2026-10-23 не выполнена) */
 export const notMigrated = (e) => /does not exist|schema cache|PGRST20[0-9]|42P01|42883/i.test(String(e?.message || e?.code || e));
+
+/** Ключ перевода для ошибки базы: нет прав, заявку уже рассмотрели, нет миграции или сеть */
+export function errorKey(e) {
+  const text = `${e?.code || ''} ${e?.message || e || ''}`;
+  if (notMigrated(e)) return 'adm_not_migrated';
+  if (/forbidden|42501|permission denied/i.test(text)) return 'adm_err_forbidden';
+  if (/already_reviewed|not_found|P0002/i.test(text)) return 'adm_err_stale';
+  return 'acc_err_network';
+}
+
+const filled = (v) => (v && typeof v === 'object'
+  ? Object.values(v).some((x) => String(x ?? '').trim() !== '')
+  : String(v ?? '').trim() !== '');
+
+/** Что мешает вопросу работать в играх (ключ перевода) или null, если вопрос годится */
+export function questionProblem(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return 'adm_q_broken';
+  let q;
+  try { q = toEngineQuestion({ ...raw, id: 'check' }); } catch { return 'adm_q_broken'; }
+  if (!filled(q.prompt)) return 'adm_q_no_prompt';
+  if (q.type === 'choice' || q.type === 'multiple') {
+    if (!Array.isArray(q.options) || q.options.length < 2 || !q.options.every(filled)) return 'adm_q_options';
+    const correct = [].concat(q.correct ?? []);
+    if (!correct.length || correct.some((i) => !Number.isInteger(i) || i < 0 || i >= q.options.length)) return 'adm_q_correct';
+  }
+  if (q.type === 'input' && !q.answer?.length) return 'adm_q_answer';
+  if (q.type === 'match' && (!Array.isArray(q.pairs) || q.pairs.length < 2)) return 'adm_q_pairs';
+  if (q.type === 'sort' && (!Array.isArray(q.items) || q.items.length < 2)) return 'adm_q_items';
+  return null;
+}
 
 // ─── Учитель ─────────────────────────────────────────────────────────────────
 
@@ -113,4 +144,31 @@ export async function staleAnonymous(days = 60) {
 export async function cleanupAnonymous(days = 60) {
   const c = await client();
   return check(await c.rpc('admin_cleanup_anonymous', { days }));
+}
+
+/** Журнал ошибок сайта (client_errors): читать и чистить может только администратор (миграция 2026-10-24) */
+export async function listErrors(limit = 300) {
+  const c = await client();
+  return check(await c.from('client_errors')
+    .select('id,created_at,page,message,stack,lang,ua,version').order('created_at', { ascending: false }).limit(limit)) || [];
+}
+
+export async function clearErrors() {
+  const c = await client();
+  check(await c.from('client_errors').delete().gt('id', 0));
+}
+
+/** Одинаковые ошибки вместе: сколько раз, когда последняя, на каких страницах */
+export function groupErrors(rows) {
+  const groups = new Map();
+  for (const r of rows) {
+    const key = String(r.message || '').trim();
+    const g = groups.get(key) || { message: key, count: 0, last: r.created_at, pages: new Set(), stack: r.stack || '', ua: r.ua || '' };
+    g.count++;
+    if (r.created_at > g.last) g.last = r.created_at;
+    if (r.page) g.pages.add(r.page);
+    groups.set(key, g);
+  }
+  return [...groups.values()].map((g) => ({ ...g, pages: [...g.pages] }))
+    .sort((a, b) => b.count - a.count || String(b.last).localeCompare(String(a.last)));
 }

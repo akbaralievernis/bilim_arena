@@ -18,10 +18,12 @@ const state = { days: 30, status: 'pending', tab: 'overview' };
 
 // ─── Вход ─────────────────────────────────────────────────────────────────────
 
-function gate(key, { signIn = false, vars } = {}) {
+function gate(key, { signIn = false, vars, sql = '' } = {}) {
   $('#gateText').removeAttribute('data-i18n');
   $('#gateText').textContent = t(key, vars);
   $('#gateActions').classList.toggle('hidden', !signIn);
+  $('#gateSql').textContent = sql;
+  $('#gateSqlBox').classList.toggle('hidden', !sql);
   $('#gate').classList.remove('hidden');
   $('#panel').classList.add('hidden');
 }
@@ -46,7 +48,12 @@ async function checkAccess() {
       console.warn('[admin]', e);
       return gate('acc_err_network');
     }
-    if (!ok) return gate('adm_denied', { vars: { email: user.email || '' } });
+    if (!ok) {
+      // Владелец ещё не добавил себя в admins: показываем готовую команду с id именно этого аккаунта
+      const sql = /^[0-9a-f-]{36}$/i.test(user.id || '')
+        ? `insert into public.admins (user_id) values ('${user.id}') on conflict do nothing;` : '';
+      return gate('adm_denied', { vars: { email: user.email || '' }, sql });
+    }
     $('#gate').classList.add('hidden');
     $('#panel').classList.remove('hidden');
     return true;
@@ -121,7 +128,7 @@ async function renderOverview() {
     o = await admin.overview(state.days);
   } catch (e) {
     console.warn('[admin]', e);
-    $('#kpis').replaceChildren(el('p', { class: 'muted' }, t('acc_err_network')));
+    $('#kpis').replaceChildren(el('p', { class: 'muted' }, t(admin.errorKey(e))));
     return;
   }
   const tot = o.totals || {};
@@ -136,6 +143,7 @@ async function renderOverview() {
     kpi(`${pct(tot.correct, tot.answers)}%`, t('adm_kpi_accuracy'), `${fmt(tot.answers)} ${t('adm_answers')}`),
     kpi(fmt(users.teachers), t('adm_kpi_teachers')),
     kpi(fmt(users.students_in_classes), t('adm_kpi_students'), `${fmt(users.classes)} ${t('adm_classes')}`),
+    kpi(fmt(users.anonymous), t('adm_kpi_anon'), users.stale_anonymous ? t('adm_kpi_anon_stale', { n: fmt(users.stale_anonymous) }) : ''),
     kpi(fmt(o.bank?.public_active), t('adm_kpi_public'))
   );
   const days = state.days;
@@ -214,7 +222,7 @@ async function renderSubmissions() {
   let list;
   try { list = await admin.listSubmissions(state.status); } catch (e) {
     console.warn('[admin]', e);
-    return box.replaceChildren(el('p', { class: 'muted' }, t('acc_err_network')));
+    return box.replaceChildren(el('p', { class: 'muted' }, t(admin.errorKey(e))));
   }
   if (!list.length) return box.replaceChildren(el('div', { class: 'card center muted' }, t('adm_sub_empty')));
   box.replaceChildren(...list.map(submissionCard));
@@ -226,6 +234,8 @@ function submissionCard(s) {
     el('div', {}, el('b', {}, s.author_name || t('adm_unknown_author')), el('span', { class: 'muted small' }, ` · ${topicName(s.topic)} · ${dateText(s.created_at)}`)),
     s.status !== 'pending' ? el('span', { class: `chip small adm-st-${s.status}` }, t('adm_st_' + s.status)) : '');
   card.append(head, questionPreview(s.question, s.topic));
+  const problem = s.status === 'pending' ? admin.questionProblem(s.question) : null;
+  if (problem) card.append(el('p', { class: 'small adm-st-rejected' }, `⚠️ ${t(problem)}`));
   if (s.admin_note) card.append(el('p', { class: 'small' }, `${t('adm_note')}: ${s.admin_note}`));
   if (s.status !== 'pending') return card;
 
@@ -249,6 +259,9 @@ function submissionCard(s) {
         return toast(t('adm_bad_json'), { icon: '⚠️', ms: 5000 });
       }
     }
+    // Сломанный вопрос не должен попасть во все игры: проверяем то, что уйдёт в общий банк
+    const problem = admin.questionProblem(edited ?? s.question);
+    if (problem) return toast(t(problem), { icon: '⚠️', ms: 6000 });
     approveBtn.disabled = true;
     try {
       await admin.approve(s.id, { question: edited, topic: topic.value !== s.topic ? topic.value : null });
@@ -257,7 +270,7 @@ function submissionCard(s) {
       refreshBadge();
     } catch (e) {
       console.warn('[admin]', e);
-      toast(t('acc_err_network'), { icon: '⚠️' });
+      toast(t(admin.errorKey(e)), { icon: '⚠️', ms: 5000 });
       approveBtn.disabled = false;
     }
   });
@@ -272,7 +285,7 @@ function submissionCard(s) {
       refreshBadge();
     } catch (e) {
       console.warn('[admin]', e);
-      toast(t('acc_err_network'), { icon: '⚠️' });
+      toast(t(admin.errorKey(e)), { icon: '⚠️', ms: 5000 });
       rejectBtn.disabled = false;
     }
   });
@@ -296,7 +309,7 @@ async function renderBank() {
   let list;
   try { list = await admin.listPublic(); } catch (e) {
     console.warn('[admin]', e);
-    return box.replaceChildren(el('p', { class: 'muted' }, t('acc_err_network')));
+    return box.replaceChildren(el('p', { class: 'muted' }, t(admin.errorKey(e))));
   }
   if (!list.length) return box.replaceChildren(el('div', { class: 'card center muted' }, t('adm_bank_empty')));
   box.replaceChildren(...list.map((q) => {
@@ -310,7 +323,7 @@ async function renderBank() {
         btn.closest('.adm-sub').classList.toggle('off', !q.active);
       } catch (e) {
         console.warn('[admin]', e);
-        toast(t('acc_err_network'), { icon: '⚠️' });
+        toast(t(admin.errorKey(e)), { icon: '⚠️' });
       } finally { btn.disabled = false; }
     });
     return el('article', { class: `card stack adm-sub ${q.active ? '' : 'off'}` },
@@ -318,6 +331,29 @@ async function renderBank() {
         el('span', { class: 'muted small' }, `${topicName(q.topic)} · ${q.author_name || t('adm_unknown_author')} · ${dateText(q.created_at)}`), btn),
       questionPreview(q.question, q.topic));
   }));
+}
+
+// ─── Журнал ошибок ────────────────────────────────────────────────────────────
+
+const timeText = (iso) => (iso ? new Date(iso).toLocaleString(getLang() === 'en' ? 'en-GB' : 'ru-RU', { dateStyle: 'short', timeStyle: 'short' }) : '');
+
+async function renderErrors() {
+  const box = $('#errorList');
+  box.replaceChildren(el('p', { class: 'muted' }, t('loading')));
+  let rows;
+  try { rows = await admin.listErrors(); } catch (e) {
+    console.warn('[admin]', e);
+    return box.replaceChildren(el('p', { class: 'muted' }, t(admin.errorKey(e))));
+  }
+  $('#errorsClearBtn').disabled = !rows.length;
+  // Без миграции 2026-10-24 база отдаёт пустой список, а не ошибку — подсказываем, что выполнить
+  if (!rows.length) return box.replaceChildren(el('div', { class: 'card center muted' }, t('adm_errors_empty')));
+  box.replaceChildren(...admin.groupErrors(rows).map((g) => el('article', { class: 'card stack adm-err' },
+    el('p', { class: 'adm-err-msg' }, g.message),
+    el('p', { class: 'small muted' }, `${t('adm_errors_times', { n: fmt(g.count) })} · ${t('adm_errors_last')}: ${timeText(g.last)}`),
+    el('p', { class: 'small muted' }, `${t('adm_errors_pages')}: ${g.pages.slice(0, 5).join(', ')}`),
+    g.stack || g.ua ? el('details', { class: 'small' }, el('summary', {}, t('adm_errors_details')),
+      el('pre', {}, [g.stack, g.ua].filter(Boolean).join('\n\n'))) : '')));
 }
 
 // ─── Обслуживание ─────────────────────────────────────────────────────────────
@@ -331,7 +367,7 @@ async function checkAnon() {
     return n;
   } catch (e) {
     console.warn('[admin]', e);
-    $('#anonCount').textContent = t('acc_err_network');
+    $('#anonCount').textContent = t(admin.errorKey(e));
     return 0;
   }
 }
@@ -345,10 +381,11 @@ function showTab(tab) {
     b.classList.toggle('on', on);
     b.setAttribute('aria-selected', String(on));
   });
-  ['overview', 'submissions', 'bank', 'service'].forEach((id) => $('#tab-' + id).classList.toggle('hidden', id !== tab));
+  ['overview', 'submissions', 'bank', 'errors', 'service'].forEach((id) => $('#tab-' + id).classList.toggle('hidden', id !== tab));
   if (tab === 'overview') renderOverview();
   if (tab === 'submissions') renderSubmissions();
   if (tab === 'bank') renderBank();
+  if (tab === 'errors') renderErrors();
   if (tab === 'service') checkAnon();
 }
 
@@ -369,6 +406,20 @@ function showTab(tab) {
     renderSubmissions();
   }));
   $('#anonCheckBtn').addEventListener('click', checkAnon);
+  $('#errorsClearBtn').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    if (!confirm(t('adm_errors_confirm'))) return;
+    btn.disabled = true;
+    try {
+      await admin.clearErrors();
+      toast(t('adm_errors_cleared'), { icon: '🗑️' });
+      await renderErrors();
+    } catch (err) {
+      console.warn('[admin]', err);
+      toast(t(admin.errorKey(err)), { icon: '⚠️' });
+      btn.disabled = false;
+    }
+  });
   $('#anonCleanBtn').addEventListener('click', async (e) => {
     const btn = e.currentTarget;
     const n = await checkAnon();
@@ -381,7 +432,7 @@ function showTab(tab) {
       await checkAnon();
     } catch (err) {
       console.warn('[admin]', err);
-      toast(t('acc_err_network'), { icon: '⚠️' });
+      toast(t(admin.errorKey(err)), { icon: '⚠️' });
     } finally { btn.disabled = false; }
   });
 
