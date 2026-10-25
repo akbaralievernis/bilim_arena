@@ -370,7 +370,8 @@ async function connect(code, name) {
   };
 
   $('#joinBtn').addEventListener('click', tryJoin);
-  $('#leaveWarnOk').addEventListener('click', () => $('#leaveWarn').classList.add('hidden'));
+  // Старая play.html из кэша телефона может быть без окна предупреждения — тогда без него
+  $('#leaveWarnOk')?.addEventListener('click', () => $('#leaveWarn').classList.add('hidden'));
   // Кнопка оживает, только когда страница готова: на медленном телефоне
   // нажатие до загрузки скриптов иначе просто терялось бы
   $('#joinBtn').disabled = false;
